@@ -49,6 +49,14 @@ async def get_current_strategy():
         "params": registry.get_params().__dict__
     }
 
+@router.get("/current")
+async def get_current():
+    """Get current chunking strategy (alias for compatibility)"""
+    return {
+        "strategy": registry.get_current_strategy(),
+        "params": registry.get_params().__dict__
+    }
+
 @router.post("/strategy")
 async def set_strategy(request: StrategyRequest):
     """Set chunking strategy"""
