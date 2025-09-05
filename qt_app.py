@@ -82,33 +82,19 @@ class RagWorkerThread(QThread):
                 )
                 self.finished.emit({"task": "ask", "result": response.json()})
             
-            elif self.task == "get_strategies":
-                self.progress.emit("Getting strategies...")
-                response = requests.get(f"{self.baseUrl}/api/chunkers/strategies", timeout=5)
-                self.finished.emit({"task": "get_strategies", "result": response.json()})
-            
             elif self.task == "set_strategy":
                 self.progress.emit("Setting strategy...")
-                response = requests.post(
-                    f"{self.baseUrl}/api/chunkers/strategy",
-                    json={"strategy": self.payload},
-                    timeout=5
-                )
-                self.finished.emit({"task": "set_strategy", "result": response.json()})
-            
-            elif self.task == "get_params":
-                self.progress.emit("Getting parameters...")
-                response = requests.get(f"{self.baseUrl}/api/chunkers/params", timeout=5)
-                self.finished.emit({"task": "get_params", "result": response.json()})
+                # Simply update config instead of API call
+                strategy = self.payload
+                self.config.set("chunker.default_strategy", strategy, 'server')
+                self.finished.emit({"task": "set_strategy", "result": {"strategy": strategy}})
             
             elif self.task == "set_params":
                 self.progress.emit("Setting parameters...")
-                response = requests.post(
-                    f"{self.baseUrl}/api/chunkers/params",
-                    json=self.payload,
-                    timeout=5
-                )
-                self.finished.emit({"task": "set_params", "result": response.json()})
+                # Simply update config instead of API call
+                params = self.payload
+                self.config.set("chunker.default_params", params, 'server')
+                self.finished.emit({"task": "set_params", "result": {"status": "ok"}})
                 
             elif self.task == "reload_config":
                 self.progress.emit("Reloading configuration...")
@@ -153,8 +139,7 @@ class MainWindow(QMainWindow):
         
         # Initial checks
         self.checkServer()
-        # Delay strategy loading to improve startup time
-        QTimer.singleShot(2000, self.loadChunkingStrategies)
+        # No need to load strategies anymore - they're static
     
     def initUI(self):
         """Initialize the user interface"""
@@ -238,7 +223,7 @@ class MainWindow(QMainWindow):
         self.optionsWidget.paramsChanged.connect(self.applyParams)
         self.optionsWidget.modelChanged.connect(self.onModelChanged)
         self.optionsWidget.configReloaded.connect(self.reloadConfig)
-        self.optionsWidget.onRefreshStrategies = self.loadChunkingStrategies
+        # Remove reference to loadChunkingStrategies
         self.optionsWidget.strategyCombo.currentTextChanged.connect(
             self.optionsWidget.onStrategyComboChanged
         )
@@ -373,18 +358,7 @@ class MainWindow(QMainWindow):
             self.worker.setTask("health")
             self.worker.start()
     
-    def loadChunkingStrategies(self):
-        """Load available chunking strategies (only if server online)"""
-        if self.serverOnline and not self.worker.isRunning():
-            self.worker.setTask("get_strategies")
-            self.worker.start()
-    
-    def loadChunkingParams(self):
-        """Load current chunking parameters"""
-        if self.serverOnline:
-            self.worker.setTask("get_params")
-            self.worker.start()
-    
+
     def ingestDocuments(self):
         """Ingest documents to server"""
         docs = self.docWidget.getDocuments()
@@ -492,42 +466,19 @@ class MainWindow(QMainWindow):
             self.chatWidget.addMessage("Assistant", answer, metadata)
             self.logsWidget.info(f"Answer generated in {metadata['latencyMs']}ms")
         
-        elif task == "get_strategies":
-            strategies = result.get("strategies", [])
-            current = result.get("current", "unknown")
-            self.optionsWidget.updateStrategies(strategies)
-            self.strategyStatusLabel.setText(f"📦 Strategy: {current}")
-            self.logsWidget.info(f"Loaded {len(strategies)} strategies, current: {current}")
-            
-            # Load parameters too
-            if strategies:
-                self.loadChunkingParams()
-        
         elif task == "set_strategy":
             strategy = result.get("strategy", "unknown")
             self.strategyStatusLabel.setText(f"📦 Strategy: {strategy}")
             QMessageBox.information(self, "Success", f"Strategy changed to: {strategy}")
             self.logsWidget.success(f"Changed strategy to: {strategy}")
-            
-            # Reload strategies to update UI
-            self.loadChunkingStrategies()
-        
-        elif task == "get_params":
-            params = result
-            self.optionsWidget.updateParams(params)
-            self.logsWidget.info("Loaded chunking parameters")
         
         elif task == "set_params":
             QMessageBox.information(self, "Success", "Parameters updated successfully")
             self.logsWidget.success("Updated chunking parameters")
-            
-            # Reload params to confirm
-            self.loadChunkingParams()
         
         elif task == "reload_config":
             QMessageBox.information(self, "Success", "Configuration reloaded")
             self.logsWidget.success("Configuration reloaded")
-            self.loadChunkingStrategies()
         
         # Update model status
         provider = self.config.get_current_provider()

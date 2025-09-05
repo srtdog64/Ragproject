@@ -1,6 +1,7 @@
 # ui/options_widget.py
 """
 Options Tab Widget for RAG Qt Application
+Simplified version with static chunking strategies
 """
 from typing import Dict, List
 from PySide6.QtWidgets import *
@@ -18,8 +19,32 @@ class OptionsWidget(QWidget):
     def __init__(self, config_manager):
         super().__init__()
         self.config = config_manager
-        self.strategies = []
-        self.currentStrategy = ""
+        
+        # Static chunking strategies
+        self.strategies = [
+            {
+                "name": "sentence",
+                "description": "Splits text at sentence boundaries. Best for Q&A and chat logs."
+            },
+            {
+                "name": "paragraph", 
+                "description": "Splits text at paragraph boundaries. Ideal for structured documents."
+            },
+            {
+                "name": "sliding_window",
+                "description": "Uses a fixed-size sliding window with overlap. Good for long narratives."
+            },
+            {
+                "name": "adaptive",
+                "description": "Automatically selects the best strategy based on content type."
+            },
+            {
+                "name": "simple_overlap",
+                "description": "Simple fixed-size chunks with overlap. Fast and predictable."
+            }
+        ]
+        
+        self.currentStrategy = self.config.get("chunker.default_strategy", "adaptive", 'server')
         self.initUI()
     
     def initUI(self):
@@ -140,12 +165,12 @@ class OptionsWidget(QWidget):
         return group
     
     def createStrategySection(self) -> QGroupBox:
-        """Create chunking strategy section"""
+        """Create chunking strategy section (static)"""
         group = QGroupBox("📦 Chunking Strategy")
         layout = QVBoxLayout()
         
         # Current strategy display
-        self.currentStrategyLabel = QLabel("Current Strategy: Loading...")
+        self.currentStrategyLabel = QLabel(f"Current Strategy: {self.currentStrategy}")
         self.currentStrategyLabel.setStyleSheet("font-weight: bold; color: #1976d2;")
         layout.addWidget(self.currentStrategyLabel)
         
@@ -155,15 +180,19 @@ class OptionsWidget(QWidget):
         
         self.strategyCombo = QComboBox()
         self.strategyCombo.setMinimumWidth(200)
+        
+        # Add static strategies
+        for strategy in self.strategies:
+            self.strategyCombo.addItem(strategy['name'])
+        
+        # Set current strategy
+        self.strategyCombo.setCurrentText(self.currentStrategy)
+        self.strategyCombo.currentTextChanged.connect(self.onStrategyComboChanged)
         selectorLayout.addWidget(self.strategyCombo)
         
-        self.applyStrategyBtn = QPushButton("Apply")
+        self.applyStrategyBtn = QPushButton("Apply Strategy")
         self.applyStrategyBtn.clicked.connect(self.onStrategyApply)
         selectorLayout.addWidget(self.applyStrategyBtn)
-        
-        self.refreshStrategiesBtn = QPushButton("🔄 Refresh")
-        self.refreshStrategiesBtn.clicked.connect(self.onRefreshStrategies)
-        selectorLayout.addWidget(self.refreshStrategiesBtn)
         
         selectorLayout.addStretch()
         layout.addLayout(selectorLayout)
@@ -172,6 +201,7 @@ class OptionsWidget(QWidget):
         self.strategyDescLabel = QLabel()
         self.strategyDescLabel.setWordWrap(True)
         self.strategyDescLabel.setStyleSheet("color: #666; margin-top: 10px;")
+        self.onStrategyComboChanged()  # Initialize description
         layout.addWidget(self.strategyDescLabel)
         
         group.setLayout(layout)
@@ -184,18 +214,21 @@ class OptionsWidget(QWidget):
         
         self.paramInputs = {}
         
+        # Get default params from config
+        default_params = self.config.get("chunker.default_params", {}, 'server')
+        
         params = [
-            ("maxTokens", "Max Tokens:", QSpinBox, (100, 5000, 512), 
+            ("maxTokens", "Max Tokens:", QSpinBox, (100, 5000, default_params.get('maxTokens', 512)), 
              "Maximum tokens per chunk"),
-            ("windowSize", "Window Size:", QSpinBox, (200, 10000, 1200),
+            ("windowSize", "Window Size:", QSpinBox, (200, 10000, default_params.get('windowSize', 1200)),
              "Size of sliding window in characters"),
-            ("overlap", "Overlap:", QSpinBox, (0, 1000, 200),
+            ("overlap", "Overlap:", QSpinBox, (0, 1000, default_params.get('overlap', 200)),
              "Characters to overlap between chunks"),
-            ("semanticThreshold", "Semantic Threshold:", QDoubleSpinBox, (0.0, 1.0, 0.82),
+            ("semanticThreshold", "Semantic Threshold:", QDoubleSpinBox, (0.0, 1.0, default_params.get('semanticThreshold', 0.82)),
              "Similarity threshold for semantic chunking"),
-            ("sentenceMinLen", "Min Sentence Length:", QSpinBox, (1, 100, 10),
+            ("sentenceMinLen", "Min Sentence Length:", QSpinBox, (1, 100, default_params.get('sentenceMinLen', 10)),
              "Minimum sentence length in characters"),
-            ("paragraphMinLen", "Min Paragraph Length:", QSpinBox, (10, 500, 50),
+            ("paragraphMinLen", "Min Paragraph Length:", QSpinBox, (10, 500, default_params.get('paragraphMinLen', 50)),
              "Minimum paragraph length in characters"),
         ]
         
@@ -216,6 +249,7 @@ class OptionsWidget(QWidget):
         # Language selector
         self.languageCombo = QComboBox()
         self.languageCombo.addItems(["ko", "en", "ja", "zh"])
+        self.languageCombo.setCurrentText(default_params.get('language', 'ko'))
         self.languageCombo.setToolTip("Language for text processing")
         self.paramInputs["language"] = self.languageCombo
         layout.addRow("Language:", self.languageCombo)
@@ -247,17 +281,16 @@ class OptionsWidget(QWidget):
         <b>Configuration Files:</b><br>
         • Server: config/config.yaml<br>
         • Qt App: config/qt_app_config.yaml<br>
-        • Chunkers: rag/chunkers/config.json<br>
         """
         
         infoLabel = QLabel(configInfo)
         infoLabel.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 4px;")
         layout.addWidget(infoLabel)
         
-        # Reload config button
-        reloadBtn = QPushButton("🔄 Reload All Configurations")
-        reloadBtn.clicked.connect(self.onReloadConfig)
-        layout.addWidget(reloadBtn)
+        # Save config button
+        saveConfigBtn = QPushButton("💾 Save Current Settings to Config")
+        saveConfigBtn.clicked.connect(self.onSaveConfig)
+        layout.addWidget(saveConfigBtn)
         
         # Strategy guide
         guideText = """
@@ -295,12 +328,15 @@ class OptionsWidget(QWidget):
             "gemini": {
                 "gemini-pro": "Google's versatile model for text generation",
                 "gemini-pro-vision": "Multimodal model supporting text and images",
-                "gemini-1.5-pro": "Advanced model with extended context window"
+                "gemini-1.5-pro": "Advanced model with extended context window",
+                "gemini-1.5-flash": "Fast model for quick responses"
             },
             "openai": {
                 "gpt-3.5-turbo": "Fast and cost-effective for most tasks",
                 "gpt-4": "Most capable model for complex reasoning",
-                "gpt-4-turbo": "GPT-4 with improved speed and lower cost"
+                "gpt-4-turbo": "GPT-4 with improved speed and lower cost",
+                "gpt-4o": "Optimized GPT-4 variant",
+                "gpt-4o-mini": "Smaller, faster GPT-4 variant"
             },
             "claude": {
                 "claude-3-opus": "Most powerful Claude model",
@@ -339,39 +375,28 @@ class OptionsWidget(QWidget):
         """Apply selected strategy"""
         strategy = self.strategyCombo.currentText()
         if strategy:
+            self.currentStrategy = strategy
+            self.currentStrategyLabel.setText(f"Current Strategy: {strategy}")
+            
+            # Save to config
+            self.config.set("chunker.default_strategy", strategy, 'server')
+            
+            # Emit signal
             self.strategyChanged.emit(strategy)
+            
+            QMessageBox.information(self, "Success", f"Strategy changed to: {strategy}")
     
     def onParamsApply(self):
         """Apply chunking parameters"""
         params = self.getParams()
+        
+        # Save to config
+        self.config.set("chunker.default_params", params, 'server')
+        
+        # Emit signal
         self.paramsChanged.emit(params)
-    
-    def onRefreshStrategies(self):
-        """Refresh strategies - to be connected externally"""
-        pass
-    
-    def onReloadConfig(self):
-        """Reload configuration"""
-        self.configReloaded.emit()
-    
-    def updateStrategies(self, strategies: List[Dict]):
-        """Update the strategies list"""
-        self.strategies = strategies
-        self.strategyCombo.clear()
         
-        if not strategies:
-            self.currentStrategyLabel.setText("Current Strategy: No strategies available")
-            self.strategyDescLabel.setText("❌ Could not load strategies. Check server connection.")
-            return
-        
-        for strategy in strategies:
-            self.strategyCombo.addItem(strategy['name'])
-            if strategy.get('active'):
-                self.currentStrategy = strategy['name']
-                self.currentStrategyLabel.setText(f"Current Strategy: {strategy['name']}")
-                self.strategyCombo.setCurrentText(strategy['name'])
-        
-        self.onStrategyComboChanged()
+        QMessageBox.information(self, "Success", "Parameters updated successfully")
     
     def onStrategyComboChanged(self):
         """Update description when combo selection changes"""
@@ -381,15 +406,27 @@ class OptionsWidget(QWidget):
                 self.strategyDescLabel.setText(f"📝 {strategy['description']}")
                 break
     
-    def updateParams(self, params: Dict):
-        """Update parameter values"""
-        for key, value in params.items():
-            if key in self.paramInputs:
-                widget = self.paramInputs[key]
-                if isinstance(widget, (QSpinBox, QDoubleSpinBox)):
-                    widget.setValue(value)
-                elif isinstance(widget, QComboBox):
-                    widget.setCurrentText(str(value))
+    def onSaveConfig(self):
+        """Save all current settings to config files"""
+        try:
+            # Model settings
+            provider = self.providerCombo.currentText()
+            model = self.modelCombo.currentText()
+            self.config.set_model(provider, model)
+            self.config.set("llm.temperature", self.temperatureSpin.value(), 'server')
+            self.config.set("llm.max_tokens", self.maxTokensSpin.value(), 'server')
+            
+            # Chunking settings
+            self.config.set("chunker.default_strategy", self.currentStrategy, 'server')
+            self.config.set("chunker.default_params", self.getParams(), 'server')
+            
+            QMessageBox.information(self, "Success", "All settings saved to configuration files")
+            
+            # Emit reload signal
+            self.configReloaded.emit()
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to save configuration: {str(e)}")
     
     def getParams(self) -> Dict:
         """Get current parameter values"""
@@ -402,3 +439,18 @@ class OptionsWidget(QWidget):
             elif isinstance(widget, QComboBox):
                 params[key] = widget.currentText()
         return params
+    
+    # Simplified methods - no API calls needed
+    def updateStrategies(self, strategies: List[Dict]):
+        """Legacy method - now does nothing since strategies are static"""
+        pass
+    
+    def updateParams(self, params: Dict):
+        """Update parameter values from external source"""
+        for key, value in params.items():
+            if key in self.paramInputs:
+                widget = self.paramInputs[key]
+                if isinstance(widget, (QSpinBox, QDoubleSpinBox)):
+                    widget.setValue(value)
+                elif isinstance(widget, QComboBox):
+                    widget.setCurrentText(str(value))
