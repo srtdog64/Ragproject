@@ -188,14 +188,10 @@ class LogsWidget(QWidget):
             QMessageBox.warning(self, "No Logs", "No logs to export")
             return
         
-        # Set initial directory
-        initial_dir = str(Path.home())
-        
         fileName, _ = QFileDialog.getSaveFileName(
             self, "Export Logs",
-            str(Path(initial_dir) / f"rag_logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"),
-            "Text Files (*.txt);;Log Files (*.log)",
-            options=QFileDialog.Option.DontUseNativeDialog
+            f"rag_logs_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt",
+            "Text Files (*.txt);;Log Files (*.log)"
         )
         
         if fileName:

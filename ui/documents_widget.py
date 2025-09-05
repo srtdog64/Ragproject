@@ -133,19 +133,14 @@ class DocumentsWidget(QWidget):
     
     def loadFile(self):
         """Load a single file"""
-        # Set initial directory to avoid schema issues
-        initial_dir = str(Path.home()) if not hasattr(self, '_last_dir') else self._last_dir
-        
         fileName, _ = QFileDialog.getOpenFileName(
             self, 
             "Select File", 
-            initial_dir,
-            "Supported Files (*.pdf *.md *.txt);;PDF Files (*.pdf);;Markdown Files (*.md);;Text Files (*.txt)",
-            options=QFileDialog.Option.DontUseNativeDialog  # Avoid native dialog issues
+            "",
+            "Supported Files (*.pdf *.md *.txt);;PDF Files (*.pdf);;Markdown Files (*.md);;Text Files (*.txt)"
         )
         
         if fileName:
-            self._last_dir = str(Path(fileName).parent)  # Remember last directory
             try:
                 doc = FileLoader.load_file(fileName)
                 self.documents.append(doc)
@@ -162,18 +157,9 @@ class DocumentsWidget(QWidget):
     
     def loadDirectory(self):
         """Load all supported files from a directory"""
-        # Set initial directory
-        initial_dir = str(Path.home()) if not hasattr(self, '_last_dir') else self._last_dir
-        
-        directory = QFileDialog.getExistingDirectory(
-            self, 
-            "Select Directory",
-            initial_dir,
-            options=QFileDialog.Option.DontUseNativeDialog
-        )
+        directory = QFileDialog.getExistingDirectory(self, "Select Directory")
         
         if directory:
-            self._last_dir = directory  # Remember last directory
             reply = QMessageBox.question(
                 self, "Recursive Search?",
                 "Include subdirectories?",
@@ -399,14 +385,10 @@ class DocumentsWidget(QWidget):
             QMessageBox.warning(self, "Warning", "No documents to export")
             return
         
-        # Set initial directory
-        initial_dir = str(Path.home()) if not hasattr(self, '_last_dir') else self._last_dir
-        
         fileName, _ = QFileDialog.getSaveFileName(
             self, "Export Documents", 
-            str(Path(initial_dir) / "documents.json"),
-            "JSON Files (*.json)",
-            options=QFileDialog.Option.DontUseNativeDialog
+            "documents.json",
+            "JSON Files (*.json)"
         )
         
         if fileName:

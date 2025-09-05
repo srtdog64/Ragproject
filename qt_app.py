@@ -153,7 +153,8 @@ class MainWindow(QMainWindow):
         
         # Initial checks
         self.checkServer()
-        QTimer.singleShot(1000, self.loadChunkingStrategies)
+        # Delay strategy loading to improve startup time
+        QTimer.singleShot(2000, self.loadChunkingStrategies)
     
     def initUI(self):
         """Initialize the user interface"""
@@ -373,8 +374,8 @@ class MainWindow(QMainWindow):
             self.worker.start()
     
     def loadChunkingStrategies(self):
-        """Load available chunking strategies"""
-        if self.serverOnline:
+        """Load available chunking strategies (only if server online)"""
+        if self.serverOnline and not self.worker.isRunning():
             self.worker.setTask("get_strategies")
             self.worker.start()
     

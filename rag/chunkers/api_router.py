@@ -64,8 +64,8 @@ async def set_strategy(request: StrategyRequest):
 @router.get("/params")
 async def get_params():
     """Get current chunking parameters"""
-    params = registry.get_params()
-    return params.__dict__
+    # Use get_params_dict for faster access
+    return registry.get_params_dict()
 
 @router.post("/params")
 async def set_params(request: ParamsRequest):
