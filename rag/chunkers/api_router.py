@@ -1,4 +1,8 @@
 # chunkers/api_router.py
+"""
+Chunking API Router
+Provides RESTful endpoints for chunking strategy management
+"""
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
@@ -10,6 +14,7 @@ from core.types import Document
 
 router = APIRouter(prefix="/api/chunkers", tags=["chunkers"])
 
+# === Request Models ===
 class StrategyRequest(BaseModel):
     strategy: str
 
@@ -32,9 +37,10 @@ class PreviewRequest(BaseModel):
     title: Optional[str] = "Preview Document"
     source: Optional[str] = "preview"
 
+# === Strategy Management Endpoints ===
 @router.get("/strategies")
 async def list_strategies():
-    """List all available chunking strategies"""
+    """List all available chunking strategies with current selection"""
     strategies = registry.list_strategies()
     return {
         "strategies": strategies,
@@ -43,64 +49,72 @@ async def list_strategies():
 
 @router.get("/strategy")
 async def get_current_strategy():
-    """Get current chunking strategy"""
+    """Get the currently active chunking strategy and its parameters"""
     return {
         "strategy": registry.get_current_strategy(),
-        "params": registry.get_params().__dict__
-    }
-
-@router.get("/current")
-async def get_current():
-    """Get current chunking strategy (alias for compatibility)"""
-    return {
-        "strategy": registry.get_current_strategy(),
-        "params": registry.get_params().__dict__
+        "params": registry.get_params_dict()
     }
 
 @router.post("/strategy")
 async def set_strategy(request: StrategyRequest):
-    """Set chunking strategy"""
+    """Set the active chunking strategy"""
     try:
         registry.set_strategy(request.strategy)
         return {
             "message": f"Strategy set to {request.strategy}",
-            "strategy": registry.get_current_strategy()
+            "strategy": registry.get_current_strategy(),
+            "params": registry.get_params_dict()
         }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+# === Parameters Management Endpoints ===
 @router.get("/params")
 async def get_params():
     """Get current chunking parameters"""
-    # Use get_params_dict for faster access
     return registry.get_params_dict()
 
 @router.post("/params")
 async def set_params(request: ParamsRequest):
-    """Update chunking parameters"""
+    """Update chunking parameters (partial update supported)"""
     try:
         # Only update non-None values
         params_dict = {k: v for k, v in request.dict().items() if v is not None}
-        registry.set_params(**params_dict)
+        if params_dict:
+            registry.set_params(**params_dict)
         return {
-            "message": "Parameters updated",
-            "params": registry.get_params().__dict__
+            "message": "Parameters updated successfully",
+            "params": registry.get_params_dict()
         }
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+# === Analysis and Preview Endpoints ===
 @router.post("/analyze")
 async def analyze_text(request: AnalyzeRequest):
-    """Analyze text and suggest best chunking strategy"""
+    """Analyze text characteristics and suggest optimal chunking strategy"""
     suggested = registry.analyze_text(request.text)
+    
+    # Get text statistics
+    lines = request.text.split('\n')
+    words = request.text.split()
+    
     return {
         "suggested_strategy": suggested,
-        "text_length": len(request.text)
+        "text_stats": {
+            "length": len(request.text),
+            "lines": len(lines),
+            "words": len(words),
+            "avg_line_length": len(request.text) / max(1, len(lines))
+        }
     }
 
 @router.post("/preview")
 async def preview_chunking(request: PreviewRequest):
-    """Preview chunking with specific strategy"""
+    """
+    Preview how text would be chunked with specified strategy and parameters.
+    Useful for testing different strategies before applying them.
+    """
     strategy = request.strategy or registry.get_current_strategy()
     
     try:
@@ -124,22 +138,44 @@ async def preview_chunking(request: PreviewRequest):
         # Perform chunking
         chunks = chunker.chunk(doc, params)
         
-        # Convert chunks to JSON-serializable format
-        chunks_data = [
-            {
+        # Convert chunks to JSON-serializable format with preview
+        chunks_data = []
+        for i, chunk in enumerate(chunks):
+            preview_length = 200
+            chunk_data = {
                 "id": chunk.id,
-                "text": chunk.text[:200] + "..." if len(chunk.text) > 200 else chunk.text,
+                "index": i,
+                "text_preview": chunk.text[:preview_length] + "..." if len(chunk.text) > preview_length else chunk.text,
                 "length": len(chunk.text),
                 "meta": chunk.meta
             }
-            for chunk in chunks
-        ]
+            chunks_data.append(chunk_data)
         
         return {
             "strategy": strategy,
             "chunks": chunks_data,
-            "total_chunks": len(chunks),
+            "summary": {
+                "total_chunks": len(chunks),
+                "avg_chunk_size": sum(len(c.text) for c in chunks) / max(1, len(chunks)),
+                "min_chunk_size": min(len(c.text) for c in chunks) if chunks else 0,
+                "max_chunk_size": max(len(c.text) for c in chunks) if chunks else 0
+            },
             "params": params.__dict__
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# === Health Check ===
+@router.get("/health")
+async def health_check():
+    """Check if chunking service is operational"""
+    try:
+        strategy = registry.get_current_strategy()
+        chunker = registry.get_chunker(strategy)
+        return {
+            "status": "healthy",
+            "current_strategy": strategy,
+            "available_strategies": len(registry._chunkers)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Service unhealthy: {str(e)}")
