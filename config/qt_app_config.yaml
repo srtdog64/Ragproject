@@ -1,0 +1,50 @@
+# Qt Application Settings
+# Specific configuration for the Qt GUI application
+
+# Server connection settings
+server:
+  url: "http://localhost:7001"  # Main server URL - matches run_server.py
+  timeout: 30  # Request timeout in seconds
+  health_check_interval: 10  # How often to check server status (seconds)
+
+# UI settings
+ui:
+  theme: "Fusion"  # Qt theme
+  window:
+    width: 1400
+    height: 900
+    title: "RAG System - Qt6 Interface"
+  
+  # Default values for UI components
+  defaults:
+    top_k: 5
+    max_documents_display: 1000
+    text_preview_length: 200
+
+# Document loading settings
+documents:
+  supported_formats:
+    - pdf
+    - md
+    - txt
+    - json
+  
+  batch_size: 100  # Number of documents to process at once
+  max_file_size_mb: 50  # Maximum file size in MB
+
+# Chat settings
+chat:
+  max_message_length: 10000
+  history_limit: 100  # Number of messages to keep in history
+  auto_scroll: true
+
+# Logging settings
+logging:
+  level: "INFO"
+  show_timestamps: true
+  max_log_lines: 1000
+
+# Options tab defaults
+options:
+  auto_load_strategies: true  # Auto-load strategies on startup
+  show_advanced_params: true

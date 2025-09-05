@@ -43,6 +43,6 @@ timeout /t 3 /nobreak >nul
 
 REM Start Qt UI
 echo Starting Qt6 Interface...
-python qt_app.py
+python qt_app_final.py
 
 pause

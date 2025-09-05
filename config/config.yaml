@@ -1,0 +1,100 @@
+# RAG System Configuration
+# This file contains all configurable parameters for the RAG system
+
+# Server Configuration
+server:
+  host: "0.0.0.0"
+  port: 7001  # Default port for RAG server
+  reload: true
+  log_level: "info"
+
+# Policy Configuration
+policy:
+  maxContextChars: 8000
+  defaultTopK: 5
+
+# Embedder Configuration
+embedder:
+  type: "hash"  # hash, openai, sentence-transformers
+  dimension: 96
+
+# Store Configuration
+store:
+  type: "memory"  # memory, chroma, pinecone
+  persist_directory: null
+
+# Chunker Configuration
+chunker:
+  # Default strategy to use
+  default_strategy: "adaptive"
+  
+  # Default parameters for all strategies
+  default_params:
+    maxTokens: 512
+    windowSize: 1200
+    overlap: 200
+    semanticThreshold: 0.82
+    language: "ko"
+    sentenceMinLen: 10
+    paragraphMinLen: 50
+
+# LLM Configuration
+llm:
+  type: "gemini"  # gemini, openai, claude
+  model: "gemini-pro"
+  temperature: 0.7
+  max_tokens: 2048
+  # API key should be in .env file, not here
+
+# Reranker Configuration
+reranker:
+  type: "identity"  # identity, cross-encoder, bm25
+  model: null
+
+# Ingester Configuration
+ingester:
+  max_parallel: 8
+  batch_size: 100
+
+# Pipeline Configuration
+pipeline:
+  query_expansion:
+    enabled: false
+    expansions: 0
+  
+  retrieval:
+    enabled: true
+    topK: null  # Uses policy.defaultTopK if null
+  
+  reranking:
+    enabled: true
+    topK: null  # Uses policy.defaultTopK if null
+  
+  context_compression:
+    enabled: true
+  
+  prompt:
+    system_hint: "You are a helpful RAG assistant. Answer based on the context provided."
+    system_message: "Be precise and helpful."
+  
+  generation:
+    enabled: true
+  
+  parsing:
+    enabled: true
+    format: "markdown-qa"
+
+# CORS Configuration
+cors:
+  allow_origins:
+    - "http://localhost:*"
+    - "http://127.0.0.1:*"
+  allow_credentials: true
+  allow_methods: ["*"]
+  allow_headers: ["*"]
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: null  # Set to a file path to enable file logging
