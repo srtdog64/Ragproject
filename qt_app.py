@@ -551,7 +551,7 @@ class MainWindow(QMainWindow):
             <li>Log Viewer - System monitoring</li>
             </ul>
             
-            <p>© 2024 RAG System Development Team</p>"""
+            <p>© 2025 RAG System Development Team</p>"""
         )
     
     def closeEvent(self, event):
