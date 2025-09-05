@@ -44,8 +44,25 @@ class OptionsWidget(QWidget):
             }
         ]
         
-        self.currentStrategy = self.config.get("chunker.default_strategy", "adaptive", 'server')
+        # Get current strategy from server on initialization
+        self.currentStrategy = self.fetchCurrentStrategyFromServer()
         self.initUI()
+        
+    def fetchCurrentStrategyFromServer(self) -> str:
+        """Fetch current strategy from server on initialization"""
+        try:
+            import requests
+            response = requests.get(f"{self.config.get_server_url()}/api/chunkers/current")
+            if response.status_code == 200:
+                data = response.json()
+                strategy = data.get('strategy', 'adaptive')
+                print(f"Fetched current strategy from server: {strategy}")
+                return strategy
+        except Exception as e:
+            print(f"Failed to fetch strategy from server: {e}")
+        
+        # Fallback to config or default
+        return self.config.get("chunker.default_strategy", "adaptive", 'server')
     
     def initUI(self):
         # Main scroll area
@@ -174,6 +191,11 @@ class OptionsWidget(QWidget):
         self.currentStrategyLabel.setStyleSheet("font-weight: bold; color: #1976d2;")
         layout.addWidget(self.currentStrategyLabel)
         
+        # Server sync indicator
+        self.syncStatusLabel = QLabel("✅ Synced with server")
+        self.syncStatusLabel.setStyleSheet("color: green; font-size: 11px;")
+        layout.addWidget(self.syncStatusLabel)
+        
         # Strategy selector
         selectorLayout = QHBoxLayout()
         selectorLayout.addWidget(QLabel("Select Strategy:"))
@@ -185,7 +207,7 @@ class OptionsWidget(QWidget):
         for strategy in self.strategies:
             self.strategyCombo.addItem(strategy['name'])
         
-        # Set current strategy
+        # Set current strategy from server
         self.strategyCombo.setCurrentText(self.currentStrategy)
         self.strategyCombo.currentTextChanged.connect(self.onStrategyComboChanged)
         selectorLayout.addWidget(self.strategyCombo)
@@ -193,6 +215,13 @@ class OptionsWidget(QWidget):
         self.applyStrategyBtn = QPushButton("Apply Strategy")
         self.applyStrategyBtn.clicked.connect(self.onStrategyApply)
         selectorLayout.addWidget(self.applyStrategyBtn)
+        
+        # Refresh button to sync with server
+        self.refreshStrategyBtn = QPushButton("🔄")
+        self.refreshStrategyBtn.setToolTip("Refresh from server")
+        self.refreshStrategyBtn.clicked.connect(self.onRefreshStrategy)
+        self.refreshStrategyBtn.setMaximumWidth(30)
+        selectorLayout.addWidget(self.refreshStrategyBtn)
         
         selectorLayout.addStretch()
         layout.addLayout(selectorLayout)
@@ -214,8 +243,8 @@ class OptionsWidget(QWidget):
         
         self.paramInputs = {}
         
-        # Get default params from config
-        default_params = self.config.get("chunker.default_params", {}, 'server')
+        # Get parameters from server or config
+        default_params = self.fetchCurrentParamsFromServer()
         
         params = [
             ("maxTokens", "Max Tokens:", QSpinBox, (100, 5000, default_params.get('maxTokens', 512)), 
@@ -254,13 +283,40 @@ class OptionsWidget(QWidget):
         self.paramInputs["language"] = self.languageCombo
         layout.addRow("Language:", self.languageCombo)
         
+        # Button layout
+        buttonLayout = QHBoxLayout()
+        
         # Apply parameters button
         applyParamsBtn = QPushButton("Apply Parameters")
         applyParamsBtn.clicked.connect(self.onParamsApply)
-        layout.addRow("", applyParamsBtn)
+        buttonLayout.addWidget(applyParamsBtn)
+        
+        # Refresh params button
+        refreshParamsBtn = QPushButton("🔄")
+        refreshParamsBtn.setToolTip("Refresh from server")
+        refreshParamsBtn.clicked.connect(self.onRefreshParams)
+        refreshParamsBtn.setMaximumWidth(30)
+        buttonLayout.addWidget(refreshParamsBtn)
+        
+        layout.addRow("", buttonLayout)
         
         group.setLayout(layout)
         return group
+    
+    def fetchCurrentParamsFromServer(self) -> Dict:
+        """Fetch current parameters from server"""
+        try:
+            import requests
+            response = requests.get(f"{self.config.get_server_url()}/api/chunkers/params")
+            if response.status_code == 200:
+                params = response.json()
+                print(f"Fetched params from server: {params}")
+                return params
+        except Exception as e:
+            print(f"Failed to fetch params from server: {e}")
+        
+        # Fallback to config
+        return self.config.get("chunker.default_params", {}, 'server')
     
     def createServerInfoSection(self) -> QGroupBox:
         """Create server information section"""
@@ -371,32 +427,97 @@ class OptionsWidget(QWidget):
         
         QMessageBox.information(self, "Success", f"Model changed to {provider}: {model}")
     
+    def onRefreshStrategy(self):
+        """Refresh strategy from server"""
+        strategy = self.fetchCurrentStrategyFromServer()
+        self.currentStrategy = strategy
+        self.strategyCombo.setCurrentText(strategy)
+        self.currentStrategyLabel.setText(f"Current Strategy: {strategy}")
+        self.syncStatusLabel.setText("✅ Synced with server")
+        self.syncStatusLabel.setStyleSheet("color: green; font-size: 11px;")
+    
     def onStrategyApply(self):
         """Apply selected strategy"""
         strategy = self.strategyCombo.currentText()
         if strategy:
-            self.currentStrategy = strategy
-            self.currentStrategyLabel.setText(f"Current Strategy: {strategy}")
-            
-            # Save to config
-            self.config.set("chunker.default_strategy", strategy, 'server')
-            
-            # Emit signal
-            self.strategyChanged.emit(strategy)
-            
-            QMessageBox.information(self, "Success", f"Strategy changed to: {strategy}")
+            try:
+                import requests
+                # Send to server first
+                response = requests.post(
+                    f"{self.config.get_server_url()}/api/chunkers/strategy",
+                    json={"strategy": strategy},
+                    headers={"Content-Type": "application/json"}
+                )
+                
+                if response.status_code == 200:
+                    self.currentStrategy = strategy
+                    self.currentStrategyLabel.setText(f"Current Strategy: {strategy}")
+                    
+                    # Save to config
+                    self.config.set("chunker.default_strategy", strategy, 'server')
+                    
+                    # Update sync status
+                    self.syncStatusLabel.setText("✅ Applied to server")
+                    self.syncStatusLabel.setStyleSheet("color: green; font-size: 11px;")
+                    
+                    # Emit signal
+                    self.strategyChanged.emit(strategy)
+                    
+                    QMessageBox.information(self, "Success", f"Strategy changed to: {strategy}")
+                else:
+                    raise Exception(f"Server returned {response.status_code}")
+                    
+            except Exception as e:
+                # Fallback to local config only
+                print(f"Failed to apply to server: {e}")
+                self.config.set("chunker.default_strategy", strategy, 'server')
+                self.currentStrategy = strategy
+                self.currentStrategyLabel.setText(f"Current Strategy: {strategy}")
+                
+                self.syncStatusLabel.setText("⚠️ Server not synced")
+                self.syncStatusLabel.setStyleSheet("color: orange; font-size: 11px;")
+                
+                QMessageBox.warning(self, "Warning", 
+                                   f"Strategy saved locally but server sync failed: {e}")
+    
+    def onRefreshParams(self):
+        """Refresh parameters from server"""
+        params = self.fetchCurrentParamsFromServer()
+        self.updateParams(params)
+        QMessageBox.information(self, "Success", "Parameters refreshed from server")
     
     def onParamsApply(self):
         """Apply chunking parameters"""
         params = self.getParams()
         
-        # Save to config
-        self.config.set("chunker.default_params", params, 'server')
-        
-        # Emit signal
-        self.paramsChanged.emit(params)
-        
-        QMessageBox.information(self, "Success", "Parameters updated successfully")
+        try:
+            import requests
+            # Send to server
+            response = requests.post(
+                f"{self.config.get_server_url()}/api/chunkers/params",
+                json=params,
+                headers={"Content-Type": "application/json"}
+            )
+            
+            if response.status_code == 200:
+                # Save to config
+                self.config.set("chunker.default_params", params, 'server')
+                
+                # Emit signal
+                self.paramsChanged.emit(params)
+                
+                QMessageBox.information(self, "Success", "Parameters updated successfully")
+            else:
+                raise Exception(f"Server returned {response.status_code}")
+                
+        except Exception as e:
+            # Fallback to local config
+            print(f"Failed to apply params to server: {e}")
+            self.config.set("chunker.default_params", params, 'server')
+            self.paramsChanged.emit(params)
+            
+            QMessageBox.warning(self, "Warning", 
+                              f"Parameters saved locally but server sync failed: {e}")
     
     def onStrategyComboChanged(self):
         """Update description when combo selection changes"""

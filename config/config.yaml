@@ -17,17 +17,11 @@ cors:
   allow_origins:
   - http://localhost:*
   - http://127.0.0.1:*
-# Embedder Configuration
 embedder:
-  type: semantic  # semantic (recommended) or hash
-  model: multilingual-small  # Model preset or direct model name
-  # Available presets:
-  # - english-small, english-base, english-large
-  # - multilingual-small, multilingual-base, multilingual-large  
-  # - korean, korean-small
-  # - qa (Q&A optimized), similarity
-  cache_dir: null  # Model cache directory (null = default ~/.cache)
-  dimension: 384  # Auto-detected for semantic models
+  cache_dir: null
+  dimension: 384
+  model: multilingual-small
+  type: semantic
 ingester:
   batch_size: 100
   max_parallel: 8
@@ -52,7 +46,7 @@ llm:
     - gpt-4
     - gpt-3.5-turbo
   max_tokens: 2048
-  model: gemini-1.5-pro
+  model: gemini-2.5-flash
   temperature: 0.9
   type: gemini
 logging:

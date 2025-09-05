@@ -25,15 +25,25 @@ class ChunkerRegistry:
         
         self._chunkers: Dict[str, Type[IChunker]] = {}
         self._instances: Dict[str, IChunker] = {}
-        self._current_strategy = "adaptive"
+        self._current_strategy = "adaptive"  # Default strategy
         self._params = ChunkingParams()
         self._config_file = "E:/Ragproject/rag/chunkers/config.json"
         
-        # Register default chunkers
+        # Register default chunkers FIRST
         self._register_defaults()
         
-        # Load configuration if exists
+        # Then load configuration (which may override defaults)
         self._load_config()
+        
+        # Ensure we have a valid strategy
+        if self._current_strategy not in self._chunkers:
+            # Fallback to first available strategy
+            if self._chunkers:
+                self._current_strategy = list(self._chunkers.keys())[0]
+                print(f"Warning: Strategy reset to '{self._current_strategy}'")
+            else:
+                # This should never happen if _register_defaults worked
+                raise RuntimeError("No chunkers available!")
         
         self._initialized = True
     

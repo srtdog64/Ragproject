@@ -329,13 +329,16 @@ class MainWindow(QMainWindow):
         self.serverStatusLabel.setStyleSheet("padding: 5px;")
         self.statusBar.addPermanentWidget(self.serverStatusLabel)
         
-        # Model status
-        self.modelStatusLabel = QLabel("🧠 Model: Loading...")
+        # Model status  
+        provider = self.config.get_current_provider()
+        model = self.config.get_current_model()
+        self.modelStatusLabel = QLabel(f"🧠 {provider}: {model}")
         self.modelStatusLabel.setStyleSheet("padding: 5px;")
         self.statusBar.addPermanentWidget(self.modelStatusLabel)
         
-        # Strategy status
-        self.strategyStatusLabel = QLabel("📦 Strategy: Loading...")
+        # Strategy status - fetch from server or use default
+        strategy = self.fetchCurrentStrategy()
+        self.strategyStatusLabel = QLabel(f"📦 Strategy: {strategy}")
         self.strategyStatusLabel.setStyleSheet("padding: 5px;")
         self.statusBar.addPermanentWidget(self.strategyStatusLabel)
         
@@ -343,6 +346,24 @@ class MainWindow(QMainWindow):
         self.docCountLabel = QLabel("📚 Docs: 0")
         self.docCountLabel.setStyleSheet("padding: 5px;")
         self.statusBar.addPermanentWidget(self.docCountLabel)
+    
+    def fetchCurrentStrategy(self) -> str:
+        """Fetch current strategy from server at startup"""
+        try:
+            import requests
+            response = requests.get(f"{self.config.get_server_url()}/api/chunkers/current", timeout=2)
+            if response.status_code == 200:
+                data = response.json()
+                strategy = data.get('strategy', 'adaptive')
+                print(f"Loaded strategy from server: {strategy}")
+                return strategy
+        except Exception as e:
+            print(f"Could not fetch strategy from server: {e}")
+        
+        # Fallback to config or default
+        strategy = self.config.get("chunker.default_strategy", "adaptive", 'server')
+        print(f"Using default strategy: {strategy}")
+        return strategy
     
     def setupTimers(self):
         """Setup automatic timers"""
@@ -441,6 +462,13 @@ class MainWindow(QMainWindow):
                 self.serverStatusLabel.setText("🟢 Server: Online")
                 self.serverStatusLabel.setStyleSheet("color: green; padding: 5px;")
                 self.logsWidget.success("Server is online")
+                
+                # Also fetch current strategy when server is confirmed online
+                try:
+                    strategy = self.fetchCurrentStrategy()
+                    self.strategyStatusLabel.setText(f"📦 Strategy: {strategy}")
+                except:
+                    pass  # Don't fail if strategy fetch fails
             else:
                 self.serverOnline = False
                 self.serverStatusLabel.setText("🔴 Server: Offline")

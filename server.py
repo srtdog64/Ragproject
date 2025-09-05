@@ -1,10 +1,16 @@
 # server.py
 from __future__ import annotations
 import uuid, time, asyncio
+import logging
+import traceback
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 from config_loader import config
 from di.container import Container
@@ -89,12 +95,25 @@ def buildContainer() -> Container:
     
     c.register("store", lambda _: InMemoryVectorStore())
     
-    # Initialize chunker registry with config
+    # Initialize chunker registry with config BEFORE creating wrapper
     if chunker_config:
-        if 'default_strategy' in chunker_config:
-            registry.set_strategy(chunker_config['default_strategy'])
-        if 'default_params' in chunker_config:
-            registry.set_params(**chunker_config['default_params'])
+        try:
+            if 'default_strategy' in chunker_config:
+                registry.set_strategy(chunker_config['default_strategy'])
+            if 'default_params' in chunker_config:
+                registry.set_params(**chunker_config['default_params'])
+        except Exception as e:
+            logger.warning(f"Failed to apply chunker config: {e}")
+            # Continue with defaults
+    
+    # Ensure registry is properly initialized
+    try:
+        current_strategy = registry.get_current_strategy()
+        logger.info(f"Chunker registry initialized with strategy: {current_strategy}")
+    except Exception as e:
+        logger.error(f"Chunker registry initialization failed: {e}")
+        # Try to recover
+        registry.set_strategy("adaptive")
     
     c.register("chunker", lambda _: ChunkerWrapper())
     c.register("llm", lambda _: LlmFactory.create())  # Use factory to create LLM based on config
@@ -198,21 +217,46 @@ async def ingest(payload: IngestIn) -> dict:
 async def ask(body: AskIn) -> AskOut:
     rid = str(uuid.uuid4())
     t0 = time.time()
-    policy = _container.resolve("policy")
-    k = body.k if body.k is not None else policy.getDefaultTopK()
+    
+    try:
+        policy = _container.resolve("policy")
+        k = body.k if body.k is not None else policy.getDefaultTopK()
 
-    ctx = RagContext(
-        question=body.question, k=k,
-        expandedQueries=[], retrieved=[], reranked=[],
-        compressedCtx="", prompt="", rawLlm="", parsed=None  # type: ignore
-    )
-    pipeline = _pipelineBuilder.build()
-    res = await pipeline.run(ctx)
-    if res.isErr():
-        raise HTTPException(status_code=500, detail=str(res.getError()))
-    ans = res.getValue()
-    dt = int((time.time() - t0) * 1000)
-    return AskOut(answer=ans.text, ctxIds=ans.metadata.get("ctxIds", []), requestId=rid, latencyMs=dt)
+        ctx = RagContext(
+            question=body.question, k=k,
+            expandedQueries=[], retrieved=[], reranked=[],
+            compressedCtx="", prompt="", rawLlm="", parsed=None  # type: ignore
+        )
+        
+        # Build and run pipeline
+        pipeline = _pipelineBuilder.build()
+        res = await pipeline.run(ctx)
+        
+        if res.isErr():
+            error_msg = str(res.getError())
+            logger.error(f"Pipeline error for request {rid}: {error_msg}")
+            raise HTTPException(status_code=500, detail=f"Pipeline error: {error_msg}")
+        
+        ans = res.getValue()
+        dt = int((time.time() - t0) * 1000)
+        
+        logger.info(f"Request {rid} completed in {dt}ms")
+        return AskOut(
+            answer=ans.text, 
+            ctxIds=ans.metadata.get("ctxIds", []), 
+            requestId=rid, 
+            latencyMs=dt
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in /ask endpoint for request {rid}:")
+        logger.error(traceback.format_exc())
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Internal server error: {str(e)}"
+        )
 
 @app.get("/config/reload")
 async def reload_config():

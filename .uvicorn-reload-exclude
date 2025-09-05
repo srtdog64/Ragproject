@@ -1,0 +1,60 @@
+# Uvicorn reload excludes
+# This file defines patterns for files/directories that should not trigger server reload
+
+# Test files
+tests/
+test_*.py
+*_test.py
+
+# Documentation
+*.md
+*.txt
+*.rst
+docs/
+
+# Data files
+*.json
+*.yaml
+*.yml
+*.csv
+*.xlsx
+*.xls
+
+# Backup files
+*.backup
+*.bak
+*~
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+.env
+
+# Logs
+*.log
+logs/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Sample data
+sample_*.json
+sample_*.md

@@ -28,6 +28,12 @@ class RetrieveStep:
         for q in ctx.expandedQueries:
             items = await self._retriever.retrieve(q, ctx.k or self._policy.getDefaultTopK())
             allRetrieved.extend(items)
+        
+        # Check if no results were retrieved
+        if not allRetrieved:
+            # Return empty retrieved list - pipeline will handle it
+            return Result.ok(ctx.withRetrieved([]))
+        
         # Simple deduplication based on Chunk.id
         seen = set()
         uniq: List[Retrieved] = []
@@ -44,6 +50,9 @@ class RerankStep:
         self._topK = max(1, topK)
 
     async def run(self, ctx: RagContext) -> Result[RagContext]:
+        if not ctx.retrieved:
+            # No items to rerank
+            return Result.ok(ctx.withReranked([]))
         ranked = self._reranker.rerank(ctx.retrieved)
         return Result.ok(ctx.withReranked(ranked[: self._topK]))
 
