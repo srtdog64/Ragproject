@@ -12,7 +12,8 @@ from core.policy import Policy
 from core.result import Result
 from core.types import Document, RagContext
 from adapters.llm_client import LlmFactory  # Use factory for dynamic LLM selection
-from adapters.hash_embedder import HashEmbedder
+from adapters.embedders.manager import EmbedderManager  # New embedder manager
+from adapters.semantic_embedder import EmbedderFactory  # Keep for backward compatibility
 from stores.memory_store import InMemoryVectorStore
 from chunkers.registry import registry
 from chunkers.wrapper import ChunkerWrapper
@@ -68,9 +69,23 @@ def buildContainer() -> Container:
         defaultTopK=policy_config.get('defaultTopK', 5)
     ))
     
-    c.register("embedder", lambda _: HashEmbedder(
-        dim=embedder_config.get('dimension', 96)
-    ))
+    # Create embedder manager from YAML config
+    try:
+        embedder_manager = EmbedderManager.fromYaml("config/embeddings.yml")
+        c.register("embedder_manager", lambda _: embedder_manager)
+        # Register default embedder for backward compatibility
+        c.register("embedder", lambda _: embedder_manager.getDefaultEmbedder())
+        print("✅ Embedder manager initialized successfully")
+    except Exception as e:
+        print(f"⚠️ Warning: Failed to load embedder manager: {e}")
+        # Fallback to old factory method
+        try:
+            c.register("embedder", lambda _: EmbedderFactory.create(embedder_config))
+            print("✅ Using legacy embedder factory")
+        except RuntimeError as e2:
+            print(f"❌ CRITICAL ERROR: {e2}")
+            print("The system cannot function without a proper embedder.")
+            raise
     
     c.register("store", lambda _: InMemoryVectorStore())
     

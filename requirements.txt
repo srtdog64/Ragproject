@@ -1,22 +1,32 @@
-# Requirements for RAG System with Gemini
-fastapi==0.104.1
-uvicorn==0.24.0
-pydantic==2.5.2
-pyyaml==6.0.1
-python-dotenv==1.0.0
-PySide6>=6.8.0
-requests==2.31.0
-aiohttp==3.9.1  # For async Gemini API calls
+# Core
+fastapi
+uvicorn[standard]
+pydantic
+python-multipart
+aiofiles
 
-# PDF Support (optional but recommended)
-PyPDF2==3.0.1
+# LLM Support
+openai
+google-generativeai
+anthropic
+python-dotenv
 
-# Alternative PDF library (choose one)
-# pdfplumber==0.10.3
+# Vector/Embedding
+numpy
+scikit-learn
+sentence-transformers  # For semantic embeddings
+torch  # Required by sentence-transformers
 
-# Optional for production
-# openai==1.3.5
-# anthropic==0.8.0
-# faiss-cpu==1.7.4
-# chromadb==0.4.18
-# sentence-transformers==2.2.2
+# Document Processing
+PyPDF2  # PDF support
+python-docx  # Word document support
+beautifulsoup4  # HTML parsing
+markdown  # Markdown support
+
+# Qt GUI
+PySide6
+PyYAML
+
+# Optional but recommended
+faiss-cpu  # For better vector search (optional)
+chromadb  # Alternative vector store (optional)

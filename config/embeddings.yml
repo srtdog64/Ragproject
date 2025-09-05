@@ -1,0 +1,62 @@
+embedders:
+  default: "auto"                 # 기본 선택자 (auto=정책으로 결정)
+  registry:
+    multilingual_minilm:
+      kind: "sentence-transformers"
+      model: "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+      dim: 384
+      normalize: true
+      device: "auto"              # "cuda","mps","cpu","auto"
+      batchSize: 64
+
+    all_minilm:
+      kind: "sentence-transformers"
+      model: "all-MiniLM-L6-v2"
+      dim: 384
+      normalize: true
+      device: "auto"
+      batchSize: 64
+
+    e5_small:
+      kind: "sentence-transformers"
+      model: "intfloat/e5-small-v2"
+      dim: 384
+      normalize: true
+      device: "auto"
+      batchSize: 64
+
+    multilingual_base:
+      kind: "sentence-transformers"
+      model: "paraphrase-multilingual-mpnet-base-v2"
+      dim: 768
+      normalize: true
+      device: "auto"
+      batchSize: 32
+
+    korean_roberta:
+      kind: "sentence-transformers"
+      model: "jhgan/ko-sroberta-multitask"
+      dim: 768
+      normalize: true
+      device: "auto"
+      batchSize: 32
+
+    qa_optimized:
+      kind: "sentence-transformers"
+      model: "multi-qa-MiniLM-L6-cos-v1"
+      dim: 384
+      normalize: true
+      device: "auto"
+      batchSize: 64
+
+    fallback_384:
+      kind: "deterministic-fallback"
+      dim: 384
+      normalize: true
+
+policy:
+  # 간단 정책: 한국어 비중 > 0.3 → multilingual, 아니면 all_minilm
+  koThreshold: 0.30
+  preferGpu: true
+  costTier: "free"                 # free|standard|premium (확장용)
+  order: ["multilingual_minilm", "all_minilm", "e5_small", "fallback_384"]
