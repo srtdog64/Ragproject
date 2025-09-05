@@ -26,19 +26,25 @@ ingester:
 llm:
   available_models:
     claude:
+    - claude-3-5-sonnet
     - claude-3-opus
     - claude-3-sonnet
     - claude-3-haiku
     gemini:
-    - gemini-pro
-    - gemini-pro-vision
+    - gemini-2.5-flash
+    - gemini-2.5-pro
+    - gemini-2.0-flash
+    - gemini-2.0-pro
+    - gemini-1.5-flash
     - gemini-1.5-pro
     openai:
-    - gpt-3.5-turbo
-    - gpt-4
+    - gpt-4o
+    - gpt-4o-mini
     - gpt-4-turbo
+    - gpt-4
+    - gpt-3.5-turbo
   max_tokens: 2048
-  model: gemini-1.5-pro
+  model: gemini-2.5-flash
   temperature: 0.7
   type: gemini
 logging:

@@ -46,10 +46,23 @@ class GeminiLlm:
             
             # Map model names to API endpoints
             model_mapping = {
+                # Gemini 2.5 series (Latest)
+                "gemini-2.5-flash": "gemini-2.5-flash",
+                "gemini-2.5-pro": "gemini-2.5-pro",
+                "gemini-2.5-flash-lite": "gemini-2.5-flash-lite",
+                
+                # Gemini 2.0 series
+                "gemini-2.0-flash": "gemini-2.0-flash-001",
+                "gemini-2.0-pro": "gemini-2.0-pro-002",
+                "gemini-2.0-flash-lite": "gemini-2.0-flash-lite",
+                
+                # Gemini 1.5 series (Legacy)
+                "gemini-1.5-flash": "gemini-1.5-flash-002",
+                "gemini-1.5-pro": "gemini-1.5-pro-002",
+                
+                # Legacy models
                 "gemini-pro": "gemini-pro",
-                "gemini-pro-vision": "gemini-pro-vision",
-                "gemini-1.5-pro": "gemini-1.5-pro-latest",
-                "gemini-1.5-flash": "gemini-1.5-flash-latest"
+                "gemini-pro-vision": "gemini-pro-vision"
             }
             
             api_model = model_mapping.get(self._model, self._model)
@@ -109,7 +122,7 @@ class OpenAiLlm:
         
         # Get model from config
         llm_config = config.get_section('llm')
-        self._model = model or llm_config.get('model', 'gpt-3.5-turbo')
+        self._model = model or llm_config.get('model', 'gpt-4o-mini')  # Updated default
         self._temperature = llm_config.get('temperature', 0.7)
         self._max_tokens = llm_config.get('max_tokens', 2048)
 
@@ -166,7 +179,7 @@ class ClaudeLlm:
         
         # Get model from config
         llm_config = config.get_section('llm')
-        self._model = model or llm_config.get('model', 'claude-3-sonnet')
+        self._model = model or llm_config.get('model', 'claude-3-5-sonnet-latest')  # Latest Claude model
         self._temperature = llm_config.get('temperature', 0.7)
         self._max_tokens = llm_config.get('max_tokens', 2048)
 
