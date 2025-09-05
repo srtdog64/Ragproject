@@ -45,7 +45,7 @@ timeout /t 5 /nobreak >nul
 
 REM Start Qt application
 echo Starting Qt interface...
-start "RAG Qt App" cmd /k "venv\Scripts\activate && python qt_app_final.py"
+start "RAG Qt App" cmd /k "venv\Scripts\activate && python qt_app.py"
 
 echo.
 echo ========================================

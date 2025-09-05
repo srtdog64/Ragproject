@@ -11,7 +11,7 @@ from di.container import Container
 from core.policy import Policy
 from core.result import Result
 from core.types import Document, RagContext
-from adapters.llm_client import GeminiLlm  # Changed to Gemini
+from adapters.llm_client import LlmFactory  # Use factory for dynamic LLM selection
 from adapters.hash_embedder import HashEmbedder
 from stores.memory_store import InMemoryVectorStore
 from chunkers.registry import registry
@@ -40,6 +40,8 @@ class IngestIn(BaseModel):
 class AskIn(BaseModel):
     question: str = Field(min_length=1, max_length=10000)
     k: Optional[int] = Field(default=None, ge=1, le=20)
+    model_provider: Optional[str] = Field(default=None)  # Dynamic model selection
+    model_name: Optional[str] = Field(default=None)
 
 class AskOut(BaseModel):
     answer: str
@@ -77,7 +79,7 @@ def buildContainer() -> Container:
             registry.set_params(**chunker_config['default_params'])
     
     c.register("chunker", lambda _: ChunkerWrapper())
-    c.register("llm", lambda _: GeminiLlm())  # Use Gemini with API key from .env
+    c.register("llm", lambda _: LlmFactory.create())  # Use factory to create LLM based on config
     c.register("reranker", lambda _: IdentityReranker())
     
     return c

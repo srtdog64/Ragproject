@@ -71,12 +71,24 @@ class BuildPromptStep:
         self._sys = systemHint
 
     async def run(self, ctx: RagContext) -> Result[RagContext]:
-        prompt = f"""Use the context to answer succinctly.
-CONTEXT:
+        # If no context is retrieved, provide a clear message
+        if not ctx.compressedCtx or ctx.compressedCtx.strip() == "":
+            prompt = f"""질문에 대한 답변을 찾을 수 있는 관련 문서가 없습니다.
+
+질문: {ctx.question}
+
+답변: 제공된 문서에서 이 질문에 대한 답변을 찾을 수 없습니다."""
+        else:
+            prompt = f"""당신은 도움이 되는 어시스턴트입니다. 다음 컨텍스트만을 사용하여 질문에 답변하세요.
+컨텍스트에서 답을 찾을 수 없다면 "제공된 컨텍스트에서 이 정보를 찾을 수 없습니다"라고 답하세요.
+컨텍스트를 기반으로 구체적이고 정확하게 답변하세요.
+
+컨텍스트:
 {ctx.compressedCtx}
 
-Q: {ctx.question}
-A:"""
+질문: {ctx.question}
+
+답변:"""
         return Result.ok(ctx.withPrompt(prompt))
 
 class GenerateStep:
