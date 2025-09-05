@@ -52,7 +52,7 @@ class OptionsWidget(QWidget):
         """Fetch current strategy from server on initialization"""
         try:
             import requests
-            response = requests.get(f"{self.config.get_server_url()}/api/chunkers/current")
+            response = requests.get(f"{self.config.get_server_url()}/api/chunkers/strategy")
             if response.status_code == 200:
                 data = response.json()
                 strategy = data.get('strategy', 'adaptive')

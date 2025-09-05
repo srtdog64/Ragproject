@@ -29,7 +29,7 @@ def check_server():
 def check_current_strategy():
     """Check current strategy on server"""
     try:
-        response = requests.get("http://localhost:7001/api/chunkers/current")
+        response = requests.get("http://localhost:7001/api/chunkers/strategy")
         if response.status_code == 200:
             data = response.json()
             print(f"📦 Current server strategy: {data.get('strategy', 'unknown')}")

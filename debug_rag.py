@@ -29,7 +29,7 @@ def check_chunker_api():
     """Check chunker API"""
     try:
         # Get current strategy
-        response = requests.get("http://localhost:7001/api/chunkers/current")
+        response = requests.get("http://localhost:7001/api/chunkers/strategy")
         if response.status_code == 200:
             data = response.json()
             print(f"✅ Current chunking strategy: {data.get('strategy', 'unknown')}")

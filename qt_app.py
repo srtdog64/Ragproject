@@ -351,7 +351,7 @@ class MainWindow(QMainWindow):
         """Fetch current strategy from server at startup"""
         try:
             import requests
-            response = requests.get(f"{self.config.get_server_url()}/api/chunkers/current", timeout=2)
+            response = requests.get(f"{self.config.get_server_url()}/api/chunkers/strategy", timeout=2)
             if response.status_code == 200:
                 data = response.json()
                 strategy = data.get('strategy', 'adaptive')
