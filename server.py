@@ -40,8 +40,11 @@ class IngestIn(BaseModel):
 class AskIn(BaseModel):
     question: str = Field(min_length=1, max_length=10000)
     k: Optional[int] = Field(default=None, ge=1, le=20)
-    model_provider: Optional[str] = Field(default=None)  # Dynamic model selection
-    model_name: Optional[str] = Field(default=None)
+    provider: Optional[str] = Field(default=None)  # Changed from model_provider
+    model: Optional[str] = Field(default=None)  # Changed from model_name
+    
+    class Config:
+        protected_namespaces = ()  # Disable protected namespace check
 
 class AskOut(BaseModel):
     answer: str

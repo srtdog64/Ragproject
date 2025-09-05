@@ -9,10 +9,9 @@ from chunkers.base import IChunker, ChunkingParams
 
 
 class ChunkerRegistry:
-    """Optimized Registry for managing chunking strategies"""
+    """Registry for managing chunking strategies"""
     
     _instance = None
-    _strategies_cache = None  # Cache for strategies list
     
     def __new__(cls):
         if cls._instance is None:
@@ -30,7 +29,7 @@ class ChunkerRegistry:
         self._params = ChunkingParams()
         self._config_file = "E:/Ragproject/rag/chunkers/config.json"
         
-        # Register default chunkers (lazy loading)
+        # Register default chunkers
         self._register_defaults()
         
         # Load configuration if exists
@@ -39,95 +38,82 @@ class ChunkerRegistry:
         self._initialized = True
     
     def _register_defaults(self):
-        """Register all default chunking strategies (lazy loading)"""
-        # Store class paths instead of importing immediately
-        self._chunker_paths = {
-            "sentence": ("chunkers.sentence_chunker", "SentenceChunker"),
-            "paragraph": ("chunkers.paragraph_chunker", "ParagraphChunker"),
-            "sliding_window": ("chunkers.sliding_window_chunker", "SlidingWindowChunker"),
-            "adaptive": ("chunkers.adaptive_chunker", "AdaptiveChunker"),
-            "simple_overlap": ("chunkers.overlap_chunker", "SimpleOverlapChunker")
-        }
-        
-        # Mark all as registered but not loaded
-        for name in self._chunker_paths:
-            self._chunkers[name] = None
-    
-    def _lazy_load_chunker(self, name: str) -> Type[IChunker]:
-        """Lazy load a chunker class when needed"""
-        if name not in self._chunker_paths:
-            raise ValueError(f"Unknown chunker: {name}")
-        
-        if self._chunkers[name] is None:
-            module_path, class_name = self._chunker_paths[name]
-            module = __import__(module_path, fromlist=[class_name])
-            self._chunkers[name] = getattr(module, class_name)
-        
-        return self._chunkers[name]
+        """Register all default chunking strategies"""
+        try:
+            from chunkers.sentence_chunker import SentenceChunker
+            from chunkers.paragraph_chunker import ParagraphChunker
+            from chunkers.sliding_window_chunker import SlidingWindowChunker
+            from chunkers.adaptive_chunker import AdaptiveChunker
+            from chunkers.overlap_chunker import SimpleOverlapChunker
+            
+            self.register("sentence", SentenceChunker)
+            self.register("paragraph", ParagraphChunker)
+            self.register("sliding_window", SlidingWindowChunker)
+            self.register("adaptive", AdaptiveChunker)
+            self.register("simple_overlap", SimpleOverlapChunker)
+        except ImportError as e:
+            print(f"Warning: Failed to import chunker: {e}")
+            # Register at least one fallback chunker
+            from chunkers.sentence_chunker import SentenceChunker
+            self.register("sentence", SentenceChunker)
+            self._current_strategy = "sentence"
     
     def register(self, name: str, chunker_class: Type[IChunker]):
         """Register a new chunking strategy"""
         self._chunkers[name] = chunker_class
-        self._strategies_cache = None  # Invalidate cache
     
     def get_chunker(self, name: Optional[str] = None) -> IChunker:
         """Get a chunker instance by name"""
         if name is None:
             name = self._current_strategy
         
-        # Lazy load the chunker class if needed
-        if name in self._chunker_paths and self._chunkers[name] is None:
-            self._chunkers[name] = self._lazy_load_chunker(name)
-        
         if name not in self._chunkers:
-            raise ValueError(f"Unknown chunker: {name}")
+            # Try to use fallback
+            if self._chunkers:
+                name = list(self._chunkers.keys())[0]
+            else:
+                raise ValueError(f"No chunkers registered")
         
         # Create instance if not exists
         if name not in self._instances:
-            chunker_class = self._chunkers[name]
-            if chunker_class is None:
-                chunker_class = self._lazy_load_chunker(name)
-            self._instances[name] = chunker_class()
+            self._instances[name] = self._chunkers[name]()
         
         return self._instances[name]
     
     def list_strategies(self) -> List[Dict[str, str]]:
-        """List all available strategies (with caching)"""
-        # Return cached result if available and strategy hasn't changed
-        if self._strategies_cache is not None:
-            # Update active status
-            for strategy in self._strategies_cache:
-                strategy["active"] = strategy["name"] == self._current_strategy
-            return self._strategies_cache
-        
-        # Static descriptions to avoid loading all chunkers
-        descriptions = {
-            "sentence": "Split text into individual sentences. Best for Q&A and chat-like content.",
-            "paragraph": "Split text by paragraphs. Ideal for structured documents and manuals.",
-            "sliding_window": "Use fixed-size sliding windows. Good for long narratives and novels.",
-            "adaptive": "Automatically choose the best strategy based on text characteristics.",
-            "simple_overlap": "Fixed-size chunks with overlap. Simple and predictable chunking."
-        }
-        
+        """List all available strategies"""
         strategies = []
-        for name in self._chunker_paths.keys():
+        for name, chunker_class in self._chunkers.items():
+            try:
+                # Get instance to get description
+                if name not in self._instances:
+                    self._instances[name] = chunker_class()
+                chunker = self._instances[name]
+                desc = chunker.description() if hasattr(chunker, 'description') else "Chunking strategy"
+            except:
+                # Use static descriptions as fallback
+                desc = {
+                    "sentence": "Split text into individual sentences. Best for Q&A and chat-like content.",
+                    "paragraph": "Split text by paragraphs. Ideal for structured documents and manuals.",
+                    "sliding_window": "Use fixed-size sliding windows. Good for long narratives and novels.",
+                    "adaptive": "Automatically choose the best strategy based on text characteristics.",
+                    "simple_overlap": "Fixed-size chunks with overlap. Simple and predictable chunking."
+                }.get(name, "Custom chunking strategy")
+            
             strategies.append({
                 "name": name,
-                "description": descriptions.get(name, "Custom chunking strategy"),
+                "description": desc,
                 "active": name == self._current_strategy
             })
         
-        # Cache the result
-        self._strategies_cache = strategies
         return strategies
     
     def set_strategy(self, name: str):
         """Set the active chunking strategy"""
-        if name not in self._chunker_paths and name not in self._chunkers:
-            raise ValueError(f"Unknown strategy: {name}")
+        if name not in self._chunkers:
+            raise ValueError(f"Unknown strategy: {name}. Available: {list(self._chunkers.keys())}")
         
         self._current_strategy = name
-        self._strategies_cache = None  # Invalidate cache
         self._save_config()
     
     def get_current_strategy(self) -> str:
@@ -154,7 +140,7 @@ class ChunkerRegistry:
         return self._params.__dict__.copy()
     
     def _save_config(self):
-        """Save configuration to file (with error handling)"""
+        """Save configuration to file"""
         try:
             config = {
                 "strategy": self._current_strategy,
@@ -165,7 +151,6 @@ class ChunkerRegistry:
             with open(self._config_file, 'w') as f:
                 json.dump(config, f, indent=2)
         except Exception as e:
-            # Don't fail if config save fails
             print(f"Warning: Failed to save config: {e}")
     
     def _load_config(self):
@@ -178,14 +163,14 @@ class ChunkerRegistry:
             with open(self._config_file, 'r') as f:
                 config = json.load(f)
             
-            if "strategy" in config:
+            if "strategy" in config and config["strategy"] in self._chunkers:
                 self._current_strategy = config["strategy"]
             
             if "params" in config:
                 self._params = ChunkingParams(**config["params"])
         except Exception as e:
+            print(f"Warning: Failed to load config: {e}")
             # Use defaults on error
-            pass
     
     def analyze_text(self, text: str) -> str:
         """Analyze text and suggest best chunking strategy"""

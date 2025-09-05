@@ -46,21 +46,21 @@ class GeminiLlm:
             
             # Map model names to API endpoints
             model_mapping = {
-                # Gemini 2.5 series (Latest)
-                "gemini-2.5-flash": "gemini-2.5-flash",
-                "gemini-2.5-pro": "gemini-2.5-pro",
-                "gemini-2.5-flash-lite": "gemini-2.5-flash-lite",
+                # Gemini 2.5 series (Preview/Experimental)
+                "gemini-2.5-flash": "gemini-2.0-flash-exp",  # Use 2.0 experimental as fallback
+                "gemini-2.5-pro": "gemini-2.0-pro-exp",  # Use 2.0 experimental as fallback
+                "gemini-2.5-flash-lite": "gemini-1.5-flash-latest",  # Use 1.5 flash as fallback
                 
-                # Gemini 2.0 series
-                "gemini-2.0-flash": "gemini-2.0-flash-001",
-                "gemini-2.0-pro": "gemini-2.0-pro-002",
-                "gemini-2.0-flash-lite": "gemini-2.0-flash-lite",
+                # Gemini 2.0 series (Stable)
+                "gemini-2.0-flash": "gemini-2.0-flash-exp",
+                "gemini-2.0-pro": "gemini-2.0-pro-exp",
+                "gemini-2.0-flash-lite": "gemini-1.5-flash-latest",
                 
-                # Gemini 1.5 series (Legacy)
-                "gemini-1.5-flash": "gemini-1.5-flash-002",
-                "gemini-1.5-pro": "gemini-1.5-pro-002",
+                # Gemini 1.5 series (Stable)
+                "gemini-1.5-flash": "gemini-1.5-flash-latest",
+                "gemini-1.5-pro": "gemini-1.5-pro-latest",
                 
-                # Legacy models
+                # Legacy models (Stable)
                 "gemini-pro": "gemini-pro",
                 "gemini-pro-vision": "gemini-pro-vision"
             }

@@ -71,8 +71,8 @@ class RagWorkerThread(QThread):
                 
                 request_payload = {
                     **self.payload,
-                    "model_provider": provider,
-                    "model_name": model
+                    "provider": provider,  # Changed from model_provider
+                    "model": model  # Changed from model_name
                 }
                 
                 response = requests.post(
