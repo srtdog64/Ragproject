@@ -21,8 +21,8 @@ def test_embedder_manager():
     print("Testing Embedder Manager System")
     print("=" * 60)
     
-    # Load manager from YAML
-    manager = EmbedderManager.fromYaml("config/embeddings.yml")
+    # Load manager from YAML (adjusted path for tests folder)
+    manager = EmbedderManager.fromYaml("../config/embeddings.yml")
     
     # Test texts
     english_texts = [

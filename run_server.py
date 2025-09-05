@@ -22,5 +22,6 @@ if __name__ == "__main__":
         host="127.0.0.1",
         port=7001,
         reload=True,
+        reload_excludes=["tests/*", "*.md", "*.txt", "*.json", "*.yaml", "*.yml"],
         log_level="info"
     )
