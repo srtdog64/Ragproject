@@ -1,0 +1,34 @@
+{
+  "documents": [
+    {
+      "id": "doc1",
+      "title": "Introduction to RAG",
+      "source": "https://example.com/rag-intro",
+      "text": "Retrieval-Augmented Generation (RAG) is an AI architecture that combines the power of retrieval systems with generative models. RAG addresses the limitations of pure generative models by grounding their outputs in relevant retrieved information. This approach significantly reduces hallucinations and provides more accurate, factual responses. The RAG pipeline typically consists of document ingestion, chunking, embedding, retrieval, reranking, and generation steps."
+    },
+    {
+      "id": "doc2",
+      "title": "Vector Databases in RAG",
+      "source": "https://example.com/vector-db",
+      "text": "Vector databases are crucial components in RAG systems, storing document embeddings for efficient similarity search. Popular options include FAISS, Pinecone, Weaviate, and ChromaDB. These databases enable fast nearest neighbor search in high-dimensional spaces. The choice of vector database impacts the scalability and performance of the RAG system. Considerations include memory usage, query speed, persistence options, and support for metadata filtering."
+    },
+    {
+      "id": "doc3",
+      "title": "Chunking Strategies",
+      "source": "https://example.com/chunking",
+      "text": "Effective chunking strategies are essential for RAG performance. Common approaches include fixed-size chunking with overlap, semantic chunking based on sentence boundaries, and hierarchical chunking for maintaining document structure. The optimal chunk size depends on the embedding model's context window and the nature of your documents. Overlapping chunks help preserve context at boundaries. Advanced techniques include recursive character splitting and document-aware chunking."
+    },
+    {
+      "id": "doc4",
+      "title": "Reranking in RAG",
+      "source": "https://example.com/reranking",
+      "text": "Reranking improves retrieval quality by using more sophisticated models to score retrieved documents. Cross-encoder models like ColBERT provide better relevance scoring than bi-encoders but at higher computational cost. Reranking typically occurs after initial retrieval and before context compression. Hybrid approaches combine semantic search with keyword matching (BM25) for improved recall. The reranking step can significantly improve the final answer quality."
+    },
+    {
+      "id": "doc5",
+      "title": "LLM Integration Patterns",
+      "source": "https://example.com/llm-patterns",
+      "text": "Integrating LLMs in RAG systems involves careful prompt engineering and context management. Common patterns include stuff (all context in one prompt), map-reduce (process chunks separately then combine), refine (iteratively improve answer), and map-rerank (score chunks for relevance). Token limits require context compression strategies. System prompts guide the LLM's behavior. Output parsing ensures structured responses. Chain-of-thought prompting improves reasoning quality."
+    }
+  ]
+}
