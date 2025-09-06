@@ -46,7 +46,7 @@ class IngestIn(BaseModel):
 
 class AskIn(BaseModel):
     question: str = Field(min_length=1, max_length=10000)
-    k: Optional[int] = Field(default=None, ge=1, le=20)
+    k: Optional[int] = Field(default=None, ge=1, le=100)
     provider: Optional[str] = Field(default=None)  # Changed from model_provider
     model: Optional[str] = Field(default=None)  # Changed from model_name
     
