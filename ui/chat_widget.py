@@ -7,6 +7,7 @@ from typing import Dict, Optional
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Signal, Qt, QEvent
 from PySide6.QtGui import QKeySequence
+from .toggle_switch import ToggleSwitch
 
 
 class ChatWidget(QWidget):
@@ -50,6 +51,7 @@ class ChatWidget(QWidget):
         # Progress bar (initially hidden)
         self.progressBar = QProgressBar()
         self.progressBar.setTextVisible(True)
+        self.progressBar.hide()  # Initially hidden
         self.progressBar.setStyleSheet("""
             QProgressBar {
                 border: 1px solid #ddd;
@@ -157,24 +159,23 @@ class ChatWidget(QWidget):
         """)
         buttonLayout.addWidget(self.sendBtn)
         
-        # Compact mode toggle below send button
-        self.strictModeCheck = QCheckBox("Strict")
-        self.strictModeCheck.setToolTip(
+        # Compact mode toggle below send button using custom toggle switch
+        toggleLayout = QHBoxLayout()
+        toggleLayout.setSpacing(5)
+        
+        toggleLabel = QLabel("Strict")
+        toggleLabel.setStyleSheet("font-size: 11px; color: #666;")
+        toggleLayout.addWidget(toggleLabel)
+        
+        self.strictModeToggle = ToggleSwitch()
+        self.strictModeToggle.setToolTip(
             "Strict Mode: Only answers from indexed documents\n"
             "Normal Mode: Uses both RAG context and general knowledge"
         )
-        self.strictModeCheck.setStyleSheet("""
-            QCheckBox {
-                font-size: 11px;
-                padding: 2px;
-            }
-            QCheckBox::indicator {
-                width: 12px;
-                height: 12px;
-            }
-        """)
-        self.strictModeCheck.toggled.connect(self.onModeChanged)
-        buttonLayout.addWidget(self.strictModeCheck, alignment=Qt.AlignCenter)
+        self.strictModeToggle.toggled.connect(self.onModeChanged)
+        toggleLayout.addWidget(self.strictModeToggle)
+        
+        buttonLayout.addLayout(toggleLayout)
         
         buttonGroup.setLayout(buttonLayout)
         inputRowLayout.addWidget(buttonGroup)
