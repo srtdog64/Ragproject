@@ -7,7 +7,7 @@ chunker:
     semanticThreshold: 0.82
     sentenceMinLen: 10
     windowSize: 1200
-  default_strategy: adaptive
+  default_strategy: sentence
 cors:
   allow_credentials: true
   allow_headers:
@@ -65,7 +65,7 @@ pipeline:
     system_hint: You are a helpful RAG assistant. Answer based on the context provided.
     system_message: Be precise and helpful.
   query_expansion:
-    enabled: false
+    enabled: true
     expansions: 0
   reranking:
     enabled: true

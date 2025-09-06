@@ -26,22 +26,44 @@ class ChatWidget(QWidget):
         # Top toolbar
         topToolbar = QHBoxLayout()
         
-        # Ingest Documents button
+        # Ingest button with progress bar
         self.ingestBtn = QPushButton("📥 Ingest Documents")
+        self.ingestBtn.clicked.connect(lambda: self.ingestRequested.emit())
+        self.ingestBtn.setToolTip("Index documents to vector store")
         self.ingestBtn.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
+                background-color: #4caf50;
                 color: white;
                 font-weight: bold;
-                padding: 8px 16px;
+                padding: 5px 10px;
                 border-radius: 4px;
             }
             QPushButton:hover {
                 background-color: #45a049;
             }
+            QPushButton:disabled {
+                background-color: #cccccc;
+            }
         """)
-        self.ingestBtn.clicked.connect(self.ingestRequested.emit)
         topToolbar.addWidget(self.ingestBtn)
+        
+        # Progress bar (initially hidden)
+        self.progressBar = QProgressBar()
+        self.progressBar.setTextVisible(True)
+        self.progressBar.setStyleSheet("""
+            QProgressBar {
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                text-align: center;
+                height: 20px;
+            }
+            QProgressBar::chunk {
+                background-color: #4caf50;
+                border-radius: 3px;
+            }
+        """)
+        self.progressBar.hide()
+        topToolbar.addWidget(self.progressBar)
         
         topToolbar.addStretch()
         
@@ -194,6 +216,29 @@ class ChatWidget(QWidget):
     def clearChat(self):
         """Clear the chat display"""
         self.chatDisplay.clear()
+    
+    def setIngestionProgress(self, value: int, maximum: int = 100, text: str = ""):
+        """Update ingestion progress bar"""
+        if value == 0 and maximum > 0:
+            # Starting ingestion
+            self.ingestBtn.setEnabled(False)
+            self.progressBar.show()
+            self.progressBar.setMaximum(maximum)
+            self.progressBar.setValue(0)
+            self.progressBar.setFormat(text if text else "%p%")
+        elif value >= maximum:
+            # Ingestion complete
+            self.ingestBtn.setEnabled(True)
+            self.progressBar.hide()
+            self.progressBar.setValue(0)
+        else:
+            # Update progress
+            self.progressBar.setValue(value)
+            if text:
+                self.progressBar.setFormat(text)
+            else:
+                percentage = int((value / maximum) * 100) if maximum > 0 else 0
+                self.progressBar.setFormat(f"{percentage}%")
     
     def updateModelLabel(self, provider: str, model: str):
         """Update the model label"""

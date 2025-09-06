@@ -33,12 +33,13 @@ class RagWorkerThread(QThread):
     finished = Signal(dict)
     error = Signal(str)
     progress = Signal(str)
+    progressUpdate = Signal(int, int, str)  # current, total, message
     
     def __init__(self, config_manager):
         super().__init__()
         self.config = config_manager
         self.baseUrl = self.config.get_server_url()
-        self.timeout = self.config.get("server.timeout", 30)
+        self.timeout = self.config.get("server.timeout", 3000)  # 5 minutes for large ingestions
         self.task = None
         self.payload = None
     
@@ -55,12 +56,59 @@ class RagWorkerThread(QThread):
                 
             elif self.task == "ingest":
                 self.progress.emit("Ingesting documents...")
-                response = requests.post(
-                    f"{self.baseUrl}/ingest",
-                    json={"documents": self.payload},
-                    timeout=self.timeout
-                )
-                self.finished.emit({"task": "ingest", "result": response.json()})
+                
+                # Batch processing for large document sets
+                batch_size = 10
+                docs = self.payload
+                total_docs = len(docs)
+                
+                if total_docs > batch_size:
+                    # Process in batches
+                    ingested_chunks = 0
+                    processed_docs = 0
+                    
+                    for i in range(0, total_docs, batch_size):
+                        batch = docs[i:i + batch_size]
+                        current_batch_size = len(batch)
+                        
+                        # Update progress before processing
+                        self.progressUpdate.emit(processed_docs, total_docs, 
+                                               f"Processing {processed_docs}/{total_docs} documents...")
+                        
+                        response = requests.post(
+                            f"{self.baseUrl}/ingest",
+                            json={"documents": batch},
+                            timeout=self.timeout
+                        )
+                        
+                        if response.status_code == 200:
+                            result = response.json()
+                            ingested_chunks += result.get("ingestedChunks", 0)
+                            processed_docs += current_batch_size
+                            
+                            # Update progress after processing
+                            self.progressUpdate.emit(processed_docs, total_docs,
+                                                   f"Processed {processed_docs}/{total_docs} documents")
+                    
+                    self.finished.emit({
+                        "task": "ingest", 
+                        "result": {
+                            "ingestedChunks": ingested_chunks,
+                            "documentCount": total_docs
+                        }
+                    })
+                else:
+                    # Small batch, process all at once
+                    self.progressUpdate.emit(0, total_docs, "Processing documents...")
+                    
+                    response = requests.post(
+                        f"{self.baseUrl}/ingest",
+                        json={"documents": docs},
+                        timeout=self.timeout
+                    )
+                    
+                    self.progressUpdate.emit(total_docs, total_docs, "Complete!")
+                    self.finished.emit({"task": "ingest", "result": response.json()})
                 
             elif self.task == "ask":
                 self.progress.emit("Getting answer...")
@@ -127,6 +175,7 @@ class MainWindow(QMainWindow):
         self.worker.finished.connect(self.handleResult)
         self.worker.error.connect(self.handleError)
         self.worker.progress.connect(self.updateStatus)
+        self.worker.progressUpdate.connect(self.updateIngestionProgress)
         
         # Server status
         self.serverOnline = False
@@ -398,6 +447,10 @@ class MainWindow(QMainWindow):
         )
         
         if reply == QMessageBox.Yes:
+            # Show progress
+            self.chatWidget.setIngestionProgress(0, len(docs), "Preparing...")
+            
+            # Process in batches for progress updates
             self.worker.setTask("ingest", docs)
             self.worker.start()
             self.logsWidget.info(f"Starting ingestion of {len(docs)} documents")
@@ -478,6 +531,10 @@ class MainWindow(QMainWindow):
         elif task == "ingest":
             chunks = result.get("ingestedChunks", 0)
             docs = result.get("documentCount", 0)
+            
+            # Hide progress bar
+            self.chatWidget.setIngestionProgress(100, 100, "Complete!")
+            
             QMessageBox.information(
                 self, "Ingestion Complete",
                 f"✅ Successfully ingested {docs} documents into {chunks} chunks"
@@ -515,11 +572,20 @@ class MainWindow(QMainWindow):
     
     def handleError(self, error: str):
         """Handle worker thread errors"""
+        # Hide progress bar if visible
+        self.chatWidget.setIngestionProgress(100, 100)
+        
         QMessageBox.critical(self, "Error", error)
         self.logsWidget.error(error)
         self.serverOnline = False
         self.serverStatusLabel.setText("🔴 Server: Error")
         self.serverStatusLabel.setStyleSheet("color: red; padding: 5px;")
+    
+    def updateIngestionProgress(self, current: int, total: int, message: str):
+        """Update ingestion progress bar"""
+        if total > 0:
+            percentage = int((current / total) * 100)
+            self.chatWidget.setIngestionProgress(current, total, f"{message} ({percentage}%)")
     
     def updateStatus(self, message: str):
         """Update status bar message"""

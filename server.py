@@ -93,7 +93,9 @@ def buildContainer() -> Container:
             print("The system cannot function without a proper embedder.")
             raise
     
-    c.register("store", lambda _: InMemoryVectorStore())
+    # Create singleton store instance
+    store_instance = InMemoryVectorStore()
+    c.register("store", lambda _: store_instance)  # Always return the same instance
     
     # Initialize chunker registry with config BEFORE creating wrapper
     if chunker_config:
@@ -148,10 +150,13 @@ def buildPipeline(c: Container) -> tuple[Ingester, PipelineBuilder]:
     # Build pipeline with config
     pipeline_builder = PipelineBuilder()
     
-    # Query expansion
+    # Query expansion - always add, but with 0 expansions if disabled
     if pipeline_config.get('query_expansion', {}).get('enabled', False):
         expansions = pipeline_config['query_expansion'].get('expansions', 0)
         pipeline_builder.add(QueryExpansionStep(expansions=expansions))
+    else:
+        # Even if disabled, we need to set the basic query
+        pipeline_builder.add(QueryExpansionStep(expansions=0))
     
     # Retrieval
     if pipeline_config.get('retrieval', {}).get('enabled', True):

@@ -1,5 +1,5 @@
 {
-  "strategy": "adaptive",
+  "strategy": "sentence",
   "params": {
     "maxTokens": 512,
     "windowSize": 1200,

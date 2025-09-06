@@ -1,22 +1,30 @@
 # pipeline/steps.py
 from __future__ import annotations
 from typing import List
+import logging
 from core.result import Result
 from core.types import RagContext, Retrieved, Answer
 from core.interfaces import Step, Retriever, Reranker, OutputParser, LlmClient
 from core.policy import Policy
+
+logger = logging.getLogger(__name__)
 
 class QueryExpansionStep:
     def __init__(self, expansions: int = 0):
         self._exp = max(0, expansions)
 
     async def run(self, ctx: RagContext) -> Result[RagContext]:
+        logger.info(f"QueryExpansionStep: Original question: '{ctx.question}'")
         if self._exp <= 0:
-            return Result.ok(ctx.withExpanded([ctx.question]))
-        qs: List[str] = [ctx.question]
-        for i in range(self._exp):
-            qs.append(f"{ctx.question} (alt {i+1})")
-        return Result.ok(ctx.withExpanded(qs))
+            expanded = [ctx.question]
+        else:
+            qs: List[str] = [ctx.question]
+            for i in range(self._exp):
+                qs.append(f"{ctx.question} (alt {i+1})")
+            expanded = qs
+        
+        logger.info(f"QueryExpansionStep: Expanded to {len(expanded)} queries")
+        return Result.ok(ctx.withExpanded(expanded))
 
 class RetrieveStep:
     def __init__(self, retriever: Retriever, policy: Policy):
@@ -24,13 +32,21 @@ class RetrieveStep:
         self._policy = policy
 
     async def run(self, ctx: RagContext) -> Result[RagContext]:
+        logger.info(f"RetrieveStep: Processing query '{ctx.question[:50]}...'")
+        logger.info(f"RetrieveStep: Expanded queries: {ctx.expandedQueries}")
+        
         allRetrieved: List[Retrieved] = []
         for q in ctx.expandedQueries:
+            logger.debug(f"  Retrieving for query: {q}")
             items = await self._retriever.retrieve(q, ctx.k or self._policy.getDefaultTopK())
+            logger.info(f"  Retrieved {len(items)} items for query: {q}")
             allRetrieved.extend(items)
+        
+        logger.info(f"RetrieveStep: Total retrieved before dedup: {len(allRetrieved)}")
         
         # Check if no results were retrieved
         if not allRetrieved:
+            logger.warning("RetrieveStep: No documents retrieved!")
             # Return empty retrieved list - pipeline will handle it
             return Result.ok(ctx.withRetrieved([]))
         
@@ -42,6 +58,8 @@ class RetrieveStep:
                 continue
             seen.add(r.chunk.id)
             uniq.append(r)
+        
+        logger.info(f"RetrieveStep: After deduplication: {len(uniq)} unique results")
         return Result.ok(ctx.withRetrieved(uniq))
 
 class RerankStep:
