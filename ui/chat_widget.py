@@ -218,7 +218,7 @@ class ChatWidget(QWidget):
                 <b style="color: {color}; font-size: 15px;">{sender}</b>
                 <span style="color: #888; margin-left: 10px; font-size: 12px;">[{timestamp}]</span>
             </div>
-            <div style="margin-left: 35px; padding: 12px; background-color: {bg_color}; 
+            <div style="padding: 12px; background-color: {bg_color}; 
                         border-radius: 8px; border-left: 3px solid {color};">
                 <div style="white-space: pre-wrap; word-wrap: break-word;">{message}</div>
         """

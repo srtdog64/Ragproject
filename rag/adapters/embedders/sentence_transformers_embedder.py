@@ -18,6 +18,10 @@ class SentenceTransformersEmbedder(IEmbedder):
         self._name = name or f"st::{model}"
         self._model = None
         self._lock = threading.Lock()
+        
+        # Add properties for namespace compatibility
+        self.model_name = model
+        self.dimension = dim
 
     def getDim(self) -> int:
         if self._model is None:

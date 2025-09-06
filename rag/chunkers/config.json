@@ -7,6 +7,6 @@
     "semanticThreshold": 0.82,
     "language": "ko",
     "sentenceMinLen": 10,
-    "paragraphMinLen": 50
+    "paragraphMinLen": 49
   }
 }

@@ -3,7 +3,7 @@ chunker:
     language: ko
     maxTokens: 512
     overlap: 200
-    paragraphMinLen: 50
+    paragraphMinLen: 49
     semanticThreshold: 0.82
     sentenceMinLen: 10
     windowSize: 1200
@@ -17,6 +17,9 @@ cors:
   allow_origins:
   - http://localhost:*
   - http://127.0.0.1:*
+documents:
+  watched_folders:
+  - C:/Users/Pc/Desktop/스크립트 백업
 embedder:
   cache_dir: null
   dimension: 384
@@ -53,6 +56,9 @@ logging:
   file: null
   format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
   level: INFO
+options:
+  watched_folders:
+  - C:/Users/Pc/Desktop/스크립트 백업
 pipeline:
   context_compression:
     enabled: true

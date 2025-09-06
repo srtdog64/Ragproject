@@ -22,7 +22,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'rag'))
 from ui import (
     ChatWidget, 
     DocumentsWidget, 
-    OptionsWidget, 
+    OptionsWidget,  # Now includes all enhanced features
     LogsWidget,
     ConfigManager
 )
@@ -39,7 +39,16 @@ class RagWorkerThread(QThread):
         super().__init__()
         self.config = config_manager
         self.baseUrl = self.config.get_server_url()
-        self.timeout = self.config.get("server.timeout", 3000)  # 5 minutes for large ingestions
+        
+        # Load system variables
+        try:
+            import yaml
+            with open('config/system_variables.yaml', 'r') as f:
+                sys_vars = yaml.safe_load(f)
+                self.timeout = sys_vars['timeouts']['ingest_request']  # 600 seconds
+        except:
+            self.timeout = 300  # Fallback to 5 minutes
+            
         self.task = None
         self.payload = None
     
@@ -444,6 +453,17 @@ class MainWindow(QMainWindow):
 
     def ingestDocuments(self):
         """Ingest documents to server"""
+        # Check if folder watcher is busy
+        if hasattr(self.docWidget, 'folder_watcher') and self.docWidget.folder_watcher:
+            if self.docWidget.folder_watcher.is_busy():
+                reply = QMessageBox.question(
+                    self, "Watcher Active",
+                    "Folder watcher is processing files. Do you want to proceed anyway?",
+                    QMessageBox.Yes | QMessageBox.No
+                )
+                if reply != QMessageBox.Yes:
+                    return
+        
         docs = self.docWidget.getDocuments()
         if not docs:
             QMessageBox.warning(self, "No Documents", "No documents to ingest")

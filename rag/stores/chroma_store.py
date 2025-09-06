@@ -1,6 +1,6 @@
 # stores/chroma_store.py
 """
-ChromaDB-based persistent vector store implementation
+ChromaDB-based persistent vector store implementation with namespace support
 """
 from __future__ import annotations
 from typing import List, Optional, Dict, Any
@@ -9,6 +9,7 @@ import chromadb
 from chromadb.config import Settings
 from core.types import Chunk, Retrieved
 from core.interfaces import VectorStore
+from stores.namespace_manager import NamespaceManager
 
 logger = logging.getLogger(__name__)
 
@@ -19,16 +20,25 @@ class ChromaVectorStore(VectorStore):
     
     def __init__(self, 
                  persist_directory: str = "./chroma_db",
-                 collection_name: str = "rag_documents"):
+                 collection_name: str = "rag_documents",
+                 embedding_model: str = None,
+                 embedding_dim: int = None):
         """
-        Initialize ChromaDB client and collection
+        Initialize ChromaDB client and collection with namespace support
         
         Args:
             persist_directory: Directory to persist the database
-            collection_name: Name of the collection to use
+            collection_name: Base name of the collection
+            embedding_model: Name of the embedding model (for namespace)
+            embedding_dim: Dimension of embeddings (for namespace)
         """
         self.persist_directory = persist_directory
-        self.collection_name = collection_name
+        self.base_collection_name = collection_name
+        self.embedding_model = embedding_model
+        self.embedding_dim = embedding_dim
+        
+        # Initialize namespace manager
+        self.namespace_manager = NamespaceManager(collection_name)
         
         # Initialize ChromaDB client with persistence
         self.client = chromadb.PersistentClient(
@@ -39,18 +49,38 @@ class ChromaVectorStore(VectorStore):
             )
         )
         
+        # Determine collection name based on embedding model
+        if embedding_model:
+            self.collection_name = self.namespace_manager.get_namespace_for_model(
+                embedding_model, embedding_dim
+            )
+        else:
+            self.collection_name = collection_name
+            logger.warning("No embedding model specified, using base collection name")
+        
         # Get or create collection
         try:
-            self.collection = self.client.get_collection(name=collection_name)
+            self.collection = self.client.get_collection(name=self.collection_name)
             # Get current count
             count = self.collection.count()
-            logger.info(f"ChromaDB: Loaded existing collection '{collection_name}' with {count} documents")
+            logger.info(f"ChromaDB: Loaded existing collection '{self.collection_name}' with {count} documents")
+            logger.info(f"  Model: {embedding_model}")
+            logger.info(f"  Dimensions: {embedding_dim}")
         except:
-            self.collection = self.client.create_collection(
-                name=collection_name,
-                metadata={"hnsw:space": "cosine"}  # Use cosine similarity
+            # Create collection with metadata
+            metadata = self.namespace_manager.create_namespace_metadata(
+                embedding_model or "default",
+                embedding_dim or 384
             )
-            logger.info(f"ChromaDB: Created new collection '{collection_name}'")
+            metadata["hnsw:space"] = "cosine"  # Add HNSW config
+            
+            self.collection = self.client.create_collection(
+                name=self.collection_name,
+                metadata=metadata
+            )
+            logger.info(f"ChromaDB: Created new collection '{self.collection_name}'")
+            logger.info(f"  Model: {embedding_model}")
+            logger.info(f"  Dimensions: {embedding_dim}")
     
     def addMany(self, chunks: List[Chunk], vectors: List[List[float]]) -> None:
         """
@@ -193,3 +223,59 @@ class ChromaVectorStore(VectorStore):
         Get the total number of documents in the collection
         """
         return self.collection.count()
+    
+    def list_namespaces(self) -> List[Dict[str, Any]]:
+        """
+        List all available namespaces (collections) with their model info
+        
+        Returns:
+            List of namespace information
+        """
+        return self.namespace_manager.list_available_namespaces(self.client)
+    
+    def switch_namespace(self, embedding_model: str, embedding_dim: int = None) -> bool:
+        """
+        Switch to a different namespace (for different embedding model)
+        
+        Args:
+            embedding_model: Name of the embedding model
+            embedding_dim: Dimension of embeddings
+            
+        Returns:
+            True if successful
+        """
+        try:
+            # Generate namespace for the model
+            new_namespace = self.namespace_manager.get_namespace_for_model(
+                embedding_model, embedding_dim
+            )
+            
+            # Try to get existing collection
+            try:
+                self.collection = self.client.get_collection(name=new_namespace)
+                count = self.collection.count()
+                logger.info(f"Switched to existing namespace: {new_namespace} ({count} documents)")
+            except:
+                # Create new collection for this model
+                metadata = self.namespace_manager.create_namespace_metadata(
+                    embedding_model, embedding_dim or 384
+                )
+                metadata["hnsw:space"] = "cosine"
+                
+                self.collection = self.client.create_collection(
+                    name=new_namespace,
+                    metadata=metadata
+                )
+                logger.info(f"Created new namespace: {new_namespace}")
+            
+            # Update current settings
+            self.collection_name = new_namespace
+            self.embedding_model = embedding_model
+            self.embedding_dim = embedding_dim
+            self.namespace_manager.switch_namespace(new_namespace)
+            
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to switch namespace: {e}")
+            return False

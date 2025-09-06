@@ -27,6 +27,9 @@ markdown  # Markdown support
 PySide6
 PyYAML
 
+# File Watching
+watchdog  # For folder monitoring
+
 # Optional but recommended
 faiss-cpu  # For better vector search (optional)
 chromadb  # Alternative vector store (optional)

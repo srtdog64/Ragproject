@@ -77,17 +77,22 @@ def buildContainer() -> Container:
     ))
     
     # Create embedder manager from YAML config
+    embedder_manager = None
+    default_embedder = None
+    
     try:
         embedder_manager = EmbedderManager.fromYaml("config/embeddings.yml")
         c.register("embedder_manager", lambda _: embedder_manager)
         # Register default embedder for backward compatibility
-        c.register("embedder", lambda _: embedder_manager.getDefaultEmbedder())
+        default_embedder = embedder_manager.getDefaultEmbedder()
+        c.register("embedder", lambda _: default_embedder)
         print("✅ Embedder manager initialized successfully")
     except Exception as e:
         print(f"⚠️ Warning: Failed to load embedder manager: {e}")
         # Fallback to old factory method
         try:
-            c.register("embedder", lambda _: EmbedderFactory.create(embedder_config))
+            default_embedder = EmbedderFactory.create(embedder_config)
+            c.register("embedder", lambda _: default_embedder)
             print("✅ Using legacy embedder factory")
         except RuntimeError as e2:
             print(f"❌ CRITICAL ERROR: {e2}")
@@ -95,7 +100,33 @@ def buildContainer() -> Container:
             raise
     
     # Create vector store based on config
+    store_config = config.get_section('store')
     store_type = store_config.get('type', 'memory')
+    
+    # Get embedder info for namespace
+    embedding_model = None
+    embedding_dim = None
+    
+    # Try to get info from the actual embedder instance
+    if default_embedder:
+        # Check for model_name attribute
+        if hasattr(default_embedder, 'model_name'):
+            embedding_model = default_embedder.model_name
+        elif hasattr(default_embedder, 'model'):
+            embedding_model = str(default_embedder.model)
+        
+        # Check for dimension attribute
+        if hasattr(default_embedder, 'dimension'):
+            embedding_dim = default_embedder.dimension
+        elif hasattr(default_embedder, 'embedding_dim'):
+            embedding_dim = default_embedder.embedding_dim
+    
+    # Fallback to config values if not found
+    if not embedding_model and embedder_config:
+        default_embedder_key = embedder_config.get('default_embedder', 'semantic')
+        if default_embedder_key == 'semantic':
+            embedding_model = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+            embedding_dim = 384
     
     if store_type == 'chroma':
         from stores.chroma_store import ChromaVectorStore
@@ -103,11 +134,15 @@ def buildContainer() -> Container:
         collection = store_config.get('collection_name', 'rag_documents')
         store_instance = ChromaVectorStore(
             persist_directory=persist_dir,
-            collection_name=collection
+            collection_name=collection,
+            embedding_model=embedding_model,
+            embedding_dim=embedding_dim
         )
         logger.info(f"Using ChromaDB vector store (persistent) at {persist_dir}")
+        if embedding_model:
+            logger.info(f"  Namespace for model: {embedding_model}")
     elif store_type == 'faiss':
-        # TODO: Implement FAISS store
+        # TODO: Implement FAISS store with namespace support
         logger.info("FAISS store not yet implemented, falling back to memory")
         store_instance = InMemoryVectorStore()
     else:
@@ -245,6 +280,37 @@ async def ingest(payload: IngestIn) -> dict:
     if res.isErr():
         raise HTTPException(status_code=400, detail=str(res.getError()))
     return {"ingestedChunks": res.getValue(), "documentCount": len(docs)}
+
+@app.get("/api/namespaces")
+async def get_namespaces() -> List[dict]:
+    """Get list of available namespaces/collections"""
+    try:
+        store = _container.resolve("store")
+        if hasattr(store, 'list_namespaces'):
+            namespaces = store.list_namespaces()
+            return namespaces
+        else:
+            return [{"name": "default", "count": store.count()}]
+    except Exception as e:
+        logger.error(f"Failed to get namespaces: {e}")
+        return []
+
+@app.post("/api/switch_namespace")
+async def switch_namespace(payload: dict) -> dict:
+    """Switch to a different embedding model namespace"""
+    try:
+        model_name = payload.get("model_name")
+        model_dim = payload.get("model_dim")
+        
+        store = _container.resolve("store")
+        if hasattr(store, 'switch_namespace'):
+            success = store.switch_namespace(model_name, model_dim)
+            return {"success": success}
+        else:
+            return {"success": False, "error": "Store doesn't support namespaces"}
+    except Exception as e:
+        logger.error(f"Failed to switch namespace: {e}")
+        return {"success": False, "error": str(e)}
 
 @app.post("/ask", response_model=AskOut)
 async def ask(body: AskIn) -> AskOut:

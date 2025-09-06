@@ -50,6 +50,12 @@ except ImportError:
 # System path setup for rag module
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'rag'))
 
+# Import folder watcher
+try:
+    from watchers.folder_watcher import FolderWatcher
+except ImportError:
+    FolderWatcher = None  # Will handle gracefully if not available
+
 # Import selective ingest widget
 try:
     from .selective_ingest_widget import SelectiveIngestWidget
@@ -69,11 +75,22 @@ class DocumentsWidget(QWidget):
     
     documentsChanged = Signal(int)  # Emit document count
     selectiveIngestRequested = Signal(list)  # Emit selected documents for ingestion
+    foldersUpdated = Signal(list)  # Emit watched folders list
     
     def __init__(self, config_manager):
         super().__init__()
         self.config = config_manager
         self.documents = []
+        
+        # Initialize folder watcher
+        self.folder_watcher = None
+        self.watched_folders = []
+        if FolderWatcher:
+            try:
+                self.folder_watcher = FolderWatcher(ingest_callback=self.auto_ingest_document)
+            except Exception as e:
+                print(f"Could not initialize folder watcher: {e}")
+        
         self.initUI()
     
     def initUI(self):
@@ -95,6 +112,11 @@ class DocumentsWidget(QWidget):
         self.advancedTab = SelectiveIngestWidget()
         self.advancedTab.ingestRequested.connect(self.selectiveIngestRequested.emit)
         self.tabWidget.addTab(self.advancedTab, "🎯 Selective Ingest")
+        
+        # Tab 3: Folder Watching (if available)
+        if self.folder_watcher:
+            self.watchTab = self.createWatchTab()
+            self.tabWidget.addTab(self.watchTab, "📁 Auto-Ingest")
         
         layout.addWidget(self.tabWidget)
         self.setLayout(layout)
@@ -238,6 +260,246 @@ class DocumentsWidget(QWidget):
             if loaded_count > 0:
                 self.updateDocumentList()
                 self.updateAdvancedTab()
+    
+    def auto_ingest_document(self, file_path):
+        """Callback for automatic document ingestion from folder watcher"""
+        from pathlib import Path
+        import requests
+        
+        print(f"Auto-ingesting: {Path(file_path).name}")
+        
+        # Load the document
+        loader = FileLoader()
+        doc = loader.load_file(file_path)
+        
+        if doc:
+            try:
+                # Send to server for ingestion
+                response = requests.post(
+                    f"{self.config.get_server_url()}/ingest",
+                    json={"documents": [doc]},
+                    headers={"Content-Type": "application/json"},
+                    timeout=60
+                )
+                
+                if response.status_code == 200:
+                    print(f"Successfully ingested: {Path(file_path).name}")
+                    # Add to documents list
+                    self.documents.append(doc)
+                    self.updateDocumentList()
+                    self.documentsChanged.emit(len(self.documents))
+                else:
+                    print(f"Failed to ingest: {Path(file_path).name}")
+                    
+            except Exception as e:
+                print(f"Error during auto-ingest: {str(e)}")
+        else:
+            print(f"Could not load file: {Path(file_path).name}")
+    
+    def createWatchTab(self):
+        """Create folder watching tab for auto-ingestion"""
+        widget = QWidget()
+        layout = QVBoxLayout()
+        
+        # Info
+        info = QLabel("""
+        <div style='background-color: #e8f5e9; padding: 10px; border-radius: 5px;'>
+        <b>📂 Automatic Document Ingestion:</b><br>
+        Add folders to watch. Any new documents (PDF, MD, TXT) added to these folders
+        will be automatically ingested into the RAG system.
+        </div>
+        """)
+        info.setWordWrap(True)
+        layout.addWidget(info)
+        
+        # Watched folders list
+        folders_group = QGroupBox("Watched Folders")
+        folders_layout = QVBoxLayout()
+        
+        self.folders_list = QListWidget()
+        self.folders_list.setMinimumHeight(150)
+        folders_layout.addWidget(self.folders_list)
+        
+        # Folder controls
+        folder_btns = QHBoxLayout()
+        
+        add_folder_btn = QPushButton("➕ Add Folder")
+        add_folder_btn.clicked.connect(self.addWatchFolder)
+        add_folder_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                padding: 6px 12px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
+        
+        remove_folder_btn = QPushButton("➖ Remove Folder")
+        remove_folder_btn.clicked.connect(self.removeWatchFolder)
+        remove_folder_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #f44336;
+                color: white;
+                padding: 6px 12px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #da190b;
+            }
+        """)
+        
+        folder_btns.addWidget(add_folder_btn)
+        folder_btns.addWidget(remove_folder_btn)
+        folder_btns.addStretch()
+        
+        folders_layout.addLayout(folder_btns)
+        folders_group.setLayout(folders_layout)
+        layout.addWidget(folders_group)
+        
+        # Watcher controls
+        watcher_group = QGroupBox("Watcher Control")
+        watcher_layout = QVBoxLayout()
+        
+        # Status
+        self.watcher_status = QLabel("Status: ⏹️ Not running")
+        self.watcher_status.setStyleSheet("padding: 10px; background-color: #f0f0f0; border-radius: 5px;")
+        watcher_layout.addWidget(self.watcher_status)
+        
+        # Queue status
+        self.queue_status = QLabel("Queue: 0 files pending")
+        self.queue_status.setStyleSheet("padding: 5px; color: #666;")
+        watcher_layout.addWidget(self.queue_status)
+        
+        # Control buttons
+        control_btns = QHBoxLayout()
+        
+        self.start_watch_btn = QPushButton("▶️ Start Watching")
+        self.start_watch_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #1976D2;
+            }
+        """)
+        self.start_watch_btn.clicked.connect(self.startWatching)
+        
+        self.stop_watch_btn = QPushButton("⏹️ Stop Watching")
+        self.stop_watch_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #FF9800;
+                color: white;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #F57C00;
+            }
+            QPushButton:disabled {
+                background-color: #ccc;
+            }
+        """)
+        self.stop_watch_btn.clicked.connect(self.stopWatching)
+        self.stop_watch_btn.setEnabled(False)
+        
+        control_btns.addWidget(self.start_watch_btn)
+        control_btns.addWidget(self.stop_watch_btn)
+        control_btns.addStretch()
+        
+        watcher_layout.addLayout(control_btns)
+        watcher_group.setLayout(watcher_layout)
+        layout.addWidget(watcher_group)
+        
+        # Activity log
+        log_group = QGroupBox("Activity Log")
+        log_layout = QVBoxLayout()
+        
+        self.activity_log = QTextEdit()
+        self.activity_log.setReadOnly(True)
+        self.activity_log.setMaximumHeight(100)
+        log_layout.addWidget(self.activity_log)
+        
+        clear_log_btn = QPushButton("Clear Log")
+        clear_log_btn.clicked.connect(lambda: self.activity_log.clear())
+        log_layout.addWidget(clear_log_btn)
+        
+        log_group.setLayout(log_layout)
+        layout.addWidget(log_group)
+        
+        # Load saved folders
+        self.loadWatchedFolders()
+        
+        layout.addStretch()
+        widget.setLayout(layout)
+        return widget
+    
+    def loadWatchedFolders(self):
+        """Load watched folders from config"""
+        watched_folders = self.config.get("documents.watched_folders", [], "client")
+        for folder in watched_folders:
+            if Path(folder).exists():
+                self.watched_folders.append(folder)
+                self.folders_list.addItem(folder)
+                if self.folder_watcher:
+                    self.folder_watcher.add_folder(folder)
+    
+    def addWatchFolder(self):
+        """Add a folder to watch list"""
+        folder = QFileDialog.getExistingDirectory(
+            self, "Select Folder to Watch",
+            str(Path.home())
+        )
+        
+        if folder and folder not in self.watched_folders:
+            if self.folder_watcher and self.folder_watcher.add_folder(folder):
+                self.watched_folders.append(folder)
+                self.folders_list.addItem(folder)
+                self.config.set("documents.watched_folders", self.watched_folders, "client")
+                self.foldersUpdated.emit(self.watched_folders)
+                self.activity_log.append(f"✅ Added folder: {Path(folder).name}")
+    
+    def removeWatchFolder(self):
+        """Remove selected folder from watch list"""
+        current = self.folders_list.currentItem()
+        if current and self.folder_watcher:
+            folder = current.text()
+            if self.folder_watcher.remove_folder(folder):
+                self.watched_folders.remove(folder)
+                self.folders_list.takeItem(self.folders_list.row(current))
+                self.config.set("documents.watched_folders", self.watched_folders, "client")
+                self.foldersUpdated.emit(self.watched_folders)
+                self.activity_log.append(f"❌ Removed folder: {Path(folder).name}")
+    
+    def startWatching(self):
+        """Start the folder watcher"""
+        if self.folder_watcher and self.watched_folders:
+            self.folder_watcher.start()
+            self.watcher_status.setText("Status: ✅ Watching...")
+            self.start_watch_btn.setEnabled(False)
+            self.stop_watch_btn.setEnabled(True)
+            self.activity_log.append("▶️ Started folder watching")
+        else:
+            QMessageBox.warning(self, "No Folders", 
+                              "Please add at least one folder to watch first.")
+    
+    def stopWatching(self):
+        """Stop the folder watcher"""
+        if self.folder_watcher:
+            self.folder_watcher.stop()
+            self.watcher_status.setText("Status: ⏹️ Stopped")
+            self.start_watch_btn.setEnabled(True)
+            self.stop_watch_btn.setEnabled(False)
+            self.activity_log.append("⏹️ Stopped folder watching")
             
             # Show results
             if loaded_count > 0 and not failed_files:
@@ -355,6 +617,246 @@ class DocumentsWidget(QWidget):
                 self.documents.clear()
                 self.updateDocumentList()
                 self.updateAdvancedTab()
+    
+    def auto_ingest_document(self, file_path):
+        """Callback for automatic document ingestion from folder watcher"""
+        from pathlib import Path
+        import requests
+        
+        print(f"Auto-ingesting: {Path(file_path).name}")
+        
+        # Load the document
+        loader = FileLoader()
+        doc = loader.load_file(file_path)
+        
+        if doc:
+            try:
+                # Send to server for ingestion
+                response = requests.post(
+                    f"{self.config.get_server_url()}/ingest",
+                    json={"documents": [doc]},
+                    headers={"Content-Type": "application/json"},
+                    timeout=60
+                )
+                
+                if response.status_code == 200:
+                    print(f"Successfully ingested: {Path(file_path).name}")
+                    # Add to documents list
+                    self.documents.append(doc)
+                    self.updateDocumentList()
+                    self.documentsChanged.emit(len(self.documents))
+                else:
+                    print(f"Failed to ingest: {Path(file_path).name}")
+                    
+            except Exception as e:
+                print(f"Error during auto-ingest: {str(e)}")
+        else:
+            print(f"Could not load file: {Path(file_path).name}")
+    
+    def createWatchTab(self):
+        """Create folder watching tab for auto-ingestion"""
+        widget = QWidget()
+        layout = QVBoxLayout()
+        
+        # Info
+        info = QLabel("""
+        <div style='background-color: #e8f5e9; padding: 10px; border-radius: 5px;'>
+        <b>📂 Automatic Document Ingestion:</b><br>
+        Add folders to watch. Any new documents (PDF, MD, TXT) added to these folders
+        will be automatically ingested into the RAG system.
+        </div>
+        """)
+        info.setWordWrap(True)
+        layout.addWidget(info)
+        
+        # Watched folders list
+        folders_group = QGroupBox("Watched Folders")
+        folders_layout = QVBoxLayout()
+        
+        self.folders_list = QListWidget()
+        self.folders_list.setMinimumHeight(150)
+        folders_layout.addWidget(self.folders_list)
+        
+        # Folder controls
+        folder_btns = QHBoxLayout()
+        
+        add_folder_btn = QPushButton("➕ Add Folder")
+        add_folder_btn.clicked.connect(self.addWatchFolder)
+        add_folder_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                padding: 6px 12px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
+        
+        remove_folder_btn = QPushButton("➖ Remove Folder")
+        remove_folder_btn.clicked.connect(self.removeWatchFolder)
+        remove_folder_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #f44336;
+                color: white;
+                padding: 6px 12px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #da190b;
+            }
+        """)
+        
+        folder_btns.addWidget(add_folder_btn)
+        folder_btns.addWidget(remove_folder_btn)
+        folder_btns.addStretch()
+        
+        folders_layout.addLayout(folder_btns)
+        folders_group.setLayout(folders_layout)
+        layout.addWidget(folders_group)
+        
+        # Watcher controls
+        watcher_group = QGroupBox("Watcher Control")
+        watcher_layout = QVBoxLayout()
+        
+        # Status
+        self.watcher_status = QLabel("Status: ⏹️ Not running")
+        self.watcher_status.setStyleSheet("padding: 10px; background-color: #f0f0f0; border-radius: 5px;")
+        watcher_layout.addWidget(self.watcher_status)
+        
+        # Queue status
+        self.queue_status = QLabel("Queue: 0 files pending")
+        self.queue_status.setStyleSheet("padding: 5px; color: #666;")
+        watcher_layout.addWidget(self.queue_status)
+        
+        # Control buttons
+        control_btns = QHBoxLayout()
+        
+        self.start_watch_btn = QPushButton("▶️ Start Watching")
+        self.start_watch_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #1976D2;
+            }
+        """)
+        self.start_watch_btn.clicked.connect(self.startWatching)
+        
+        self.stop_watch_btn = QPushButton("⏹️ Stop Watching")
+        self.stop_watch_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #FF9800;
+                color: white;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #F57C00;
+            }
+            QPushButton:disabled {
+                background-color: #ccc;
+            }
+        """)
+        self.stop_watch_btn.clicked.connect(self.stopWatching)
+        self.stop_watch_btn.setEnabled(False)
+        
+        control_btns.addWidget(self.start_watch_btn)
+        control_btns.addWidget(self.stop_watch_btn)
+        control_btns.addStretch()
+        
+        watcher_layout.addLayout(control_btns)
+        watcher_group.setLayout(watcher_layout)
+        layout.addWidget(watcher_group)
+        
+        # Activity log
+        log_group = QGroupBox("Activity Log")
+        log_layout = QVBoxLayout()
+        
+        self.activity_log = QTextEdit()
+        self.activity_log.setReadOnly(True)
+        self.activity_log.setMaximumHeight(100)
+        log_layout.addWidget(self.activity_log)
+        
+        clear_log_btn = QPushButton("Clear Log")
+        clear_log_btn.clicked.connect(lambda: self.activity_log.clear())
+        log_layout.addWidget(clear_log_btn)
+        
+        log_group.setLayout(log_layout)
+        layout.addWidget(log_group)
+        
+        # Load saved folders
+        self.loadWatchedFolders()
+        
+        layout.addStretch()
+        widget.setLayout(layout)
+        return widget
+    
+    def loadWatchedFolders(self):
+        """Load watched folders from config"""
+        watched_folders = self.config.get("documents.watched_folders", [], "client")
+        for folder in watched_folders:
+            if Path(folder).exists():
+                self.watched_folders.append(folder)
+                self.folders_list.addItem(folder)
+                if self.folder_watcher:
+                    self.folder_watcher.add_folder(folder)
+    
+    def addWatchFolder(self):
+        """Add a folder to watch list"""
+        folder = QFileDialog.getExistingDirectory(
+            self, "Select Folder to Watch",
+            str(Path.home())
+        )
+        
+        if folder and folder not in self.watched_folders:
+            if self.folder_watcher and self.folder_watcher.add_folder(folder):
+                self.watched_folders.append(folder)
+                self.folders_list.addItem(folder)
+                self.config.set("documents.watched_folders", self.watched_folders, "client")
+                self.foldersUpdated.emit(self.watched_folders)
+                self.activity_log.append(f"✅ Added folder: {Path(folder).name}")
+    
+    def removeWatchFolder(self):
+        """Remove selected folder from watch list"""
+        current = self.folders_list.currentItem()
+        if current and self.folder_watcher:
+            folder = current.text()
+            if self.folder_watcher.remove_folder(folder):
+                self.watched_folders.remove(folder)
+                self.folders_list.takeItem(self.folders_list.row(current))
+                self.config.set("documents.watched_folders", self.watched_folders, "client")
+                self.foldersUpdated.emit(self.watched_folders)
+                self.activity_log.append(f"❌ Removed folder: {Path(folder).name}")
+    
+    def startWatching(self):
+        """Start the folder watcher"""
+        if self.folder_watcher and self.watched_folders:
+            self.folder_watcher.start()
+            self.watcher_status.setText("Status: ✅ Watching...")
+            self.start_watch_btn.setEnabled(False)
+            self.stop_watch_btn.setEnabled(True)
+            self.activity_log.append("▶️ Started folder watching")
+        else:
+            QMessageBox.warning(self, "No Folders", 
+                              "Please add at least one folder to watch first.")
+    
+    def stopWatching(self):
+        """Stop the folder watcher"""
+        if self.folder_watcher:
+            self.folder_watcher.stop()
+            self.watcher_status.setText("Status: ⏹️ Stopped")
+            self.start_watch_btn.setEnabled(True)
+            self.stop_watch_btn.setEnabled(False)
+            self.activity_log.append("⏹️ Stopped folder watching")
     
     def updateDocumentList(self):
         """Update the document list display"""
@@ -555,3 +1057,243 @@ class DocumentsWidget(QWidget):
                 self.documents.pop(index)
                 self.updateDocumentList()
                 self.updateAdvancedTab()
+    
+    def auto_ingest_document(self, file_path):
+        """Callback for automatic document ingestion from folder watcher"""
+        from pathlib import Path
+        import requests
+        
+        print(f"Auto-ingesting: {Path(file_path).name}")
+        
+        # Load the document
+        loader = FileLoader()
+        doc = loader.load_file(file_path)
+        
+        if doc:
+            try:
+                # Send to server for ingestion
+                response = requests.post(
+                    f"{self.config.get_server_url()}/ingest",
+                    json={"documents": [doc]},
+                    headers={"Content-Type": "application/json"},
+                    timeout=60
+                )
+                
+                if response.status_code == 200:
+                    print(f"Successfully ingested: {Path(file_path).name}")
+                    # Add to documents list
+                    self.documents.append(doc)
+                    self.updateDocumentList()
+                    self.documentsChanged.emit(len(self.documents))
+                else:
+                    print(f"Failed to ingest: {Path(file_path).name}")
+                    
+            except Exception as e:
+                print(f"Error during auto-ingest: {str(e)}")
+        else:
+            print(f"Could not load file: {Path(file_path).name}")
+    
+    def createWatchTab(self):
+        """Create folder watching tab for auto-ingestion"""
+        widget = QWidget()
+        layout = QVBoxLayout()
+        
+        # Info
+        info = QLabel("""
+        <div style='background-color: #e8f5e9; padding: 10px; border-radius: 5px;'>
+        <b>📂 Automatic Document Ingestion:</b><br>
+        Add folders to watch. Any new documents (PDF, MD, TXT) added to these folders
+        will be automatically ingested into the RAG system.
+        </div>
+        """)
+        info.setWordWrap(True)
+        layout.addWidget(info)
+        
+        # Watched folders list
+        folders_group = QGroupBox("Watched Folders")
+        folders_layout = QVBoxLayout()
+        
+        self.folders_list = QListWidget()
+        self.folders_list.setMinimumHeight(150)
+        folders_layout.addWidget(self.folders_list)
+        
+        # Folder controls
+        folder_btns = QHBoxLayout()
+        
+        add_folder_btn = QPushButton("➕ Add Folder")
+        add_folder_btn.clicked.connect(self.addWatchFolder)
+        add_folder_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                padding: 6px 12px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
+        
+        remove_folder_btn = QPushButton("➖ Remove Folder")
+        remove_folder_btn.clicked.connect(self.removeWatchFolder)
+        remove_folder_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #f44336;
+                color: white;
+                padding: 6px 12px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #da190b;
+            }
+        """)
+        
+        folder_btns.addWidget(add_folder_btn)
+        folder_btns.addWidget(remove_folder_btn)
+        folder_btns.addStretch()
+        
+        folders_layout.addLayout(folder_btns)
+        folders_group.setLayout(folders_layout)
+        layout.addWidget(folders_group)
+        
+        # Watcher controls
+        watcher_group = QGroupBox("Watcher Control")
+        watcher_layout = QVBoxLayout()
+        
+        # Status
+        self.watcher_status = QLabel("Status: ⏹️ Not running")
+        self.watcher_status.setStyleSheet("padding: 10px; background-color: #f0f0f0; border-radius: 5px;")
+        watcher_layout.addWidget(self.watcher_status)
+        
+        # Queue status
+        self.queue_status = QLabel("Queue: 0 files pending")
+        self.queue_status.setStyleSheet("padding: 5px; color: #666;")
+        watcher_layout.addWidget(self.queue_status)
+        
+        # Control buttons
+        control_btns = QHBoxLayout()
+        
+        self.start_watch_btn = QPushButton("▶️ Start Watching")
+        self.start_watch_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #1976D2;
+            }
+        """)
+        self.start_watch_btn.clicked.connect(self.startWatching)
+        
+        self.stop_watch_btn = QPushButton("⏹️ Stop Watching")
+        self.stop_watch_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #FF9800;
+                color: white;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #F57C00;
+            }
+            QPushButton:disabled {
+                background-color: #ccc;
+            }
+        """)
+        self.stop_watch_btn.clicked.connect(self.stopWatching)
+        self.stop_watch_btn.setEnabled(False)
+        
+        control_btns.addWidget(self.start_watch_btn)
+        control_btns.addWidget(self.stop_watch_btn)
+        control_btns.addStretch()
+        
+        watcher_layout.addLayout(control_btns)
+        watcher_group.setLayout(watcher_layout)
+        layout.addWidget(watcher_group)
+        
+        # Activity log
+        log_group = QGroupBox("Activity Log")
+        log_layout = QVBoxLayout()
+        
+        self.activity_log = QTextEdit()
+        self.activity_log.setReadOnly(True)
+        self.activity_log.setMaximumHeight(100)
+        log_layout.addWidget(self.activity_log)
+        
+        clear_log_btn = QPushButton("Clear Log")
+        clear_log_btn.clicked.connect(lambda: self.activity_log.clear())
+        log_layout.addWidget(clear_log_btn)
+        
+        log_group.setLayout(log_layout)
+        layout.addWidget(log_group)
+        
+        # Load saved folders
+        self.loadWatchedFolders()
+        
+        layout.addStretch()
+        widget.setLayout(layout)
+        return widget
+    
+    def loadWatchedFolders(self):
+        """Load watched folders from config"""
+        watched_folders = self.config.get("documents.watched_folders", [], "client")
+        for folder in watched_folders:
+            if Path(folder).exists():
+                self.watched_folders.append(folder)
+                self.folders_list.addItem(folder)
+                if self.folder_watcher:
+                    self.folder_watcher.add_folder(folder)
+    
+    def addWatchFolder(self):
+        """Add a folder to watch list"""
+        folder = QFileDialog.getExistingDirectory(
+            self, "Select Folder to Watch",
+            str(Path.home())
+        )
+        
+        if folder and folder not in self.watched_folders:
+            if self.folder_watcher and self.folder_watcher.add_folder(folder):
+                self.watched_folders.append(folder)
+                self.folders_list.addItem(folder)
+                self.config.set("documents.watched_folders", self.watched_folders, "client")
+                self.foldersUpdated.emit(self.watched_folders)
+                self.activity_log.append(f"✅ Added folder: {Path(folder).name}")
+    
+    def removeWatchFolder(self):
+        """Remove selected folder from watch list"""
+        current = self.folders_list.currentItem()
+        if current and self.folder_watcher:
+            folder = current.text()
+            if self.folder_watcher.remove_folder(folder):
+                self.watched_folders.remove(folder)
+                self.folders_list.takeItem(self.folders_list.row(current))
+                self.config.set("documents.watched_folders", self.watched_folders, "client")
+                self.foldersUpdated.emit(self.watched_folders)
+                self.activity_log.append(f"❌ Removed folder: {Path(folder).name}")
+    
+    def startWatching(self):
+        """Start the folder watcher"""
+        if self.folder_watcher and self.watched_folders:
+            self.folder_watcher.start()
+            self.watcher_status.setText("Status: ✅ Watching...")
+            self.start_watch_btn.setEnabled(False)
+            self.stop_watch_btn.setEnabled(True)
+            self.activity_log.append("▶️ Started folder watching")
+        else:
+            QMessageBox.warning(self, "No Folders", 
+                              "Please add at least one folder to watch first.")
+    
+    def stopWatching(self):
+        """Stop the folder watcher"""
+        if self.folder_watcher:
+            self.folder_watcher.stop()
+            self.watcher_status.setText("Status: ⏹️ Stopped")
+            self.start_watch_btn.setEnabled(True)
+            self.stop_watch_btn.setEnabled(False)
+            self.activity_log.append("⏹️ Stopped folder watching")

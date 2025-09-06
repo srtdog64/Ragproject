@@ -1,24 +1,62 @@
 # ui/options_widget.py
 """
 Options Tab Widget for RAG Qt Application
-Simplified version with static chunking strategies
+Enhanced version with embedding models and chunking strategies
 """
 from typing import Dict, List
 from PySide6.QtWidgets import *
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt, QThread
+from PySide6.QtGui import QFont
+from pathlib import Path
+import json
+import logging
+import sys
+import os
+
+logger = logging.getLogger(__name__)
 
 
 class OptionsWidget(QWidget):
-    """Options widget for system configuration"""
+    """Enhanced options widget for system configuration"""
     
     strategyChanged = Signal(str)
     paramsChanged = Signal(dict)
     modelChanged = Signal(str, str)  # provider, model
     configReloaded = Signal()
+    embeddingModelChanged = Signal(str, int)  # model_name, dimension
+    foldersUpdated = Signal(list)  # List of watched folders
     
     def __init__(self, config_manager):
         super().__init__()
         self.config = config_manager
+        
+        # Embedding models configuration
+        self.embedding_models = [
+            {
+                "name": "Multilingual MiniLM",
+                "model_id": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+                "dim": 384,
+                "description": "Best for multiple languages, balanced performance"
+            },
+            {
+                "name": "E5 Small v2",
+                "model_id": "intfloat/e5-small-v2",
+                "dim": 384,
+                "description": "Efficient and accurate for English"
+            },
+            {
+                "name": "All MiniLM L6",
+                "model_id": "sentence-transformers/all-MiniLM-L6-v2",
+                "dim": 384,
+                "description": "Fast and lightweight"
+            },
+            {
+                "name": "All MPNet Base",
+                "model_id": "sentence-transformers/all-mpnet-base-v2",
+                "dim": 768,
+                "description": "Highest quality, larger size"
+            }
+        ]
         
         # Static chunking strategies
         self.strategies = [
@@ -65,41 +103,932 @@ class OptionsWidget(QWidget):
         return self.config.get("chunker.default_strategy", "adaptive", 'server')
     
     def initUI(self):
-        # Main scroll area
-        scrollArea = QScrollArea()
-        scrollWidget = QWidget()
-        scrollLayout = QVBoxLayout()
+        # Main layout with tabs
+        layout = QVBoxLayout()
         
         # Title
         titleLabel = QLabel("⚙️ System Configuration")
         titleLabel.setStyleSheet("font-size: 18px; font-weight: bold; margin: 10px 0;")
-        scrollLayout.addWidget(titleLabel)
+        layout.addWidget(titleLabel)
+        
+        # Create tabs for different option categories
+        self.tabs = QTabWidget()
+        
+        # Tab 1: LLM Models
+        llmTab = self.createLLMTab()
+        self.tabs.addTab(llmTab, "🤖 LLM Models")
+        
+        # Tab 2: Embedding Models
+        embeddingTab = self.createEmbeddingTab()
+        self.tabs.addTab(embeddingTab, "🧠 Embedding Models")
+        
+        # Tab 3: Chunking Strategy
+        chunkingTab = self.createChunkingTab()
+        self.tabs.addTab(chunkingTab, "✂️ Chunking")
+        
+        # Tab 4: Server Settings
+        serverTab = self.createServerTab()
+        self.tabs.addTab(serverTab, "🌐 Server")
+        
+        # Tab 5: System Variables
+        variablesTab = self.createVariablesTab()
+        self.tabs.addTab(variablesTab, "🔧 Variables")
+        
+        layout.addWidget(self.tabs)
+        
+        # Save all settings button
+        saveAllBtn = QPushButton("💾 Save All Settings")
+        saveAllBtn.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                padding: 10px;
+                border-radius: 5px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
+        saveAllBtn.clicked.connect(self.saveAllSettings)
+        layout.addWidget(saveAllBtn)
+        
+        self.setLayout(layout)
+    
+    def createLLMTab(self):
+        """Create LLM models configuration tab"""
+        widget = QWidget()
+        layout = QVBoxLayout()
         
         # Model Configuration Section
         modelGroup = self.createModelSection()
-        scrollLayout.addWidget(modelGroup)
+        layout.addWidget(modelGroup)
+        
+        layout.addStretch()
+        widget.setLayout(layout)
+        return widget
+    
+    def createVariablesTab(self):
+        """Create system variables configuration tab"""
+        widget = QWidget()
+        layout = QVBoxLayout()
+        
+        # Info
+        info = QLabel("""
+        <div style='background-color: #fff3e0; padding: 10px; border-radius: 5px;'>
+        <b>🔧 System Variables:</b><br>
+        Configure system-wide parameters used across server and client components.
+        These values control timeouts, limits, and processing parameters.
+        </div>
+        """)
+        info.setWordWrap(True)
+        layout.addWidget(info)
+        
+        # Load current variables
+        try:
+            import yaml
+            with open('config/system_variables.yaml', 'r') as f:
+                self.sys_vars = yaml.safe_load(f)
+        except:
+            self.sys_vars = self.getDefaultSystemVariables()
+        
+        # Create sections
+        scroll_area = QScrollArea()
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout()
+        
+        # Timeout Settings
+        timeout_group = QGroupBox("⏱️ Timeout Settings (seconds)")
+        timeout_layout = QFormLayout()
+        
+        self.timeout_inputs = {}
+        for key, value in self.sys_vars.get('timeouts', {}).items():
+            spin = QSpinBox()
+            spin.setRange(1, 3600)
+            spin.setValue(value)
+            spin.setSuffix(" sec")
+            label = key.replace('_', ' ').title()
+            timeout_layout.addRow(f"{label}:", spin)
+            self.timeout_inputs[key] = spin
+        
+        timeout_group.setLayout(timeout_layout)
+        scroll_layout.addWidget(timeout_group)
+        
+        # Limits Settings
+        limits_group = QGroupBox("📏 Processing Limits")
+        limits_layout = QFormLayout()
+        
+        self.limit_inputs = {}
+        for key, value in self.sys_vars.get('limits', {}).items():
+            if isinstance(value, int):
+                spin = QSpinBox()
+                spin.setRange(1, 100000)
+                spin.setValue(value)
+                label = key.replace('_', ' ').title()
+                limits_layout.addRow(f"{label}:", spin)
+                self.limit_inputs[key] = spin
+        
+        limits_group.setLayout(limits_layout)
+        scroll_layout.addWidget(limits_group)
+        
+        # Apply button
+        apply_vars_btn = QPushButton("Apply Variables")
+        apply_vars_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #FF9800;
+                color: white;
+                padding: 8px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #F57C00;
+            }
+        """)
+        apply_vars_btn.clicked.connect(self.applySystemVariables)
+        scroll_layout.addWidget(apply_vars_btn)
+        
+        scroll_layout.addStretch()
+        scroll_widget.setLayout(scroll_layout)
+        scroll_area.setWidget(scroll_widget)
+        scroll_area.setWidgetResizable(True)
+        
+        layout.addWidget(scroll_area)
+        widget.setLayout(layout)
+        return widget
+    
+    def getDefaultSystemVariables(self):
+        """Get default system variables"""
+        return {
+            'timeouts': {
+                'server_request': 300,
+                'ingest_request': 600,
+                'health_check': 5
+            },
+            'limits': {
+                'max_context_chars': 8000,
+                'max_chunks_per_request': 20,
+                'default_top_k': 5,
+                'batch_size': 10
+            },
+            'file_processing': {
+                'supported_extensions': ['.pdf', '.txt', '.md', '.json', '.docx'],
+                'max_file_size_mb': 50,
+                'chunk_overlap': 200,
+                'chunk_size': 1200
+            }
+        }
+    
+    def applySystemVariables(self):
+        """Apply system variables"""
+        try:
+            # Update timeouts
+            for key, widget in self.timeout_inputs.items():
+                self.sys_vars['timeouts'][key] = widget.value()
+            
+            # Update limits
+            for key, widget in self.limit_inputs.items():
+                self.sys_vars['limits'][key] = widget.value()
+            
+            # Save to file
+            import yaml
+            with open('config/system_variables.yaml', 'w') as f:
+                yaml.dump(self.sys_vars, f, default_flow_style=False)
+            
+            QMessageBox.information(self, "Success", "System variables updated successfully!")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to save variables: {str(e)}")
+    
+    def createEmbeddingTab(self):
+        """Create embedding model configuration tab"""
+        widget = QWidget()
+        layout = QVBoxLayout()
+        
+        # Info about namespaces
+        info = QLabel("""
+        <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
+        <b>🎯 Smart Namespace Management:</b><br>
+        Each embedding model maintains its own vector space. You can switch between models
+        without losing your indexed documents! Each model's data is stored separately.
+        </div>
+        """)
+        info.setWordWrap(True)
+        layout.addWidget(info)
+        
+        # Current namespaces
+        namespaces_group = QGroupBox("📚 Available Vector Spaces")
+        namespaces_layout = QVBoxLayout()
+        
+        self.namespaces_list = QListWidget()
+        self.namespaces_list.setMaximumHeight(150)
+        namespaces_layout.addWidget(self.namespaces_list)
+        
+        refresh_btn = QPushButton("🔄 Refresh Namespaces")
+        refresh_btn.clicked.connect(self.refreshNamespaces)
+        namespaces_layout.addWidget(refresh_btn)
+        
+        namespaces_group.setLayout(namespaces_layout)
+        layout.addWidget(namespaces_group)
+        
+        # Model selection
+        models_group = QGroupBox("🤖 Select Embedding Model")
+        models_layout = QVBoxLayout()
+        
+        self.model_radios = {}
+        for model in self.embedding_models:
+            radio = QRadioButton(f"{model['name']} ({model['dim']}d)")
+            radio.setToolTip(f"{model['model_id']}\n{model['description']}")
+            self.model_radios[model['model_id']] = radio
+            models_layout.addWidget(radio)
+            
+            desc = QLabel(f"   {model['description']}")
+            desc.setStyleSheet("color: #666; font-size: 11px; margin-left: 20px;")
+            models_layout.addWidget(desc)
+        
+        # Select first by default
+        list(self.model_radios.values())[0].setChecked(True)
+        
+        models_group.setLayout(models_layout)
+        layout.addWidget(models_group)
+        
+        # Apply button
+        apply_btn = QPushButton("Apply Model Change")
+        apply_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                padding: 8px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #1976D2;
+            }
+        """)
+        apply_btn.clicked.connect(self.applyEmbeddingModel)
+        layout.addWidget(apply_btn)
+        
+        layout.addStretch()
+        widget.setLayout(layout)
+        return widget
+    
+    def createVariablesTab(self):
+        """Create system variables configuration tab"""
+        widget = QWidget()
+        layout = QVBoxLayout()
+        
+        # Info
+        info = QLabel("""
+        <div style='background-color: #fff3e0; padding: 10px; border-radius: 5px;'>
+        <b>🔧 System Variables:</b><br>
+        Configure system-wide parameters used across server and client components.
+        These values control timeouts, limits, and processing parameters.
+        </div>
+        """)
+        info.setWordWrap(True)
+        layout.addWidget(info)
+        
+        # Load current variables
+        try:
+            import yaml
+            with open('config/system_variables.yaml', 'r') as f:
+                self.sys_vars = yaml.safe_load(f)
+        except:
+            self.sys_vars = self.getDefaultSystemVariables()
+        
+        # Create sections
+        scroll_area = QScrollArea()
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout()
+        
+        # Timeout Settings
+        timeout_group = QGroupBox("⏱️ Timeout Settings (seconds)")
+        timeout_layout = QFormLayout()
+        
+        self.timeout_inputs = {}
+        for key, value in self.sys_vars.get('timeouts', {}).items():
+            spin = QSpinBox()
+            spin.setRange(1, 3600)
+            spin.setValue(value)
+            spin.setSuffix(" sec")
+            label = key.replace('_', ' ').title()
+            timeout_layout.addRow(f"{label}:", spin)
+            self.timeout_inputs[key] = spin
+        
+        timeout_group.setLayout(timeout_layout)
+        scroll_layout.addWidget(timeout_group)
+        
+        # Limits Settings
+        limits_group = QGroupBox("📏 Processing Limits")
+        limits_layout = QFormLayout()
+        
+        self.limit_inputs = {}
+        for key, value in self.sys_vars.get('limits', {}).items():
+            if isinstance(value, int):
+                spin = QSpinBox()
+                spin.setRange(1, 100000)
+                spin.setValue(value)
+                label = key.replace('_', ' ').title()
+                limits_layout.addRow(f"{label}:", spin)
+                self.limit_inputs[key] = spin
+        
+        limits_group.setLayout(limits_layout)
+        scroll_layout.addWidget(limits_group)
+        
+        # Apply button
+        apply_vars_btn = QPushButton("Apply Variables")
+        apply_vars_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #FF9800;
+                color: white;
+                padding: 8px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #F57C00;
+            }
+        """)
+        apply_vars_btn.clicked.connect(self.applySystemVariables)
+        scroll_layout.addWidget(apply_vars_btn)
+        
+        scroll_layout.addStretch()
+        scroll_widget.setLayout(scroll_layout)
+        scroll_area.setWidget(scroll_widget)
+        scroll_area.setWidgetResizable(True)
+        
+        layout.addWidget(scroll_area)
+        widget.setLayout(layout)
+        return widget
+    
+    def getDefaultSystemVariables(self):
+        """Get default system variables"""
+        return {
+            'timeouts': {
+                'server_request': 300,
+                'ingest_request': 600,
+                'health_check': 5
+            },
+            'limits': {
+                'max_context_chars': 8000,
+                'max_chunks_per_request': 20,
+                'default_top_k': 5,
+                'batch_size': 10
+            },
+            'file_processing': {
+                'supported_extensions': ['.pdf', '.txt', '.md', '.json', '.docx'],
+                'max_file_size_mb': 50,
+                'chunk_overlap': 200,
+                'chunk_size': 1200
+            }
+        }
+    
+    def applySystemVariables(self):
+        """Apply system variables"""
+        try:
+            # Update timeouts
+            for key, widget in self.timeout_inputs.items():
+                self.sys_vars['timeouts'][key] = widget.value()
+            
+            # Update limits
+            for key, widget in self.limit_inputs.items():
+                self.sys_vars['limits'][key] = widget.value()
+            
+            # Save to file
+            import yaml
+            with open('config/system_variables.yaml', 'w') as f:
+                yaml.dump(self.sys_vars, f, default_flow_style=False)
+            
+            QMessageBox.information(self, "Success", "System variables updated successfully!")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to save variables: {str(e)}")
+    
+    def createFolderWatchTab(self):
+        """Create folder watching configuration tab"""
+        widget = QWidget()
+        layout = QVBoxLayout()
+        
+        # Info
+        info = QLabel("""
+        <div style='background-color: #f3e5f5; padding: 10px; border-radius: 5px;'>
+        <b>📂 Automatic Document Ingestion:</b><br>
+        Add folders to watch, and any new documents (PDF, MD, TXT) added to these folders
+        will be automatically ingested into the RAG system.
+        </div>
+        """)
+        info.setWordWrap(True)
+        layout.addWidget(info)
+        
+        # Watched folders list
+        folders_group = QGroupBox("Watched Folders")
+        folders_layout = QVBoxLayout()
+        
+        self.folders_list = QListWidget()
+        folders_layout.addWidget(self.folders_list)
+        
+        # Folder controls
+        folder_btns = QHBoxLayout()
+        
+        add_folder_btn = QPushButton("➕ Add Folder")
+        add_folder_btn.clicked.connect(self.addWatchFolder)
+        
+        remove_folder_btn = QPushButton("➖ Remove Folder")
+        remove_folder_btn.clicked.connect(self.removeWatchFolder)
+        
+        folder_btns.addWidget(add_folder_btn)
+        folder_btns.addWidget(remove_folder_btn)
+        folder_btns.addStretch()
+        
+        folders_layout.addLayout(folder_btns)
+        folders_group.setLayout(folders_layout)
+        layout.addWidget(folders_group)
+        
+        # Watcher controls
+        watcher_group = QGroupBox("Watcher Control")
+        watcher_layout = QVBoxLayout()
+        
+        # Status
+        self.watcher_status = QLabel("Status: ⏹️ Not running")
+        self.watcher_status.setStyleSheet("padding: 10px; background-color: #f0f0f0; border-radius: 5px;")
+        watcher_layout.addWidget(self.watcher_status)
+        
+        # Control buttons
+        control_btns = QHBoxLayout()
+        
+        self.start_watch_btn = QPushButton("▶️ Start Watching")
+        self.start_watch_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
+        self.start_watch_btn.clicked.connect(self.startWatching)
+        
+        self.stop_watch_btn = QPushButton("⏹️ Stop Watching")
+        self.stop_watch_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #f44336;
+                color: white;
+                padding: 8px 16px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #da190b;
+            }
+            QPushButton:disabled {
+                background-color: #ccc;
+            }
+        """)
+        self.stop_watch_btn.clicked.connect(self.stopWatching)
+        self.stop_watch_btn.setEnabled(False)
+        
+        control_btns.addWidget(self.start_watch_btn)
+        control_btns.addWidget(self.stop_watch_btn)
+        control_btns.addStretch()
+        
+        watcher_layout.addLayout(control_btns)
+        watcher_group.setLayout(watcher_layout)
+        layout.addWidget(watcher_group)
+        
+        layout.addStretch()
+        widget.setLayout(layout)
+        return widget
+    
+    def createVariablesTab(self):
+        """Create system variables configuration tab"""
+        widget = QWidget()
+        layout = QVBoxLayout()
+        
+        # Info
+        info = QLabel("""
+        <div style='background-color: #fff3e0; padding: 10px; border-radius: 5px;'>
+        <b>🔧 System Variables:</b><br>
+        Configure system-wide parameters used across server and client components.
+        These values control timeouts, limits, and processing parameters.
+        </div>
+        """)
+        info.setWordWrap(True)
+        layout.addWidget(info)
+        
+        # Load current variables
+        try:
+            import yaml
+            with open('config/system_variables.yaml', 'r') as f:
+                self.sys_vars = yaml.safe_load(f)
+        except:
+            self.sys_vars = self.getDefaultSystemVariables()
+        
+        # Create sections
+        scroll_area = QScrollArea()
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout()
+        
+        # Timeout Settings
+        timeout_group = QGroupBox("⏱️ Timeout Settings (seconds)")
+        timeout_layout = QFormLayout()
+        
+        self.timeout_inputs = {}
+        for key, value in self.sys_vars.get('timeouts', {}).items():
+            spin = QSpinBox()
+            spin.setRange(1, 3600)
+            spin.setValue(value)
+            spin.setSuffix(" sec")
+            label = key.replace('_', ' ').title()
+            timeout_layout.addRow(f"{label}:", spin)
+            self.timeout_inputs[key] = spin
+        
+        timeout_group.setLayout(timeout_layout)
+        scroll_layout.addWidget(timeout_group)
+        
+        # Limits Settings
+        limits_group = QGroupBox("📏 Processing Limits")
+        limits_layout = QFormLayout()
+        
+        self.limit_inputs = {}
+        for key, value in self.sys_vars.get('limits', {}).items():
+            if isinstance(value, int):
+                spin = QSpinBox()
+                spin.setRange(1, 100000)
+                spin.setValue(value)
+                label = key.replace('_', ' ').title()
+                limits_layout.addRow(f"{label}:", spin)
+                self.limit_inputs[key] = spin
+        
+        limits_group.setLayout(limits_layout)
+        scroll_layout.addWidget(limits_group)
+        
+        # Apply button
+        apply_vars_btn = QPushButton("Apply Variables")
+        apply_vars_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #FF9800;
+                color: white;
+                padding: 8px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #F57C00;
+            }
+        """)
+        apply_vars_btn.clicked.connect(self.applySystemVariables)
+        scroll_layout.addWidget(apply_vars_btn)
+        
+        scroll_layout.addStretch()
+        scroll_widget.setLayout(scroll_layout)
+        scroll_area.setWidget(scroll_widget)
+        scroll_area.setWidgetResizable(True)
+        
+        layout.addWidget(scroll_area)
+        widget.setLayout(layout)
+        return widget
+    
+    def getDefaultSystemVariables(self):
+        """Get default system variables"""
+        return {
+            'timeouts': {
+                'server_request': 300,
+                'ingest_request': 600,
+                'health_check': 5
+            },
+            'limits': {
+                'max_context_chars': 8000,
+                'max_chunks_per_request': 20,
+                'default_top_k': 5,
+                'batch_size': 10
+            },
+            'file_processing': {
+                'supported_extensions': ['.pdf', '.txt', '.md', '.json', '.docx'],
+                'max_file_size_mb': 50,
+                'chunk_overlap': 200,
+                'chunk_size': 1200
+            }
+        }
+    
+    def applySystemVariables(self):
+        """Apply system variables"""
+        try:
+            # Update timeouts
+            for key, widget in self.timeout_inputs.items():
+                self.sys_vars['timeouts'][key] = widget.value()
+            
+            # Update limits
+            for key, widget in self.limit_inputs.items():
+                self.sys_vars['limits'][key] = widget.value()
+            
+            # Save to file
+            import yaml
+            with open('config/system_variables.yaml', 'w') as f:
+                yaml.dump(self.sys_vars, f, default_flow_style=False)
+            
+            QMessageBox.information(self, "Success", "System variables updated successfully!")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to save variables: {str(e)}")
+    
+    def createChunkingTab(self):
+        """Create chunking configuration tab"""
+        widget = QWidget()
+        layout = QVBoxLayout()
         
         # Chunking Strategy Section  
         strategyGroup = self.createStrategySection()
-        scrollLayout.addWidget(strategyGroup)
+        layout.addWidget(strategyGroup)
         
         # Parameters Section
         paramsGroup = self.createParametersSection()
-        scrollLayout.addWidget(paramsGroup)
+        layout.addWidget(paramsGroup)
+        
+        layout.addStretch()
+        widget.setLayout(layout)
+        return widget
+    
+    def createVariablesTab(self):
+        """Create system variables configuration tab"""
+        widget = QWidget()
+        layout = QVBoxLayout()
+        
+        # Info
+        info = QLabel("""
+        <div style='background-color: #fff3e0; padding: 10px; border-radius: 5px;'>
+        <b>🔧 System Variables:</b><br>
+        Configure system-wide parameters used across server and client components.
+        These values control timeouts, limits, and processing parameters.
+        </div>
+        """)
+        info.setWordWrap(True)
+        layout.addWidget(info)
+        
+        # Load current variables
+        try:
+            import yaml
+            with open('config/system_variables.yaml', 'r') as f:
+                self.sys_vars = yaml.safe_load(f)
+        except:
+            self.sys_vars = self.getDefaultSystemVariables()
+        
+        # Create sections
+        scroll_area = QScrollArea()
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout()
+        
+        # Timeout Settings
+        timeout_group = QGroupBox("⏱️ Timeout Settings (seconds)")
+        timeout_layout = QFormLayout()
+        
+        self.timeout_inputs = {}
+        for key, value in self.sys_vars.get('timeouts', {}).items():
+            spin = QSpinBox()
+            spin.setRange(1, 3600)
+            spin.setValue(value)
+            spin.setSuffix(" sec")
+            label = key.replace('_', ' ').title()
+            timeout_layout.addRow(f"{label}:", spin)
+            self.timeout_inputs[key] = spin
+        
+        timeout_group.setLayout(timeout_layout)
+        scroll_layout.addWidget(timeout_group)
+        
+        # Limits Settings
+        limits_group = QGroupBox("📏 Processing Limits")
+        limits_layout = QFormLayout()
+        
+        self.limit_inputs = {}
+        for key, value in self.sys_vars.get('limits', {}).items():
+            if isinstance(value, int):
+                spin = QSpinBox()
+                spin.setRange(1, 100000)
+                spin.setValue(value)
+                label = key.replace('_', ' ').title()
+                limits_layout.addRow(f"{label}:", spin)
+                self.limit_inputs[key] = spin
+        
+        limits_group.setLayout(limits_layout)
+        scroll_layout.addWidget(limits_group)
+        
+        # Apply button
+        apply_vars_btn = QPushButton("Apply Variables")
+        apply_vars_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #FF9800;
+                color: white;
+                padding: 8px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #F57C00;
+            }
+        """)
+        apply_vars_btn.clicked.connect(self.applySystemVariables)
+        scroll_layout.addWidget(apply_vars_btn)
+        
+        scroll_layout.addStretch()
+        scroll_widget.setLayout(scroll_layout)
+        scroll_area.setWidget(scroll_widget)
+        scroll_area.setWidgetResizable(True)
+        
+        layout.addWidget(scroll_area)
+        widget.setLayout(layout)
+        return widget
+    
+    def getDefaultSystemVariables(self):
+        """Get default system variables"""
+        return {
+            'timeouts': {
+                'server_request': 300,
+                'ingest_request': 600,
+                'health_check': 5
+            },
+            'limits': {
+                'max_context_chars': 8000,
+                'max_chunks_per_request': 20,
+                'default_top_k': 5,
+                'batch_size': 10
+            },
+            'file_processing': {
+                'supported_extensions': ['.pdf', '.txt', '.md', '.json', '.docx'],
+                'max_file_size_mb': 50,
+                'chunk_overlap': 200,
+                'chunk_size': 1200
+            }
+        }
+    
+    def applySystemVariables(self):
+        """Apply system variables"""
+        try:
+            # Update timeouts
+            for key, widget in self.timeout_inputs.items():
+                self.sys_vars['timeouts'][key] = widget.value()
+            
+            # Update limits
+            for key, widget in self.limit_inputs.items():
+                self.sys_vars['limits'][key] = widget.value()
+            
+            # Save to file
+            import yaml
+            with open('config/system_variables.yaml', 'w') as f:
+                yaml.dump(self.sys_vars, f, default_flow_style=False)
+            
+            QMessageBox.information(self, "Success", "System variables updated successfully!")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to save variables: {str(e)}")
+    
+    def createServerTab(self):
+        """Create server settings tab"""
+        widget = QWidget()
+        layout = QVBoxLayout()
         
         # Server Info Section
         serverGroup = self.createServerInfoSection()
-        scrollLayout.addWidget(serverGroup)
+        layout.addWidget(serverGroup)
         
-        scrollLayout.addStretch()
-        scrollWidget.setLayout(scrollLayout)
-        scrollArea.setWidget(scrollWidget)
-        scrollArea.setWidgetResizable(True)
+        layout.addStretch()
+        widget.setLayout(layout)
+        return widget
+    
+    def createVariablesTab(self):
+        """Create system variables configuration tab"""
+        widget = QWidget()
+        layout = QVBoxLayout()
         
-        # Main layout
-        mainLayout = QVBoxLayout()
-        mainLayout.addWidget(scrollArea)
-        self.setLayout(mainLayout)
+        # Info
+        info = QLabel("""
+        <div style='background-color: #fff3e0; padding: 10px; border-radius: 5px;'>
+        <b>🔧 System Variables:</b><br>
+        Configure system-wide parameters used across server and client components.
+        These values control timeouts, limits, and processing parameters.
+        </div>
+        """)
+        info.setWordWrap(True)
+        layout.addWidget(info)
+        
+        # Load current variables
+        try:
+            import yaml
+            with open('config/system_variables.yaml', 'r') as f:
+                self.sys_vars = yaml.safe_load(f)
+        except:
+            self.sys_vars = self.getDefaultSystemVariables()
+        
+        # Create sections
+        scroll_area = QScrollArea()
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout()
+        
+        # Timeout Settings
+        timeout_group = QGroupBox("⏱️ Timeout Settings (seconds)")
+        timeout_layout = QFormLayout()
+        
+        self.timeout_inputs = {}
+        for key, value in self.sys_vars.get('timeouts', {}).items():
+            spin = QSpinBox()
+            spin.setRange(1, 3600)
+            spin.setValue(value)
+            spin.setSuffix(" sec")
+            label = key.replace('_', ' ').title()
+            timeout_layout.addRow(f"{label}:", spin)
+            self.timeout_inputs[key] = spin
+        
+        timeout_group.setLayout(timeout_layout)
+        scroll_layout.addWidget(timeout_group)
+        
+        # Limits Settings
+        limits_group = QGroupBox("📏 Processing Limits")
+        limits_layout = QFormLayout()
+        
+        self.limit_inputs = {}
+        for key, value in self.sys_vars.get('limits', {}).items():
+            if isinstance(value, int):
+                spin = QSpinBox()
+                spin.setRange(1, 100000)
+                spin.setValue(value)
+                label = key.replace('_', ' ').title()
+                limits_layout.addRow(f"{label}:", spin)
+                self.limit_inputs[key] = spin
+        
+        limits_group.setLayout(limits_layout)
+        scroll_layout.addWidget(limits_group)
+        
+        # Apply button
+        apply_vars_btn = QPushButton("Apply Variables")
+        apply_vars_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #FF9800;
+                color: white;
+                padding: 8px;
+                border-radius: 4px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #F57C00;
+            }
+        """)
+        apply_vars_btn.clicked.connect(self.applySystemVariables)
+        scroll_layout.addWidget(apply_vars_btn)
+        
+        scroll_layout.addStretch()
+        scroll_widget.setLayout(scroll_layout)
+        scroll_area.setWidget(scroll_widget)
+        scroll_area.setWidgetResizable(True)
+        
+        layout.addWidget(scroll_area)
+        widget.setLayout(layout)
+        return widget
+    
+    def getDefaultSystemVariables(self):
+        """Get default system variables"""
+        return {
+            'timeouts': {
+                'server_request': 300,
+                'ingest_request': 600,
+                'health_check': 5
+            },
+            'limits': {
+                'max_context_chars': 8000,
+                'max_chunks_per_request': 20,
+                'default_top_k': 5,
+                'batch_size': 10
+            },
+            'file_processing': {
+                'supported_extensions': ['.pdf', '.txt', '.md', '.json', '.docx'],
+                'max_file_size_mb': 50,
+                'chunk_overlap': 200,
+                'chunk_size': 1200
+            }
+        }
+    
+    def applySystemVariables(self):
+        """Apply system variables"""
+        try:
+            # Update timeouts
+            for key, widget in self.timeout_inputs.items():
+                self.sys_vars['timeouts'][key] = widget.value()
+            
+            # Update limits
+            for key, widget in self.limit_inputs.items():
+                self.sys_vars['limits'][key] = widget.value()
+            
+            # Save to file
+            import yaml
+            with open('config/system_variables.yaml', 'w') as f:
+                yaml.dump(self.sys_vars, f, default_flow_style=False)
+            
+            QMessageBox.information(self, "Success", "System variables updated successfully!")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to save variables: {str(e)}")
     
     def createModelSection(self) -> QGroupBox:
         """Create LLM model configuration section"""
@@ -560,6 +1489,134 @@ class OptionsWidget(QWidget):
             elif isinstance(widget, QComboBox):
                 params[key] = widget.currentText()
         return params
+    
+    # New methods for enhanced features
+    def refreshNamespaces(self):
+        """Refresh the list of available namespaces"""
+        self.namespaces_list.clear()
+        
+        # This would connect to ChromaDB and list collections
+        # For now, showing mock data
+        try:
+            import requests
+            response = requests.get(f"{self.config.get_server_url()}/api/namespaces")
+            if response.status_code == 200:
+                namespaces = response.json()
+                for ns in namespaces:
+                    self.namespaces_list.addItem(f"{ns['name']} ({ns['count']} docs)")
+        except:
+            # Mock data for demo
+            namespaces = [
+                "rag_documents_multilingual_minilm_a1b2c3d4 (1,234 docs)",
+                "rag_documents_e5_small_v2_e5f6g7h8 (567 docs)",
+                "rag_documents_all_minilm_i9j0k1l2 (89 docs)"
+            ]
+            for ns in namespaces:
+                self.namespaces_list.addItem(ns)
+    
+    def applyEmbeddingModel(self):
+        """Apply embedding model change"""
+        selected_model = None
+        for model_id, radio in self.model_radios.items():
+            if radio.isChecked():
+                # Find model info
+                for model in self.embedding_models:
+                    if model['model_id'] == model_id:
+                        selected_model = model
+                        break
+                break
+        
+        if selected_model:
+            reply = QMessageBox.information(
+                self, "Model Change",
+                f"Switching to: {selected_model['name']}\n\n"
+                f"The system will now use the vector space for this model.\n"
+                f"If this is a new model, you'll need to ingest documents.\n"
+                f"If you've used this model before, your existing index will be available!",
+                QMessageBox.Ok | QMessageBox.Cancel
+            )
+            
+            if reply == QMessageBox.Ok:
+                self.embeddingModelChanged.emit(
+                    selected_model['model_id'],
+                    selected_model['dim']
+                )
+                # Refresh namespaces to show current
+                self.refreshNamespaces()
+    
+    # Folder watching methods
+    def addWatchFolder(self):
+        """Add a folder to watch list"""
+        folder = QFileDialog.getExistingDirectory(
+            self, "Select Folder to Watch",
+            str(Path.home())
+        )
+        
+        if folder and folder not in self.watched_folders:
+            if self.folder_watcher and self.folder_watcher.add_folder(folder):
+                self.watched_folders.append(folder)
+                self.folders_list.addItem(folder)
+                self.foldersUpdated.emit(self.watched_folders)
+    
+    def removeWatchFolder(self):
+        """Remove selected folder from watch list"""
+        current = self.folders_list.currentItem()
+        if current and self.folder_watcher:
+            folder = current.text()
+            if self.folder_watcher.remove_folder(folder):
+                self.watched_folders.remove(folder)
+                self.folders_list.takeItem(self.folders_list.row(current))
+                self.foldersUpdated.emit(self.watched_folders)
+    
+    def startWatching(self):
+        """Start the folder watcher"""
+        if self.folder_watcher and self.watched_folders:
+            self.folder_watcher.start()
+            self.watcher_status.setText("Status: ✅ Watching...")
+            self.start_watch_btn.setEnabled(False)
+            self.stop_watch_btn.setEnabled(True)
+        else:
+            QMessageBox.warning(self, "No Folders", 
+                              "Please add at least one folder to watch first.")
+    
+    def stopWatching(self):
+        """Stop the folder watcher"""
+        if self.folder_watcher:
+            self.folder_watcher.stop()
+            self.watcher_status.setText("Status: ⏹️ Stopped")
+            self.start_watch_btn.setEnabled(True)
+            self.stop_watch_btn.setEnabled(False)
+    
+    def auto_ingest_document(self, file_path):
+        """Callback for automatic document ingestion"""
+        from pathlib import Path
+        
+        # Here you would call the actual ingest API
+        # For now, just log it
+        print(f"Auto-ingesting: {Path(file_path).name}")
+    
+    def saveAllSettings(self):
+        """Save all settings across all tabs"""
+        try:
+            # Save LLM settings
+            provider = self.providerCombo.currentText()
+            model = self.modelCombo.currentText()
+            self.config.set_model(provider, model)
+            self.config.set("llm.temperature", self.temperatureSpin.value(), 'server')
+            self.config.set("llm.max_tokens", self.maxTokensSpin.value(), 'server')
+            
+            # Save chunking settings
+            self.config.set("chunker.default_strategy", self.currentStrategy, 'server')
+            self.config.set("chunker.default_params", self.getParams(), 'server')
+            
+            # Save watched folders
+            self.config.set("options.watched_folders", self.watched_folders, 'client')
+            
+            QMessageBox.information(self, "Success", "All settings saved successfully!")
+            self.configReloaded.emit()
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to save settings: {str(e)}")
     
     # Simplified methods - no API calls needed
     def updateStrategies(self, strategies: List[Dict]):

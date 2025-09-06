@@ -1,0 +1,19 @@
+file_processing:
+  chunk_overlap: 200
+  chunk_size: 1200
+  max_file_size_mb: 50
+  supported_extensions:
+  - .pdf
+  - .txt
+  - .md
+  - .json
+  - .docx
+limits:
+  batch_size: 10
+  default_top_k: 20
+  max_chunks_per_request: 20
+  max_context_chars: 8000
+timeouts:
+  health_check: 5
+  ingest_request: 600
+  server_request: 300
