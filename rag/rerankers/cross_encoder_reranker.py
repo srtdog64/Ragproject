@@ -124,17 +124,21 @@ class SimpleScoreReranker(Reranker):
             
             # Boost if query terms appear in title
             if self.boost_title_match and query:
-                title = r.chunk.docTitle.lower()
+                # Get title from meta or use empty string if not available
+                title = r.chunk.meta.get('docTitle', '').lower() if r.chunk.meta else ''
+                if not title:
+                    title = r.chunk.meta.get('title', '').lower() if r.chunk.meta else ''
+                
                 # Check for query terms in title
                 query_terms = query_lower.split()
                 matches = sum(1 for term in query_terms if term in title)
                 if matches > 0:
                     # Boost by 20% for each matching term
                     new_score *= (1 + 0.2 * matches)
-                    logger.debug(f"Boosted score for title match: {r.chunk.docTitle}")
+                    logger.debug(f"Boosted score for title match: {title}")
             
             # Boost based on chunk position (earlier chunks often more relevant)
-            chunk_index = r.chunk.meta.get('chunkIndex', 0)
+            chunk_index = r.chunk.meta.get('chunkIndex', 0) if r.chunk.meta else 0
             if chunk_index == 0:
                 new_score *= 1.1  # 10% boost for first chunk
             
