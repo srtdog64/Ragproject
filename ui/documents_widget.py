@@ -9,7 +9,10 @@ from typing import List, Dict
 from pathlib import Path
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Signal, Qt
-from PySide6.QtGui import QDragEnterEvent, QDropEvent
+from PySide6.QtGui import QDragEnterEvent, QDropEvent, QAction
+import os
+import subprocess
+import platform
 
 # Import file loaders
 try:
@@ -180,9 +183,11 @@ class DocumentsWidget(QWidget):
         self.statsLabel.setStyleSheet("padding: 10px; background-color: #f5f5f5; border-radius: 4px;")
         layout.addWidget(self.statsLabel)
         
-        # Document list
+        # Document list with context menu
         self.docList = QListWidget()
         self.docList.setAlternatingRowColors(True)
+        self.docList.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.docList.customContextMenuRequested.connect(self.showContextMenu)
         layout.addWidget(self.docList)
         
         # Export/Import buttons
@@ -430,3 +435,123 @@ class DocumentsWidget(QWidget):
         if hasattr(self.advancedTab, 'selectedIndices'):
             return [self.documents[i] for i in sorted(self.advancedTab.selectedIndices)]
         return []
+    
+    def showContextMenu(self, position):
+        """Show context menu on right-click"""
+        item = self.docList.itemAt(position)
+        if not item:
+            return
+        
+        # Get the document index from the item
+        row = self.docList.row(item)
+        if row < 0 or row >= len(self.documents):
+            return
+        
+        doc = self.documents[row]
+        source_path = doc.get('source', '')
+        
+        # Create context menu
+        menu = QMenu(self)
+        
+        # Add "Open in Explorer/Finder" action
+        open_folder_action = QAction("📁 Open Folder", self)
+        open_folder_action.triggered.connect(lambda: self.openFolder(source_path))
+        menu.addAction(open_folder_action)
+        
+        # Add "Open File" action if it's a file path
+        if 'title' in doc:
+            # Try to find the actual file
+            file_path = None
+            if source_path and os.path.isdir(source_path):
+                # Look for file with matching title in the source directory
+                for ext in ['.txt', '.md', '.pdf', '.json']:
+                    potential_path = os.path.join(source_path, doc['title'] + ext)
+                    if os.path.exists(potential_path):
+                        file_path = potential_path
+                        break
+            elif source_path and os.path.isfile(source_path):
+                file_path = source_path
+            
+            if file_path and os.path.exists(file_path):
+                open_file_action = QAction("📄 Open File", self)
+                open_file_action.triggered.connect(lambda: self.openFile(file_path))
+                menu.addAction(open_file_action)
+        
+        menu.addSeparator()
+        
+        # Add "Copy Path" action
+        if source_path:
+            copy_path_action = QAction("📋 Copy Path", self)
+            copy_path_action.triggered.connect(lambda: self.copyToClipboard(source_path))
+            menu.addAction(copy_path_action)
+        
+        # Add "Remove Document" action
+        remove_action = QAction("🗑️ Remove Document", self)
+        remove_action.triggered.connect(lambda: self.removeDocument(row))
+        menu.addAction(remove_action)
+        
+        # Show the menu at cursor position
+        menu.exec_(self.docList.mapToGlobal(position))
+    
+    def openFolder(self, path):
+        """Open folder in system file explorer"""
+        if not path or not os.path.exists(path):
+            QMessageBox.warning(self, "Warning", "Path does not exist")
+            return
+        
+        # Get the directory path
+        if os.path.isfile(path):
+            folder_path = os.path.dirname(path)
+        else:
+            folder_path = path
+        
+        try:
+            system = platform.system()
+            if system == "Windows":
+                os.startfile(folder_path)
+            elif system == "Darwin":  # macOS
+                subprocess.run(["open", folder_path])
+            else:  # Linux
+                subprocess.run(["xdg-open", folder_path])
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Could not open folder: {e}")
+    
+    def openFile(self, file_path):
+        """Open file with default system application"""
+        if not file_path or not os.path.exists(file_path):
+            QMessageBox.warning(self, "Warning", "File does not exist")
+            return
+        
+        try:
+            system = platform.system()
+            if system == "Windows":
+                os.startfile(file_path)
+            elif system == "Darwin":  # macOS
+                subprocess.run(["open", file_path])
+            else:  # Linux
+                subprocess.run(["xdg-open", file_path])
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Could not open file: {e}")
+    
+    def copyToClipboard(self, text):
+        """Copy text to clipboard"""
+        from PySide6.QtWidgets import QApplication
+        clipboard = QApplication.clipboard()
+        clipboard.setText(text)
+        # Show brief notification
+        QMessageBox.information(self, "Copied", "Path copied to clipboard", QMessageBox.Ok)
+    
+    def removeDocument(self, index):
+        """Remove a document from the list"""
+        if 0 <= index < len(self.documents):
+            doc = self.documents[index]
+            reply = QMessageBox.question(
+                self, "Confirm Remove",
+                f"Remove '{doc.get('title', 'Untitled')}'?",
+                QMessageBox.Yes | QMessageBox.No
+            )
+            
+            if reply == QMessageBox.Yes:
+                self.documents.pop(index)
+                self.updateDocumentList()
+                self.updateAdvancedTab()

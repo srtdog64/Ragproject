@@ -75,13 +75,31 @@ class ChatWidget(QWidget):
         
         topToolbar.addWidget(QLabel("  |  "))
         
-        # Top K setting
-        topToolbar.addWidget(QLabel("Top K:"))
+        # Context Chunks setting with better labeling
+        contextLabel = QLabel("Context Chunks:")
+        contextLabel.setToolTip(
+            "Number of document chunks to include as context.\n"
+            "Higher values = more context but slower responses."
+        )
+        topToolbar.addWidget(contextLabel)
+        
         self.topKSpin = QSpinBox()
-        self.topKSpin.setRange(1, 20)
-        self.topKSpin.setValue(self.config.get("ui.defaults.top_k", 5))
-        self.topKSpin.setToolTip("Number of context chunks to retrieve")
+        self.topKSpin.setRange(1, 100)  # Increased max from 20 to 100
+        self.topKSpin.setValue(self.config.get("ui.defaults.top_k", 10))  # Default to 10
+        self.topKSpin.setToolTip(
+            "How many document chunks to retrieve:\n"
+            "• 1-5: Quick facts\n"
+            "• 5-20: Standard (recommended)\n"
+            "• 20-50: Complex analysis\n"
+            "• 50+: Comprehensive research"
+        )
+        self.topKSpin.valueChanged.connect(self.updateContextLabel)
         topToolbar.addWidget(self.topKSpin)
+        
+        # Context info label
+        self.contextInfoLabel = QLabel("")
+        self.updateContextLabel(self.topKSpin.value())
+        topToolbar.addWidget(self.contextInfoLabel)
         
         # Clear button
         clearBtn = QPushButton("Clear Chat")
@@ -140,6 +158,24 @@ class ChatWidget(QWidget):
         layout.addLayout(inputLayout)
         
         self.setLayout(layout)
+    
+    def updateContextLabel(self, value):
+        """Update context info label based on value"""
+        if value <= 5:
+            info = "(Minimal)"
+            color = "#ff9800"  # Orange
+        elif value <= 20:
+            info = "(Standard)"
+            color = "#4caf50"  # Green
+        elif value <= 50:
+            info = "(Extended)"
+            color = "#2196f3"  # Blue
+        else:
+            info = "(Maximum)"
+            color = "#9c27b0"  # Purple
+        
+        self.contextInfoLabel.setText(info)
+        self.contextInfoLabel.setStyleSheet(f"color: {color}; font-weight: bold;")
     
     def eventFilter(self, obj, event):
         """Handle Enter key in input field"""

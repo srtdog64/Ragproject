@@ -17,7 +17,7 @@ ui:
   
   # Default values for UI components
   defaults:
-    top_k: 5
+    top_k: 10  # Default context chunks (was 5)
     max_documents_display: 1000
     text_preview_length: 200
 

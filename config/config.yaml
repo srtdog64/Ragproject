@@ -74,8 +74,8 @@ pipeline:
     enabled: true
     topK: null
 policy:
-  defaultTopK: 5
-  maxContextChars: 8000
+  defaultTopK: 10
+  maxContextChars: 12000
 reranker:
   boost_recent: true
   boost_title_match: true
