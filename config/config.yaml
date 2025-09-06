@@ -7,7 +7,7 @@ chunker:
     semanticThreshold: 0.82
     sentenceMinLen: 10
     windowSize: 1200
-  default_strategy: sentence
+  default_strategy: sliding_window
 cors:
   allow_credentials: true
   allow_headers:
@@ -77,13 +77,17 @@ policy:
   defaultTopK: 5
   maxContextChars: 8000
 reranker:
-  model: null
-  type: identity
+  boost_recent: true
+  boost_title_match: true
+  device: cpu
+  model: cross-encoder/ms-marco-MiniLM-L-6-v2
+  type: simple
 server:
   host: 0.0.0.0
   log_level: info
   port: 7001
   reload: true
 store:
-  persist_directory: null
-  type: memory
+  collection_name: rag_documents
+  persist_directory: ./chroma_db
+  type: chroma

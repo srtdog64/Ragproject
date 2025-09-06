@@ -1,5 +1,5 @@
 {
-  "strategy": "sentence",
+  "strategy": "sliding_window",
   "params": {
     "maxTokens": 512,
     "windowSize": 1200,

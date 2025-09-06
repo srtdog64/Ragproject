@@ -9,11 +9,56 @@ from typing import List, Dict
 from pathlib import Path
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Signal, Qt
+from PySide6.QtGui import QDragEnterEvent, QDropEvent
 
-# Import file loader
+# Import file loaders
+try:
+    from ui.file_loaders import FileLoader, BatchLoader
+except ImportError:
+    # Fallback if file_loaders is not available
+    print("Warning: file_loaders module not found, using fallback")
+    class FileLoader:
+        def load_file(self, path):
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    text = f.read()
+                    return {
+                        "id": str(Path(path).stem),
+                        "title": Path(path).stem,
+                        "source": str(Path(path).parent),
+                        "text": text
+                    }
+            except:
+                return None
+    
+    class BatchLoader:
+        def __init__(self):
+            self.loader = FileLoader()
+        
+        def load_directory(self, directory):
+            docs = []
+            for file in Path(directory).iterdir():
+                if file.suffix in ['.txt', '.md', '.pdf']:
+                    doc = self.loader.load_file(file)
+                    if doc:
+                        docs.append(doc)
+            return docs
+
+# System path setup for rag module
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'rag'))
-from file_loader import FileLoader, BatchLoader
-from .selective_ingest_widget import SelectiveIngestWidget
+
+# Import selective ingest widget
+try:
+    from .selective_ingest_widget import SelectiveIngestWidget
+except ImportError:
+    # Fallback to simple widget if not available
+    class SelectiveIngestWidget(QWidget):
+        def __init__(self):
+            super().__init__()
+            layout = QVBoxLayout()
+            layout.addWidget(QLabel("Advanced features not available"))
+            self.setLayout(layout)
+            self.ingestRequested = Signal(list)
 
 
 class DocumentsWidget(QWidget):
@@ -59,8 +104,8 @@ class DocumentsWidget(QWidget):
         # File operations toolbar
         fileToolbar = QHBoxLayout()
         
-        loadFileBtn = QPushButton("📄 Load File")
-        loadFileBtn.setToolTip("Load PDF, Markdown, or Text file")
+        loadFileBtn = QPushButton("📄 Load File(s)")
+        loadFileBtn.setToolTip("Load one or more files (Ctrl+Click for multiple selection)")
         loadFileBtn.clicked.connect(self.loadFile)
         loadFileBtn.setStyleSheet("""
             QPushButton {
@@ -158,28 +203,54 @@ class DocumentsWidget(QWidget):
         return widget
     
     def loadFile(self):
-        """Load a single file"""
-        filename, _ = QFileDialog.getOpenFileName(
-            self, "Select File",
+        """Load single or multiple files"""
+        filenames, _ = QFileDialog.getOpenFileNames(
+            self, "Select File(s)",
             str(Path.home()),
             "Supported Files (*.pdf *.md *.txt);;PDF Files (*.pdf);;Markdown Files (*.md);;Text Files (*.txt);;All Files (*.*)"
         )
         
-        if filename:
-            try:
-                loader = FileLoader()
-                doc = loader.load(filename)
-                
-                if doc:
-                    self.documents.append(doc)
-                    self.updateDocumentList()
-                    self.updateAdvancedTab()
-                    QMessageBox.information(self, "Success", f"Loaded: {doc['title']}")
-                else:
-                    QMessageBox.warning(self, "Warning", f"Could not load file: {filename}")
+        if filenames:
+            loader = FileLoader()
+            loaded_count = 0
+            failed_files = []
+            
+            for filename in filenames:
+                try:
+                    doc = loader.load_file(filename)  # Changed from load to load_file
                     
-            except Exception as e:
-                QMessageBox.critical(self, "Error", f"Error loading file: {str(e)}")
+                    if doc:
+                        self.documents.append(doc)
+                        loaded_count += 1
+                    else:
+                        failed_files.append(Path(filename).name)
+                        
+                except Exception as e:
+                    print(f"Error loading {filename}: {e}")
+                    failed_files.append(Path(filename).name)
+            
+            # Update UI
+            if loaded_count > 0:
+                self.updateDocumentList()
+                self.updateAdvancedTab()
+            
+            # Show results
+            if loaded_count > 0 and not failed_files:
+                QMessageBox.information(
+                    self, "Success", 
+                    f"Successfully loaded {loaded_count} file(s)"
+                )
+            elif loaded_count > 0 and failed_files:
+                QMessageBox.warning(
+                    self, "Partial Success",
+                    f"Loaded {loaded_count} file(s).\n\n"
+                    f"Failed to load:\n" + "\n".join(failed_files)
+                )
+            else:
+                QMessageBox.critical(
+                    self, "Error",
+                    f"Failed to load any files"
+                )
     
     def loadDirectory(self):
         """Load all supported files from a directory"""

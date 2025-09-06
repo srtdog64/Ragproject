@@ -399,16 +399,28 @@ class MainWindow(QMainWindow):
     
     def fetchCurrentStrategy(self) -> str:
         """Fetch current strategy from server at startup"""
+        # Don't fail if server is not available
+        if not hasattr(self, 'config'):
+            return "adaptive"
+            
         try:
             import requests
-            response = requests.get(f"{self.config.get_server_url()}/api/chunkers/strategy", timeout=2)
+            # Short timeout for startup
+            response = requests.get(
+                f"{self.config.get_server_url()}/api/chunkers/strategy", 
+                timeout=1
+            )
             if response.status_code == 200:
                 data = response.json()
                 strategy = data.get('strategy', 'adaptive')
                 print(f"Loaded strategy from server: {strategy}")
                 return strategy
+        except requests.exceptions.ConnectionError:
+            print("Server not available, using default strategy")
+        except requests.exceptions.Timeout:
+            print("Server timeout, using default strategy")
         except Exception as e:
-            print(f"Could not fetch strategy from server: {e}")
+            print(f"Could not fetch strategy: {e}")
         
         # Fallback to config or default
         strategy = self.config.get("chunker.default_strategy", "adaptive", 'server')

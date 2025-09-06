@@ -25,7 +25,7 @@ from chunkers.registry import registry
 from chunkers.wrapper import ChunkerWrapper
 from chunkers.api_router import router as chunkers_router
 from retrievers.vector_retriever import VectorRetrieverImpl
-from rerankers.identity_reranker import IdentityReranker
+from rerankers.factory import RerankerFactory
 from parsers.parser_builder import ParserBuilder
 from ingest.ingester import Ingester
 from pipeline.steps import (
@@ -68,6 +68,7 @@ def buildContainer() -> Container:
     embedder_config = config.get_section('embedder')
     ingester_config = config.get_section('ingester')
     chunker_config = config.get_section('chunker')
+    store_config = config.get_section('store')
     
     # Register components with config values
     c.register("policy", lambda _: Policy(
@@ -93,8 +94,27 @@ def buildContainer() -> Container:
             print("The system cannot function without a proper embedder.")
             raise
     
-    # Create singleton store instance
-    store_instance = InMemoryVectorStore()
+    # Create vector store based on config
+    store_type = store_config.get('type', 'memory')
+    
+    if store_type == 'chroma':
+        from stores.chroma_store import ChromaVectorStore
+        persist_dir = store_config.get('persist_directory', './chroma_db')
+        collection = store_config.get('collection_name', 'rag_documents')
+        store_instance = ChromaVectorStore(
+            persist_directory=persist_dir,
+            collection_name=collection
+        )
+        logger.info(f"Using ChromaDB vector store (persistent) at {persist_dir}")
+    elif store_type == 'faiss':
+        # TODO: Implement FAISS store
+        logger.info("FAISS store not yet implemented, falling back to memory")
+        store_instance = InMemoryVectorStore()
+    else:
+        # Default to in-memory store
+        store_instance = InMemoryVectorStore()
+        logger.warning("Using InMemoryVectorStore (non-persistent) - data will be lost on restart!")
+    
     c.register("store", lambda _: store_instance)  # Always return the same instance
     
     # Initialize chunker registry with config BEFORE creating wrapper
@@ -119,7 +139,15 @@ def buildContainer() -> Container:
     
     c.register("chunker", lambda _: ChunkerWrapper())
     c.register("llm", lambda _: LlmFactory.create())  # Use factory to create LLM based on config
-    c.register("reranker", lambda _: IdentityReranker())
+    # Create reranker based on config
+    reranker_config = config.get_section('reranker')
+    reranker_type = reranker_config.get('type', 'identity')
+    reranker = RerankerFactory.create(
+        reranker_type=reranker_type,
+        model=reranker_config.get('model'),
+        device=reranker_config.get('device', 'cpu')
+    )
+    c.register("reranker", lambda _: reranker)
     
     return c
 

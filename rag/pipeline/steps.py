@@ -71,8 +71,23 @@ class RerankStep:
         if not ctx.retrieved:
             # No items to rerank
             return Result.ok(ctx.withReranked([]))
-        ranked = self._reranker.rerank(ctx.retrieved)
-        return Result.ok(ctx.withReranked(ranked[: self._topK]))
+        
+        logger.info(f"RerankStep: Reranking {len(ctx.retrieved)} documents")
+        
+        # Check if reranker has a rerank method that accepts query
+        import inspect
+        rerank_sig = inspect.signature(self._reranker.rerank)
+        if 'query' in rerank_sig.parameters:
+            # Pass the query if the reranker supports it
+            ranked = self._reranker.rerank(ctx.retrieved, query=ctx.question)
+        else:
+            # Legacy reranker without query support
+            ranked = self._reranker.rerank(ctx.retrieved)
+        
+        top_ranked = ranked[: self._topK]
+        logger.info(f"RerankStep: Selected top {len(top_ranked)} after reranking")
+        
+        return Result.ok(ctx.withReranked(top_ranked))
 
 class ContextCompressionStep:
     def __init__(self, policy: Policy):
