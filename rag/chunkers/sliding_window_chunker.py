@@ -5,6 +5,7 @@ import sys
 sys.path.append('E:/Ragproject/rag')
 from core.types import Document, Chunk
 from chunkers.base import IChunker, ChunkingParams
+from chunkers.utils import create_chunk_meta, generate_chunk_id
 
 
 class SlidingWindowChunker(IChunker):
@@ -35,17 +36,17 @@ class SlidingWindowChunker(IChunker):
             if end < text_length:
                 chunk_text = self._adjust_chunk_boundary(chunk_text, text, position, end)
             
-            meta = {
-                "title": doc.title, 
-                "source": doc.source, 
-                "chunk_type": "sliding_window",
-                "position": position,
-                "overlap": overlap if position > 0 else 0
-            }
+            meta = create_chunk_meta(
+                doc,
+                chunk_type="sliding_window",
+                chunk_index=idx,
+                position=position,
+                overlap=overlap if position > 0 else 0
+            )
             
             chunks.append(
                 Chunk(
-                    id=f"{doc.id}:sw_{idx}",
+                    id=generate_chunk_id(doc.id, idx, "sw"),
                     docId=doc.id,
                     text=chunk_text.strip(),
                     meta=meta

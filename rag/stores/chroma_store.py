@@ -66,21 +66,22 @@ class ChromaVectorStore(VectorStore):
         documents = []
         
         for chunk in chunks:
-            # Combine chunk metadata
-            metadata = {
-                "docId": chunk.docId,
-                "docTitle": chunk.docTitle,
-                "docSource": chunk.docSource,
-                "chunkIndex": chunk.meta.get("chunkIndex", 0)
-            }
-            # Add any additional metadata from chunk.meta
-            for key, value in chunk.meta.items():
-                if key not in metadata:
-                    # ChromaDB requires metadata values to be strings, ints, floats, or bools
-                    if isinstance(value, (str, int, float, bool)):
-                        metadata[key] = value
+            # Start with chunk's metadata
+            metadata = dict(chunk.meta) if chunk.meta else {}
+            # Add docId as it's a separate field in Chunk
+            metadata["docId"] = chunk.docId
             
-            metadatas.append(metadata)
+            # Ensure all values are ChromaDB compatible types
+            clean_metadata = {}
+            for key, value in metadata.items():
+                if isinstance(value, (str, int, float, bool)):
+                    clean_metadata[key] = value
+                elif value is None:
+                    clean_metadata[key] = ""  # Convert None to empty string
+                else:
+                    clean_metadata[key] = str(value)  # Convert other types to string
+            
+            metadatas.append(clean_metadata)
             documents.append(chunk.text)
         
         # Add to ChromaDB
@@ -97,18 +98,26 @@ class ChromaVectorStore(VectorStore):
         """
         Update or insert a single chunk
         """
-        metadata = {
-            "docId": chunk.docId,
-            "docTitle": chunk.docTitle,
-            "docSource": chunk.docSource,
-            "chunkIndex": chunk.meta.get("chunkIndex", 0)
-        }
+        # Start with chunk's metadata
+        metadata = dict(chunk.meta) if chunk.meta else {}
+        # Add docId
+        metadata["docId"] = chunk.docId
+        
+        # Clean metadata for ChromaDB
+        clean_metadata = {}
+        for key, value in metadata.items():
+            if isinstance(value, (str, int, float, bool)):
+                clean_metadata[key] = value
+            elif value is None:
+                clean_metadata[key] = ""
+            else:
+                clean_metadata[key] = str(value)
         
         # Add to collection (ChromaDB handles upsert automatically)
         self.collection.upsert(
             ids=[chunk.id],
             embeddings=[vector],
-            metadatas=[metadata],
+            metadatas=[clean_metadata],
             documents=[chunk.text]
         )
         
@@ -151,16 +160,12 @@ class ChromaVectorStore(VectorStore):
         if results['ids'] and results['ids'][0]:  # ChromaDB returns nested lists
             for i in range(len(results['ids'][0])):
                 # Reconstruct chunk from stored data
+                metadata = results['metadatas'][0][i]
                 chunk = Chunk(
                     id=results['ids'][0][i],
-                    docId=results['metadatas'][0][i]['docId'],
-                    docTitle=results['metadatas'][0][i]['docTitle'],
-                    docSource=results['metadatas'][0][i]['docSource'],
+                    docId=metadata.get('docId', ''),
                     text=results['documents'][0][i],
-                    meta={
-                        k: v for k, v in results['metadatas'][0][i].items()
-                        if k not in ['docId', 'docTitle', 'docSource']
-                    }
+                    meta={k: v for k, v in metadata.items() if k != 'docId'}
                 )
                 
                 # ChromaDB returns distances, convert to similarity score (1 - distance for cosine)

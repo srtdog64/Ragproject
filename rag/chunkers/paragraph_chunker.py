@@ -6,6 +6,7 @@ import sys
 sys.path.append('E:/Ragproject/rag')
 from core.types import Document, Chunk
 from chunkers.base import IChunker, ChunkingParams
+from chunkers.utils import create_chunk_meta, generate_chunk_id
 
 
 class ParagraphChunker(IChunker):
@@ -33,10 +34,14 @@ class ParagraphChunker(IChunker):
                 )
                 chunks.extend(sub_chunks)
             else:
-                meta = {"title": doc.title, "source": doc.source, "chunk_type": "paragraph"}
+                meta = create_chunk_meta(
+                    doc,
+                    chunk_type="paragraph",
+                    chunk_index=idx
+                )
                 chunks.append(
                     Chunk(
-                        id=f"{doc.id}:para_{idx}",
+                        id=generate_chunk_id(doc.id, idx, "para"),
                         docId=doc.id,
                         text=paragraph,
                         meta=meta
@@ -67,11 +72,12 @@ class ParagraphChunker(IChunker):
                 current_chunk += " " + sentence if current_chunk else sentence
             else:
                 if current_chunk:
-                    meta = {
-                        "title": doc.title, 
-                        "source": doc.source, 
-                        "chunk_type": "paragraph_split"
-                    }
+                    meta = create_chunk_meta(
+                        doc,
+                        chunk_type="paragraph_split",
+                        chunk_index=para_idx,
+                        sub_index=sub_idx
+                    )
                     chunks.append(
                         Chunk(
                             id=f"{doc.id}:para_{para_idx}_{sub_idx}",
@@ -85,11 +91,12 @@ class ParagraphChunker(IChunker):
         
         # Add the last chunk
         if current_chunk:
-            meta = {
-                "title": doc.title, 
-                "source": doc.source, 
-                "chunk_type": "paragraph_split"
-            }
+            meta = create_chunk_meta(
+                doc,
+                chunk_type="paragraph_split",
+                chunk_index=para_idx,
+                sub_index=sub_idx
+            )
             chunks.append(
                 Chunk(
                     id=f"{doc.id}:para_{para_idx}_{sub_idx}",

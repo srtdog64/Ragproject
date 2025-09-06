@@ -5,6 +5,7 @@ import sys
 sys.path.append('E:/Ragproject/rag')
 from core.types import Document, Chunk
 from chunkers.base import IChunker, ChunkingParams
+from chunkers.utils import create_chunk_meta, generate_chunk_id
 
 class SimpleOverlapChunker(IChunker):
     def __init__(self, size: int = 800, overlap: int = 120):
@@ -43,8 +44,21 @@ class SimpleOverlapChunker(IChunker):
         while start < len(text):
             end = min(len(text), start + self._size)
             window = text[start:end]
-            meta: Dict[str, str] = {"title": doc.title, "source": doc.source}
-            chunks.append(Chunk(id=f"{doc.id}:{idx}", docId=doc.id, text=window, meta=meta))
+            meta = create_chunk_meta(
+                doc,
+                chunk_type="overlap",
+                chunk_index=idx,
+                start_pos=start,
+                end_pos=end
+            )
+            chunks.append(
+                Chunk(
+                    id=generate_chunk_id(doc.id, idx, "chunk"),
+                    docId=doc.id,
+                    text=window,
+                    meta=meta
+                )
+            )
             if end >= len(text):
                 break
             start = end - self._overlap

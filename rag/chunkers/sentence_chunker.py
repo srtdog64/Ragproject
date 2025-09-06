@@ -6,6 +6,7 @@ import sys
 sys.path.append('E:/Ragproject/rag')
 from core.types import Document, Chunk
 from chunkers.base import IChunker, ChunkingParams
+from chunkers.utils import create_chunk_meta, generate_chunk_id
 
 
 class SentenceChunker(IChunker):
@@ -25,7 +26,13 @@ class SentenceChunker(IChunker):
             if len(sentence) < params.sentenceMinLen:
                 continue
                 
-            meta = {"title": doc.title, "source": doc.source, "chunk_type": "sentence"}
+            # Use helper function for metadata
+            meta = create_chunk_meta(
+                doc, 
+                chunk_type="sentence",
+                chunk_index=idx,
+                sentence_length=len(sentence)
+            )
             chunks.append(
                 Chunk(
                     id=f"{doc.id}:sent_{idx}",

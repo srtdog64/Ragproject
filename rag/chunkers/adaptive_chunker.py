@@ -8,6 +8,7 @@ from core.types import Document, Chunk
 from chunkers.base import IChunker, ChunkingParams
 from chunkers.paragraph_chunker import ParagraphChunker
 from chunkers.sentence_chunker import SentenceChunker
+from chunkers.utils import create_chunk_meta
 
 
 class AdaptiveChunker(IChunker):
