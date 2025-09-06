@@ -1,5 +1,5 @@
 {
-  "strategy": "sliding_window",
+  "strategy": "adaptive",
   "params": {
     "maxTokens": 512,
     "windowSize": 1200,

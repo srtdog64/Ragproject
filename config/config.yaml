@@ -7,7 +7,7 @@ chunker:
     semanticThreshold: 0.82
     sentenceMinLen: 10
     windowSize: 1200
-  default_strategy: sliding_window
+  default_strategy: adaptive
 cors:
   allow_credentials: true
   allow_headers:
