@@ -488,7 +488,7 @@ class MainWindow(QMainWindow):
             self.worker.start()
             self.logsWidget.info(f"Starting ingestion of {len(docs)} documents")
     
-    def askQuestion(self, question: str, topK: int):
+    def askQuestion(self, question: str, topK: int, strict_mode: bool = False):
         """Send question to server"""
         if not self.serverOnline:
             QMessageBox.warning(self, "Server Offline", "Server is not available")
@@ -499,6 +499,7 @@ class MainWindow(QMainWindow):
         payload = {
             "question": question,
             "k": topK
+            # strict_mode will be implemented later
         }
         
         self.worker.setTask("ask", payload)
@@ -587,8 +588,10 @@ class MainWindow(QMainWindow):
             chunks = result.get("ingestedChunks", 0)
             docs = result.get("documentCount", 0)
             
-            # Hide progress bar
-            self.chatWidget.setIngestionProgress(100, 100, "Complete!")
+            # Update progress to 100% then hide
+            self.chatWidget.setIngestionProgress(docs, docs, "Complete!")
+            # Hide progress bar after a short delay
+            QTimer.singleShot(1000, lambda: self.chatWidget.hideIngestionProgress())
             
             QMessageBox.information(
                 self, "Ingestion Complete",

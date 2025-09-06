@@ -49,6 +49,7 @@ class AskIn(BaseModel):
     k: Optional[int] = Field(default=None, ge=1, le=100)
     provider: Optional[str] = Field(default=None)  # Changed from model_provider
     model: Optional[str] = Field(default=None)  # Changed from model_name
+    strict_mode: Optional[bool] = Field(default=False)  # Add strict mode flag
     
     class Config:
         protected_namespaces = ()  # Disable protected namespace check
@@ -321,11 +322,16 @@ async def ask(body: AskIn) -> AskOut:
         policy = _container.resolve("policy")
         k = body.k if body.k is not None else policy.getDefaultTopK()
 
+        # Create context with strict_mode as part of the question or handle it separately
+        # Since RagContext doesn't have metadata, we'll handle strict_mode in the pipeline
         ctx = RagContext(
             question=body.question, k=k,
             expandedQueries=[], retrieved=[], reranked=[],
             compressedCtx="", prompt="", rawLlm="", parsed=None  # type: ignore
         )
+        
+        # Store strict_mode in a way that BuildPromptStep can access it
+        # We'll pass it through the pipeline builder or modify the prompt directly
         
         # Build and run pipeline
         pipeline = _pipelineBuilder.build()

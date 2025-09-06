@@ -13,7 +13,7 @@ class ChatWidget(QWidget):
     """Chat interface widget with enhanced features"""
     
     ingestRequested = Signal()
-    questionAsked = Signal(str, int)  # question, topK
+    questionAsked = Signal(str, int, bool)  # question, topK, strict_mode
     
     def __init__(self, config_manager):
         super().__init__()
@@ -120,31 +120,66 @@ class ChatWidget(QWidget):
             }
         """)
         
-        # Input area
-        inputLayout = QHBoxLayout()
+        # Input area with mode selection
+        inputLayout = QVBoxLayout()
+        
+        # Input field and controls row
+        inputRowLayout = QHBoxLayout()
         
         self.inputField = QTextEdit()
         self.inputField.setMaximumHeight(100)
         self.inputField.setPlaceholderText("Ask a question... (Shift+Enter for new line, Enter to send)")
         
+        inputRowLayout.addWidget(self.inputField)
+        
+        # Button controls group
+        buttonGroup = QWidget()
+        buttonLayout = QVBoxLayout()
+        buttonLayout.setContentsMargins(0, 0, 0, 0)
+        buttonLayout.setSpacing(2)
+        
         # Send button
-        self.sendBtn = QPushButton("Send 📤")
-        self.sendBtn.setMinimumHeight(60)
+        self.sendBtn = QPushButton("🚀 Send")
+        self.sendBtn.setMinimumHeight(40)
+        self.sendBtn.setMinimumWidth(80)
         self.sendBtn.setStyleSheet("""
             QPushButton {
                 background-color: #1976d2;
                 color: white;
                 font-weight: bold;
                 border-radius: 4px;
-                padding: 10px 20px;
+                padding: 8px 12px;
+                font-size: 13px;
             }
             QPushButton:hover {
                 background-color: #1565c0;
             }
         """)
+        buttonLayout.addWidget(self.sendBtn)
         
-        inputLayout.addWidget(self.inputField)
-        inputLayout.addWidget(self.sendBtn)
+        # Compact mode toggle below send button
+        self.strictModeCheck = QCheckBox("Strict")
+        self.strictModeCheck.setToolTip(
+            "Strict Mode: Only answers from indexed documents\n"
+            "Normal Mode: Uses both RAG context and general knowledge"
+        )
+        self.strictModeCheck.setStyleSheet("""
+            QCheckBox {
+                font-size: 11px;
+                padding: 2px;
+            }
+            QCheckBox::indicator {
+                width: 12px;
+                height: 12px;
+            }
+        """)
+        self.strictModeCheck.toggled.connect(self.onModeChanged)
+        buttonLayout.addWidget(self.strictModeCheck, alignment=Qt.AlignCenter)
+        
+        buttonGroup.setLayout(buttonLayout)
+        inputRowLayout.addWidget(buttonGroup)
+        
+        inputLayout.addLayout(inputRowLayout)
         
         # Connect signals
         self.sendBtn.clicked.connect(self.onSendMessage)
@@ -189,8 +224,44 @@ class ChatWidget(QWidget):
         """Handle sending message"""
         question = self.inputField.toPlainText().strip()
         if question:
-            self.questionAsked.emit(question, self.topKSpin.value())
+            # For now, don't use strict mode
+            self.questionAsked.emit(question, self.topKSpin.value(), False)
             self.inputField.clear()
+    
+    def onModeChanged(self, checked):
+        """Handle mode change - UI only for now"""
+        if checked:
+            self.sendBtn.setText("🔒 Send")
+            self.sendBtn.setToolTip("Strict Mode: Only use RAG context (Coming soon)")
+            self.sendBtn.setStyleSheet("""
+                QPushButton {
+                    background-color: #ff6b35;
+                    color: white;
+                    font-weight: bold;
+                    border-radius: 4px;
+                    padding: 8px 12px;
+                    font-size: 13px;
+                }
+                QPushButton:hover {
+                    background-color: #ff5722;
+                }
+            """)
+        else:
+            self.sendBtn.setText("🚀 Send")
+            self.sendBtn.setToolTip("Normal Mode: RAG + General Knowledge")
+            self.sendBtn.setStyleSheet("""
+                QPushButton {
+                    background-color: #1976d2;
+                    color: white;
+                    font-weight: bold;
+                    border-radius: 4px;
+                    padding: 8px 12px;
+                    font-size: 13px;
+                }
+                QPushButton:hover {
+                    background-color: #1565c0;
+                }
+            """)
     
     def addMessage(self, sender: str, message: str, metadata: Optional[Dict] = None):
         """Add a message to the chat display"""
@@ -258,7 +329,7 @@ class ChatWidget(QWidget):
         if value == 0 and maximum > 0:
             # Starting ingestion
             self.ingestBtn.setEnabled(False)
-            self.progressBar.show()
+            self.progressBar.setVisible(True)  # Ensure visibility
             self.progressBar.setMaximum(maximum)
             self.progressBar.setValue(0)
             self.progressBar.setFormat(text if text else "%p%")
@@ -269,12 +340,18 @@ class ChatWidget(QWidget):
             self.progressBar.setValue(0)
         else:
             # Update progress
+            self.progressBar.setVisible(True)  # Ensure visibility during update
             self.progressBar.setValue(value)
             if text:
                 self.progressBar.setFormat(text)
             else:
                 percentage = int((value / maximum) * 100) if maximum > 0 else 0
                 self.progressBar.setFormat(f"{percentage}%")
+    
+    def hideIngestionProgress(self):
+        """Hide the ingestion progress bar"""
+        self.progressBar.setVisible(False)
+        self.progressBar.setValue(0)
     
     def updateModelLabel(self, provider: str, model: str):
         """Update the model label"""
