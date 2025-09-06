@@ -35,7 +35,7 @@ class ChatWidget(QWidget):
                 background-color: #4caf50;
                 color: white;
                 font-weight: bold;
-                padding: 5px 10px;
+                padding: 8px 16px;
                 border-radius: 4px;
             }
             QPushButton:hover {

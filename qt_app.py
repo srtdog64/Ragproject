@@ -264,6 +264,7 @@ class MainWindow(QMainWindow):
         # Documents tab
         self.docWidget = DocumentsWidget(self.config)
         self.docWidget.documentsChanged.connect(self.onDocumentsChanged)
+        self.docWidget.selectiveIngestRequested.connect(self.ingestSelectedDocuments)
         self.tabs.addTab(self.docWidget, "📚 Documents")
         
         # Options tab
@@ -495,6 +496,28 @@ class MainWindow(QMainWindow):
     def onDocumentsChanged(self, count: int):
         """Handle document count change"""
         self.docCountLabel.setText(f"📚 Docs: {count}")
+    
+    def ingestSelectedDocuments(self, docs):
+        """Ingest selected documents from advanced tab"""
+        if not docs:
+            QMessageBox.warning(self, "No Documents", "No documents selected")
+            return
+        
+        if not self.serverOnline:
+            QMessageBox.warning(self, "Server Offline", "Server is not available")
+            return
+        
+        # Get batch settings from advanced tab
+        batch_settings = self.docWidget.advancedTab.getBatchSettings()
+        
+        # Show progress in advanced tab
+        self.docWidget.advancedTab.setProgress(0, len(docs), "Starting...")
+        
+        # Process documents with batch settings
+        self.worker.setTask("ingest", docs)
+        self.worker.start()
+        self.logsWidget.info(f"Starting selective ingestion of {len(docs)} documents")
+        self.logsWidget.info(f"Batch size: {batch_settings['batch_size']}, Delay: {batch_settings['delay']}s")
     
     def reloadConfig(self):
         """Reload server configuration"""
