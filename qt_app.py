@@ -22,7 +22,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), 'rag'))
 from ui import (
     ChatWidget, 
     DocumentsWidget, 
-    OptionsWidget,  # Now includes all enhanced features
+    OptionsWidget,  # Use original options widget
     LogsWidget,
     ConfigManager
 )

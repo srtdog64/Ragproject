@@ -22,6 +22,7 @@ PyPDF2  # PDF support
 python-docx  # Word document support
 beautifulsoup4  # HTML parsing
 markdown  # Markdown support
+pygments  # Syntax highlighting for code blocks
 
 # Qt GUI
 PySide6
@@ -29,6 +30,10 @@ PyYAML
 
 # File Watching
 watchdog  # For folder monitoring
+
+# Reranking
+rank-bm25  # BM25 reranking
+cohere  # Cohere API (optional)
 
 # Optional but recommended
 faiss-cpu  # For better vector search (optional)

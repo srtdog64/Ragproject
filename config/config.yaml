@@ -48,7 +48,7 @@ llm:
     - gpt-4-turbo
     - gpt-4
     - gpt-3.5-turbo
-  max_tokens: 2048
+  max_tokens: 8192
   model: gemini-2.5-flash
   temperature: 0.9
   type: gemini

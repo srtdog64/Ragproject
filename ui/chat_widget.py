@@ -6,8 +6,10 @@ from datetime import datetime
 from typing import Dict, Optional
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Signal, Qt, QEvent
-from PySide6.QtGui import QKeySequence
+from PySide6.QtGui import QKeySequence, QAction
 from .toggle_switch import ToggleSwitch
+from .chat.markdown_renderer import MarkdownRenderer
+from .chat.chat_exporter import ChatExportDialog, ChatExporter
 
 
 class ChatWidget(QWidget):
@@ -19,6 +21,8 @@ class ChatWidget(QWidget):
     def __init__(self, config_manager):
         super().__init__()
         self.config = config_manager
+        self.markdown_renderer = MarkdownRenderer()
+        self.chat_history = []  # Store messages for export
         self.initUI()
     
     def initUI(self):
@@ -108,6 +112,23 @@ class ChatWidget(QWidget):
         clearBtn.clicked.connect(self.clearChat)
         topToolbar.addWidget(clearBtn)
         
+        # Export button
+        exportBtn = QPushButton("💾 Export")
+        exportBtn.clicked.connect(self.exportChat)
+        exportBtn.setToolTip("Export chat to Markdown file")
+        exportBtn.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                padding: 5px 10px;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #1976D2;
+            }
+        """)
+        topToolbar.addWidget(exportBtn)
+        
         # Chat display area
         self.chatDisplay = QTextBrowser()
         self.chatDisplay.setOpenExternalLinks(True)
@@ -169,8 +190,13 @@ class ChatWidget(QWidget):
         
         self.strictModeToggle = ToggleSwitch()
         self.strictModeToggle.setToolTip(
-            "Strict Mode: Only answers from indexed documents\n"
-            "Normal Mode: Uses both RAG context and general knowledge"
+            "<b>OFF (Normal Mode):</b><br>"
+            "Uses both RAG database and general AI knowledge.<br>"
+            "Best for general questions and creative tasks.<br><br>"
+            "<b>ON (Strict Mode):</b><br>"
+            "Searches ONLY within your indexed documents.<br>"
+            "Ensures answers come exclusively from your data.<br>"
+            "No external knowledge or assumptions."
         )
         self.strictModeToggle.toggled.connect(self.onModeChanged)
         toggleLayout.addWidget(self.strictModeToggle)
@@ -265,8 +291,16 @@ class ChatWidget(QWidget):
             """)
     
     def addMessage(self, sender: str, message: str, metadata: Optional[Dict] = None):
-        """Add a message to the chat display"""
+        """Add a message to the chat display with markdown rendering"""
         timestamp = datetime.now().strftime("%H:%M:%S")
+        
+        # Store in history for export
+        self.chat_history.append({
+            'sender': sender,
+            'message': message,
+            'timestamp': timestamp,
+            'metadata': metadata
+        })
         
         # Determine styling based on sender
         if sender == "You":
@@ -282,6 +316,14 @@ class ChatWidget(QWidget):
             color = "#666"
             bg_color = "#f5f5f5"
         
+        # Render message based on sender
+        if sender == "Assistant":
+            # Use markdown renderer for assistant messages
+            rendered_message = self.markdown_renderer.render(message)
+        else:
+            # Use plain text renderer for user messages
+            rendered_message = self.markdown_renderer.render_plain_text(message)
+        
         # Format message with HTML
         html = f"""
         <div style="margin: 10px 0;">
@@ -292,7 +334,8 @@ class ChatWidget(QWidget):
             </div>
             <div style="padding: 12px; background-color: {bg_color}; 
                         border-radius: 8px; border-left: 3px solid {color};">
-                <div style="white-space: pre-wrap; word-wrap: break-word;">{message}</div>
+                {rendered_message}
+            </div>
         """
         
         # Add metadata if present
@@ -322,8 +365,47 @@ class ChatWidget(QWidget):
             scrollbar.setValue(scrollbar.maximum())
     
     def clearChat(self):
-        """Clear the chat display"""
+        """Clear the chat display and history"""
         self.chatDisplay.clear()
+        self.chat_history.clear()
+    
+    def exportChat(self):
+        """Export chat to markdown file"""
+        if not self.chat_history:
+            QMessageBox.information(self, "No Messages", "No chat messages to export.")
+            return
+        
+        # Show export dialog
+        dialog = ChatExportDialog(self)
+        dialog.exportRequested.connect(self.performExport)
+        dialog.exec_()
+    
+    def performExport(self, filepath: str, options: dict):
+        """Perform the actual export"""
+        success = ChatExporter.export_to_markdown(
+            self.chat_history,
+            filepath,
+            options
+        )
+        
+        if success:
+            reply = QMessageBox.information(
+                self, "Export Successful",
+                f"Chat exported to:\n{filepath}\n\nOpen file?",
+                QMessageBox.Yes | QMessageBox.No
+            )
+            
+            if reply == QMessageBox.Yes:
+                import os
+                import platform
+                if platform.system() == "Windows":
+                    os.startfile(filepath)
+                elif platform.system() == "Darwin":  # macOS
+                    os.system(f"open '{filepath}'")
+                else:  # Linux
+                    os.system(f"xdg-open '{filepath}'")
+        else:
+            QMessageBox.critical(self, "Export Failed", "Failed to export chat.")
     
     def setIngestionProgress(self, value: int, maximum: int = 100, text: str = ""):
         """Update ingestion progress bar"""

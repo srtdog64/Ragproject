@@ -18,7 +18,7 @@ def main():
         import yaml
         config_path = Path("config/config.yaml")
         if config_path.exists():
-            with open(config_path, 'r') as f:
+            with open(config_path, 'r', encoding='utf-8') as f:
                 config = yaml.safe_load(f)
                 host = config.get('server', {}).get('host', '127.0.0.1')
                 port = config.get('server', {}).get('port', 7001)

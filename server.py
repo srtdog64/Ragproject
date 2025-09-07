@@ -371,3 +371,97 @@ async def reload_config():
         return {"message": "Configuration reloaded successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/rerankers/types")
+async def get_reranker_types() -> List[dict]:
+    """Get available reranker types"""
+    return [
+        {
+            "id": "cross-encoder",
+            "name": "Cross Encoder",
+            "description": "Neural network-based reranking using cross-encoder models",
+            "models": [
+                "cross-encoder/ms-marco-MiniLM-L-6-v2",
+                "cross-encoder/ms-marco-MiniLM-L-12-v2",
+                "cross-encoder/ms-marco-TinyBERT-L-2-v2"
+            ]
+        },
+        {
+            "id": "bm25",
+            "name": "BM25",
+            "description": "Classic probabilistic ranking function, fast and lightweight",
+            "models": []
+        },
+        {
+            "id": "colbert",
+            "name": "ColBERT",
+            "description": "Efficient retrieval via late interaction",
+            "models": ["colbert-ir/colbertv2.0"]
+        },
+        {
+            "id": "cohere",
+            "name": "Cohere Rerank",
+            "description": "Cloud-based reranking using Cohere API",
+            "models": ["rerank-english-v2.0", "rerank-multilingual-v2.0"]
+        },
+        {
+            "id": "simple",
+            "name": "Simple Score",
+            "description": "Basic scoring based on keyword matching",
+            "models": []
+        }
+    ]
+
+@app.get("/api/rerankers/current")
+async def get_current_reranker() -> dict:
+    """Get current reranker configuration"""  
+    # Use the global config object
+    reranker_config = config.get_section('pipeline').get('reranking', {})
+    
+    return {
+        "type": reranker_config.get('type', 'cross-encoder'),
+        "model": reranker_config.get('model', 'cross-encoder/ms-marco-MiniLM-L-6-v2'),
+        "enabled": reranker_config.get('enabled', True),
+        "topK": reranker_config.get('topK', 5)
+    }
+
+@app.post("/api/rerankers/update")
+async def update_reranker(payload: dict) -> dict:
+    """Update reranker configuration"""
+    try:
+        config_path = Path("config/config.yaml")
+        # Load config from file
+        with open(config_path, 'r', encoding='utf-8') as f:
+            yaml_config = yaml.safe_load(f)
+        
+        # Update reranker settings
+        if 'pipeline' not in yaml_config:
+            yaml_config['pipeline'] = {}
+        if 'reranking' not in yaml_config['pipeline']:
+            yaml_config['pipeline']['reranking'] = {}
+            
+        reranker_config = yaml_config['pipeline']['reranking']
+        
+        if 'type' in payload:
+            reranker_config['type'] = payload['type']
+        if 'model' in payload:
+            reranker_config['model'] = payload['model']
+        if 'enabled' in payload:
+            reranker_config['enabled'] = payload['enabled']
+        if 'topK' in payload:
+            reranker_config['topK'] = payload['topK']
+        
+        # Save updated config
+        with open(config_path, 'w', encoding='utf-8') as f:
+            yaml.dump(yaml_config, f, allow_unicode=True)
+        
+        # Rebuild container with new reranker
+        global _container, _ingester, _pipelineBuilder
+        _container, _ingester, _pipelineBuilder = initializeComponents(config)
+        
+        logger.info(f"Reranker updated to: {payload}")
+        return {"success": True, "config": reranker_config}
+        
+    except Exception as e:
+        logger.error(f"Failed to update reranker: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
