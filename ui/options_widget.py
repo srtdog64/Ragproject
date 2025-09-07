@@ -13,6 +13,7 @@ from .options import (
     ServerTab,
     VariablesTab
 )
+from .options.database_tab import DatabaseTab
 
 
 class OptionsWidget(QWidget):
@@ -76,6 +77,9 @@ class OptionsWidget(QWidget):
         
         self.variables_tab = VariablesTab(self.config, self)
         self.tabs.addTab(self.variables_tab, "🔧 Variables")
+        
+        self.database_tab = DatabaseTab(self.config)
+        self.tabs.addTab(self.database_tab, "💾 Database")
         
         layout.addWidget(self.tabs)
         
@@ -177,6 +181,9 @@ class OptionsWidget(QWidget):
         
         self.variables_tab = VariablesTab(self.config, self)
         self.tabs.addTab(self.variables_tab, "🔧 Variables")
+        
+        self.database_tab = DatabaseTab(self.config)
+        self.tabs.addTab(self.database_tab, "💾 Database")
     
     def onStrategyComboChanged(self, text):
         """Forward to chunking tab's method"""

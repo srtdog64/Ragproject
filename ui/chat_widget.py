@@ -337,7 +337,7 @@ class ChatWidget(QWidget):
         role = 'user' if sender == "You" else 'assistant'
         
         # Add message using ChatDisplay's enhanced rendering
-        self.chatDisplay.add_message(role, message, streaming=False)
+        self.chatDisplay.add_message(role, message)
         
         # Auto-scroll to bottom
         if self.config.get("chat.auto_scroll", True):

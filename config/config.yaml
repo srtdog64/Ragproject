@@ -1,42 +1,49 @@
-chunker:
-  default_params:
-    language: ko
-    maxTokens: 512
-    overlap: 200
-    paragraphMinLen: 49
-    semanticThreshold: 0.82
-    sentenceMinLen: 10
-    windowSize: 1200
-  default_strategy: adaptive
-context_compression:
-  enabled: true
-cors:
-  allow_credentials: true
-  allow_headers:
-  - '*'
-  allow_methods:
-  - '*'
-  allow_origins:
-  - http://localhost:*
-  - http://127.0.0.1:*
+# =================== RAG Configuration ===================
+
+# === Server Settings ===
+server:
+  host: 0.0.0.0
+  port: 7001
+  reload: true
+  log_level: info
+
+# === Database Settings ===
+store:
+  type: chroma                          # Vector store type (chroma, faiss, memory)
+  persist_directory: E:\Ragproject\chroma_db  # Full path to DB directory
+  collection_name: rag_documents        # Collection/namespace name
+  
+# === Document Watching ===  
 documents:
   watched_folders:
   - C:/Users/Pc/Desktop/스크립트 백업
+
+# === Chunking Strategy ===
+chunker:
+  default_strategy: adaptive             # adaptive, fixed, semantic, sentence, paragraph
+  default_params:
+    maxTokens: 512
+    windowSize: 1200
+    overlap: 200
+    semanticThreshold: 0.82
+    language: ko
+    sentenceMinLen: 10
+    paragraphMinLen: 49
+
+# === Embedding Model ===
 embedder:
-  cache_dir: null
-  dimension: 384
-  model: multilingual-small
   type: semantic
-ingester:
-  batch_size: 100
-  max_parallel: 8
+  model: multilingual-small
+  dimension: 384
+  cache_dir: null
+
+# === Language Model ===
 llm:
+  type: gemini                          # gemini, openai, claude
+  model: gemini-2.5-flash
+  temperature: 0.01
+  max_tokens: 8192
   available_models:
-    claude:
-    - claude-3-5-sonnet
-    - claude-3-opus
-    - claude-3-sonnet
-    - claude-3-haiku
     gemini:
     - gemini-2.5-flash
     - gemini-2.5-pro
@@ -50,61 +57,67 @@ llm:
     - gpt-4-turbo
     - gpt-4
     - gpt-3.5-turbo
-  max_tokens: 8192
-  model: gemini-2.5-flash
-  temperature: 0.01
-  type: gemini
-logging:
-  file: null
-  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-  level: INFO
-options:
-  watched_folders:
-  - C:/Users/Pc/Desktop/스크립트 백업
-parsing:
-  enabled: true
+    claude:
+    - claude-3-5-sonnet
+    - claude-3-opus
+    - claude-3-sonnet
+    - claude-3-haiku
+
+# === Reranking ===
+reranker:
+  type: bm25                            # bm25, cross-encoder, simple
+  model: cross-encoder/ms-marco-MiniLM-L-6-v2
+  device: cpu
+  k1: 1.2
+  b: 0.75
+  boost_recent: true
+  boost_title_match: true
+
+# === RAG Pipeline ===
 pipeline:
+  query_expansion:
+    enabled: true
+    expansions: 0
+  retrieval:
+    enabled: true
+    topK: null
+  reranking:
+    enabled: true
+    topK: null
   context_compression:
     enabled: true
+  prompt:
+    system_hint: You are a helpful RAG assistant. Answer based on the context provided.
+    system_message: Be precise and helpful.
   generation:
     enabled: true
   parsing:
     enabled: true
     format: markdown-qa
-  prompt:
-    system_hint: You are a helpful RAG assistant. Answer based on the context provided.
-    system_message: Be precise and helpful.
-  query_expansion:
-    enabled: true
-    expansions: 0
-  reranking:
-    enabled: true
-    topK: null
-  retrieval:
-    enabled: true
-    topK: null
+
+# === Policy Settings ===
 policy:
   defaultTopK: 10
   maxContextChars: 12000
-query_expansion:
-  enabled: true
-  expansions: 0
-reranker:
-  b: 0.75
-  boost_recent: true
-  boost_title_match: true
-  device: cpu
-  k1: 1.2
-  model: cross-encoder/ms-marco-MiniLM-L-6-v2
-  type: bm25
-retrieval:
-  enabled: true
-server:
-  host: 0.0.0.0
-  log_level: info
-  port: 7001
-  reload: true
-store:
-  collection_name: rag_documents
-  persist_directory: ./chroma_db
-  type: chroma
+
+# === Ingestion ===
+ingester:
+  max_parallel: 8
+  batch_size: 100
+
+# === CORS Settings ===
+cors:
+  allow_origins:
+  - http://localhost:*
+  - http://127.0.0.1:*
+  allow_credentials: true
+  allow_methods:
+  - '*'
+  allow_headers:
+  - '*'
+
+# === Logging ===
+logging:
+  level: INFO
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  file: null

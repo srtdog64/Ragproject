@@ -1,5 +1,6 @@
 # server.py
 from __future__ import annotations
+import os
 import uuid, time, asyncio
 import logging
 import traceback
@@ -133,15 +134,25 @@ def buildContainer() -> Container:
     
     if store_type == 'chroma':
         from stores.chroma_store import ChromaVectorStore
-        persist_dir = store_config.get('persist_directory', './chroma_db')
+        persist_dir = store_config.get('persist_directory', 'E:\\Ragproject\\chroma_db')  # Full path
+        
+        # Convert relative path to absolute if needed
+        if not os.path.isabs(persist_dir):
+            persist_dir = os.path.abspath(persist_dir)
+        
         collection = store_config.get('collection_name', 'rag_documents')
+        
+        # Ensure directory exists
+        os.makedirs(persist_dir, exist_ok=True)
+        
         store_instance = ChromaVectorStore(
             persist_directory=persist_dir,
             collection_name=collection,
             embedding_model=embedding_model,
             embedding_dim=embedding_dim
         )
-        logger.info(f"Using ChromaDB vector store (persistent) at {persist_dir}")
+        logger.info(f"Using ChromaDB vector store at: {persist_dir}")
+        logger.info(f"  Collection: {collection}")
         if embedding_model:
             logger.info(f"  Namespace for model: {embedding_model}")
     elif store_type == 'faiss':
@@ -272,6 +283,8 @@ app.add_middleware(
 _container = buildContainer()
 _ingester, _pipelineBuilder = buildPipeline(_container)
 
+# Removed duplicate endpoint - the correct one is defined below
+
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok", "service": "RAG", "llm": "Gemini"}
@@ -290,17 +303,48 @@ async def get_rag_stats() -> dict:
     try:
         store = _container.resolve("store")
         
+        # Debug: Check what type of store we have
+        store_type = type(store).__name__
+        logger.info(f"Store type: {store_type}")
+        
         # Get vector count - ensure we're calling the right method
         vector_count = 0
+        
+        # First try the standard count method
         if hasattr(store, 'count'):
-            vector_count = store.count()
-            logger.info(f"Vector count from store: {vector_count}")
-        elif hasattr(store, 'collection') and hasattr(store.collection, 'count'):
-            # For ChromaDB, might need to call collection.count() directly
-            vector_count = store.collection.count()
-            logger.info(f"Vector count from collection: {vector_count}")
-        else:
-            logger.warning("Store doesn't have a count method")
+            try:
+                vector_count = store.count()
+                logger.info(f"Vector count from store.count(): {vector_count}")
+            except Exception as e:
+                logger.error(f"Error calling store.count(): {e}")
+        
+        # For ChromaDB, try accessing the collection directly
+        if hasattr(store, 'collection'):
+            try:
+                if hasattr(store.collection, 'count'):
+                    collection_count = store.collection.count()
+                    logger.info(f"Vector count from collection.count(): {collection_count}")
+                    if collection_count > vector_count:
+                        vector_count = collection_count
+            except Exception as e:
+                logger.error(f"Error calling collection.count(): {e}")
+        
+        # Try to get more info from ChromaDB if available
+        if hasattr(store, 'client'):
+            try:
+                # List all collections to debug
+                collections = store.client.list_collections()
+                logger.info(f"Available collections: {[c.name for c in collections]}")
+                
+                # Try to get count from each collection
+                for coll in collections:
+                    try:
+                        coll_count = coll.count()
+                        logger.info(f"Collection '{coll.name}' has {coll_count} vectors")
+                    except:
+                        pass
+            except Exception as e:
+                logger.error(f"Error listing collections: {e}")
         
         # Get current namespace
         namespace = "default"
@@ -309,11 +353,12 @@ async def get_rag_stats() -> dict:
         elif hasattr(store, 'namespace_manager') and hasattr(store.namespace_manager, 'current_namespace'):
             namespace = store.namespace_manager.current_namespace
         
-        logger.info(f"RAG Stats: {vector_count} vectors in namespace '{namespace}'")
+        logger.info(f"RAG Stats Final: {vector_count} vectors in namespace '{namespace}'")
         
         return {
             "total_vectors": vector_count,
             "namespace": namespace,
+            "store_type": store_type,
             "status": "ok"
         }
     except Exception as e:
@@ -323,6 +368,7 @@ async def get_rag_stats() -> dict:
         return {
             "total_vectors": 0,
             "namespace": "unknown",
+            "store_type": "unknown",
             "status": "error",
             "error": str(e)
         }

@@ -83,7 +83,7 @@ class ChatDisplay(QTextBrowser):
             role_format.setForeground(QColor("#0066cc"))
             cursor.insertText("👤 You", role_format)
         else:
-            role_format.setForeground(QColor("#1a7f37"))  # Consistent green for assistant
+            role_format.setForeground(QColor("#000000"))  # Black for assistant
             cursor.insertText("🤖 Assistant", role_format)
         
         cursor.insertBlock()
@@ -163,9 +163,15 @@ class ChatDisplay(QTextBrowser):
                 # Code block
                 self.render_code_block(part, cursor)
             else:
-                # Regular content
+                # Regular content - process line by line for headers
                 if part.strip():
-                    self.render_simple_markdown(part, cursor)
+                    lines = part.split('\n')
+                    for i, line in enumerate(lines):
+                        if line or i < len(lines) - 1:  # Process non-empty lines or add line breaks
+                            if i > 0:
+                                cursor.insertBlock()
+                            if line.strip():
+                                self.render_simple_markdown(line, cursor)
     
     def filter_code_content(self, lines: list, language: str) -> str:
         """Filter out non-code content and auto-correct indentation"""
@@ -541,10 +547,6 @@ class ChatDisplay(QTextBrowser):
             <div style="border-top:1px solid #d0d0d0;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;background:#f5f5f5;">
                 <span style="color:#0969da;font-size:13px;font-weight:600;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;">{display_language}</span>
                 <a href="copy:{code_block_index}" id="copy-btn-{code_block_index}" style="background:#ffffff;color:#24292f;text-decoration:none;font-size:13px;padding:5px 12px;border-radius:6px;border:1px solid #d1d9e0;font-weight:500;display:inline-flex;align-items:center;gap:6px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;transition:all 0.2s;">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="stroke:currentColor;stroke-width:1.5;">
-                        <rect x="5.5" y="5.5" width="6" height="8" rx="1"/>
-                        <path d="M4.5 5.5V3.5C4.5 2.94772 4.94772 2.5 5.5 2.5H11.5C12.0523 2.5 12.5 2.94772 12.5 3.5V10.5C12.5 11.0523 12.0523 11.5 11.5 11.5H10.5"/>
-                    </svg>
                     <span>📋 Copy</span>
                 </a>
             </div>
@@ -789,13 +791,42 @@ class ChatDisplay(QTextBrowser):
         cursor.insertText(line, default_format)
     
     def render_simple_markdown(self, text: str, cursor: QTextCursor):
-        """Render simple markdown (bold, italic, inline code)"""
+        """Render simple markdown (headers, bold, italic, inline code)"""
         if not text.strip():
             return
         
+        # Check for headers first
+        if text.strip().startswith('#'):
+            # Count the number of # symbols
+            header_match = re.match(r'^(#{1,6})\s+(.+)', text.strip())
+            if header_match:
+                level = len(header_match.group(1))
+                header_text = header_match.group(2)
+                
+                # Apply header format
+                header_format = QTextCharFormat()
+                header_format.setForeground(QColor("#000000"))  # Black text
+                header_format.setFontWeight(QFont.Bold)
+                
+                # Set font size based on header level
+                base_size = 10
+                if level == 1:
+                    header_format.setFontPointSize(base_size + 8)  # H1: 18pt
+                elif level == 2:
+                    header_format.setFontPointSize(base_size + 6)  # H2: 16pt
+                elif level == 3:
+                    header_format.setFontPointSize(base_size + 4)  # H3: 14pt
+                elif level == 4:
+                    header_format.setFontPointSize(base_size + 2)  # H4: 12pt
+                else:
+                    header_format.setFontPointSize(base_size + 1)  # H5-H6: 11pt
+                
+                cursor.insertText(header_text, header_format)
+                return
+        
         # Default text format for assistant messages
         default_format = QTextCharFormat()
-        default_format.setForeground(QColor("#1a7f37"))  # Green for assistant text
+        default_format.setForeground(QColor("#000000"))  # Black for assistant text
         
         # Split by inline code first
         parts = re.split(r'(`[^`]+`)', text)
@@ -806,7 +837,7 @@ class ChatDisplay(QTextBrowser):
                 code_format = QTextCharFormat()
                 code_format.setFontFamily("Consolas, Monaco, monospace")
                 code_format.setBackground(QColor("#f6f8fa"))
-                code_format.setForeground(QColor("#1a7f37"))  # Green like regular text
+                code_format.setForeground(QColor("#000000"))  # Black like regular text
                 cursor.insertText(part[1:-1], code_format)
             else:
                 # Check for bold and italic
@@ -825,18 +856,18 @@ class ChatDisplay(QTextBrowser):
             text_format = QTextCharFormat()
             
             if part.startswith('**') and part.endswith('**'):
-                # Bold - keep green color
+                # Bold - keep black color
                 text_format.setFontWeight(QFont.Bold)
-                text_format.setForeground(QColor("#1a7f37"))  # Green
+                text_format.setForeground(QColor("#000000"))  # Black
                 cursor.insertText(part[2:-2], text_format)
             elif part.startswith('*') and part.endswith('*'):
-                # Italic - keep green color
+                # Italic - keep black color
                 text_format.setFontItalic(True)
-                text_format.setForeground(QColor("#1a7f37"))  # Green
+                text_format.setForeground(QColor("#000000"))  # Black
                 cursor.insertText(part[1:-1], text_format)
             else:
-                # Regular text - green for assistant
-                text_format.setForeground(QColor("#1a7f37"))  # Green
+                # Regular text - black for assistant
+                text_format.setForeground(QColor("#000000"))  # Black
                 cursor.insertText(part, text_format)
     
     def show_context_menu(self, position):
