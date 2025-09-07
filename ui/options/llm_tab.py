@@ -9,6 +9,9 @@ from PySide6.QtCore import Qt, Signal
 class LLMTab(QWidget):
     """LLM Model configuration tab"""
     
+    # Signals
+    modelChanged = Signal(str, str)  # provider, model
+    
     def __init__(self, config_manager, parent=None):
         super().__init__(parent)
         self.config = config_manager

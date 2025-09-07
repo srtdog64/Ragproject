@@ -54,6 +54,7 @@ class OptionsWidget(QWidget):
         
         # Create and add tabs
         self.llm_tab = LLMTab(self.config, self)
+        self.llm_tab.modelChanged.connect(self.modelChanged)  # Connect modelChanged signal
         self.tabs.addTab(self.llm_tab, "🤖 LLM Models")
         
         self.embedder_tab = EmbedderTab(self.config, self)
@@ -154,6 +155,7 @@ class OptionsWidget(QWidget):
         
         # Recreate tabs
         self.llm_tab = LLMTab(self.config, self)
+        self.llm_tab.modelChanged.connect(self.modelChanged)  # Connect modelChanged signal
         self.tabs.addTab(self.llm_tab, "🤖 LLM Models")
         
         self.embedder_tab = EmbedderTab(self.config, self)

@@ -8,6 +8,8 @@ chunker:
     sentenceMinLen: 10
     windowSize: 1200
   default_strategy: adaptive
+context_compression:
+  enabled: true
 cors:
   allow_credentials: true
   allow_headers:
@@ -50,7 +52,7 @@ llm:
     - gpt-3.5-turbo
   max_tokens: 8192
   model: gemini-2.5-flash
-  temperature: 0.9
+  temperature: 0.01
   type: gemini
 logging:
   file: null
@@ -59,6 +61,8 @@ logging:
 options:
   watched_folders:
   - C:/Users/Pc/Desktop/스크립트 백업
+parsing:
+  enabled: true
 pipeline:
   context_compression:
     enabled: true
@@ -82,12 +86,19 @@ pipeline:
 policy:
   defaultTopK: 10
   maxContextChars: 12000
+query_expansion:
+  enabled: true
+  expansions: 0
 reranker:
+  b: 0.75
   boost_recent: true
   boost_title_match: true
   device: cpu
+  k1: 1.2
   model: cross-encoder/ms-marco-MiniLM-L-6-v2
-  type: simple
+  type: bm25
+retrieval:
+  enabled: true
 server:
   host: 0.0.0.0
   log_level: info

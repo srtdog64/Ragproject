@@ -8,7 +8,7 @@ from PySide6.QtWidgets import *
 from PySide6.QtCore import Signal, Qt, QEvent
 from PySide6.QtGui import QKeySequence, QAction
 from .toggle_switch import ToggleSwitch
-from .chat.markdown_renderer import MarkdownRenderer
+from .chat.chat_display import ChatDisplay
 from .chat.chat_exporter import ChatExportDialog, ChatExporter
 
 
@@ -21,7 +21,6 @@ class ChatWidget(QWidget):
     def __init__(self, config_manager):
         super().__init__()
         self.config = config_manager
-        self.markdown_renderer = MarkdownRenderer()
         self.chat_history = []  # Store messages for export
         self.initUI()
     
@@ -130,18 +129,10 @@ class ChatWidget(QWidget):
         topToolbar.addWidget(exportBtn)
         
         # Chat display area
-        self.chatDisplay = QTextBrowser()
-        self.chatDisplay.setOpenExternalLinks(True)
-        self.chatDisplay.setStyleSheet("""
-            QTextBrowser {
-                background-color: #ffffff;
-                border: 1px solid #e0e0e0;
-                border-radius: 8px;
-                padding: 10px;
-                font-family: 'Segoe UI', 'Arial', sans-serif;
-                font-size: 14px;
-            }
-        """)
+        self.chatDisplay = ChatDisplay()
+        
+        # Keep reference to markdown renderer for backward compatibility
+        self.markdown_renderer = self.chatDisplay.markdown_renderer
         
         # Input area with mode selection
         inputLayout = QVBoxLayout()
@@ -302,62 +293,11 @@ class ChatWidget(QWidget):
             'metadata': metadata
         })
         
-        # Determine styling based on sender
-        if sender == "You":
-            avatar = "👤"
-            color = "#1e88e5"
-            bg_color = "#e3f2fd"
-        elif sender == "Assistant":
-            avatar = "🤖"
-            color = "#43a047"
-            bg_color = "#f1f8e9"
-        else:
-            avatar = "ℹ️"
-            color = "#666"
-            bg_color = "#f5f5f5"
+        # Determine role for ChatDisplay
+        role = 'user' if sender == "You" else 'assistant'
         
-        # Render message based on sender
-        if sender == "Assistant":
-            # Use markdown renderer for assistant messages
-            rendered_message = self.markdown_renderer.render(message)
-        else:
-            # Use plain text renderer for user messages
-            rendered_message = self.markdown_renderer.render_plain_text(message)
-        
-        # Format message with HTML
-        html = f"""
-        <div style="margin: 10px 0;">
-            <div style="display: flex; align-items: center; margin-bottom: 5px;">
-                <span style="font-size: 20px; margin-right: 8px;">{avatar}</span>
-                <b style="color: {color}; font-size: 15px;">{sender}</b>
-                <span style="color: #888; margin-left: 10px; font-size: 12px;">[{timestamp}]</span>
-            </div>
-            <div style="padding: 12px; background-color: {bg_color}; 
-                        border-radius: 8px; border-left: 3px solid {color};">
-                {rendered_message}
-            </div>
-        """
-        
-        # Add metadata if present
-        if metadata:
-            html += '<div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e0e0e0;">'
-            html += '<span style="color: #666; font-size: 12px;">'
-            
-            if metadata.get("model"):
-                html += f'🧠 Model: {metadata["model"]} | '
-            if metadata.get("ctxIds"):
-                html += f'📚 Contexts: {len(metadata["ctxIds"])} | '
-            if metadata.get("latencyMs"):
-                html += f'⏱️ Time: {metadata["latencyMs"]}ms'
-            
-            html += '</span></div>'
-        
-        html += """
-            </div>
-        </div>
-        """
-        
-        self.chatDisplay.append(html)
+        # Add message using ChatDisplay's enhanced rendering
+        self.chatDisplay.add_message(role, message, streaming=False)
         
         # Auto-scroll to bottom
         if self.config.get("chat.auto_scroll", True):
@@ -366,7 +306,7 @@ class ChatWidget(QWidget):
     
     def clearChat(self):
         """Clear the chat display and history"""
-        self.chatDisplay.clear()
+        self.chatDisplay.clear_chat()  # Use ChatDisplay's clear method
         self.chat_history.clear()
     
     def exportChat(self):

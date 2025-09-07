@@ -85,6 +85,9 @@ class VariablesTab(QWidget):
                                     widget = QSpinBox()
                                     widget.setRange(0, 100000)
                                     widget.setValue(sub_value)
+                            elif key == "store" and sub_key == "persist_directory":
+                                # For persist_directory, create folder browser widget
+                                widget = self.createStorageWidget(sub_value)
                             elif isinstance(sub_value, list):
                                 # For watched_folders, create a special widget
                                 if sub_key == "watched_folders":
@@ -179,6 +182,38 @@ class VariablesTab(QWidget):
         if current_item:
             self.folder_list.takeItem(self.folder_list.row(current_item))
     
+    def createStorageWidget(self, current_path):
+        """Create a widget for storage path selection with browse button"""
+        container = QWidget()
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Path input
+        self.storage_path = QLineEdit()
+        self.storage_path.setText(current_path or "./chroma_db")
+        
+        # Browse button
+        browse_btn = QPushButton("Browse...")
+        browse_btn.clicked.connect(self.browseStoragePath)
+        
+        layout.addWidget(self.storage_path)
+        layout.addWidget(browse_btn)
+        
+        container.setLayout(layout)
+        return container
+    
+    def browseStoragePath(self):
+        """Browse for storage directory"""
+        folder = QFileDialog.getExistingDirectory(
+            self,
+            "Select Storage Directory",
+            self.storage_path.text() if hasattr(self, 'storage_path') else "",
+            QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks
+        )
+        
+        if folder and hasattr(self, 'storage_path'):
+            self.storage_path.setText(folder)
+    
     def getDefaultSystemVariables(self):
         """Get default system variables"""
         return {
@@ -199,11 +234,7 @@ class VariablesTab(QWidget):
             },
             "retrieval": {
                 "enabled": self.config.get("pipeline.retrieval.enabled", True, "server"),
-                "topK": self.config.get("pipeline.retrieval.topK", None, "server")
-            },
-            "reranking": {
-                "enabled": self.config.get("pipeline.reranking.enabled", True, "server"),
-                "topK": self.config.get("pipeline.reranking.topK", None, "server")
+                "context_chunks_max": self.config.get("pipeline.retrieval.topK", None, "server")  # Renamed for clarity
             },
             "policy": {
                 "defaultTopK": self.config.get("policy.defaultTopK", 10, "server"),
@@ -241,11 +272,13 @@ class VariablesTab(QWidget):
                 value = widget.isChecked()
             elif isinstance(widget, (QSpinBox, QDoubleSpinBox)):
                 value = widget.value()
-            elif isinstance(widget, QWidget):  # Custom folder widget
-                # Check if it has folder_list (our custom widget)
-                if hasattr(self, 'folder_list'):
+            elif isinstance(widget, QWidget):  # Custom widgets
+                # Check if it's our custom folder widget
+                if hasattr(self, 'folder_list') and key == "documents.watched_folders":
                     value = [self.folder_list.item(i).text() 
                             for i in range(self.folder_list.count())]
+                elif hasattr(self, 'storage_path') and key == "store.persist_directory":
+                    value = self.storage_path.text()
                 else:
                     continue
             elif isinstance(widget, QLineEdit):
