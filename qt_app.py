@@ -208,6 +208,8 @@ class MainWindow(QMainWindow):
         
         # Initial checks
         self.checkServer()
+        # Update vector count on startup
+        QTimer.singleShot(1000, self.updateVectorCount)  # Slight delay to ensure server is ready
         # No need to load strategies anymore - they're static
     
     def initUI(self):
@@ -412,10 +414,11 @@ class MainWindow(QMainWindow):
         self.strategyStatusLabel.setStyleSheet("padding: 5px;")
         self.statusBar.addPermanentWidget(self.strategyStatusLabel)
         
-        # Document count
-        self.docCountLabel = QLabel("📚 Docs: 0")
-        self.docCountLabel.setStyleSheet("padding: 5px;")
-        self.statusBar.addPermanentWidget(self.docCountLabel)
+        # Vector count from database
+        self.vectorCountLabel = QLabel("🗃️ Vectors: --")
+        self.vectorCountLabel.setStyleSheet("padding: 5px;")
+        self.vectorCountLabel.setToolTip("Total vectors stored in the database")
+        self.statusBar.addPermanentWidget(self.vectorCountLabel)
     
     def fetchCurrentStrategy(self) -> str:
         """Fetch current strategy from server at startup"""
@@ -581,9 +584,72 @@ class MainWindow(QMainWindow):
         self.chatWidget.updateModelLabel(provider, model)
         self.logsWidget.success(f"Model changed to {provider}: {model}")
     
+    def updateVectorCount(self):
+        """Update vector count from server - shows total vectors in DB"""
+        try:
+            import requests
+            response = requests.get(
+                f"{self.config.get_server_url()}/api/rag/stats",
+                timeout=3  # Slightly longer timeout
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                vector_count = data.get('total_vectors', 0)
+                namespace = data.get('namespace', 'default')
+                status = data.get('status', 'ok')
+                
+                # Log the response for debugging
+                print(f"[VectorCount] Response: {data}")
+                
+                # Format with thousands separator
+                if vector_count > 0:
+                    self.vectorCountLabel.setText(f"🗃️ Vectors: {vector_count:,}")
+                    self.vectorCountLabel.setToolTip(
+                        f"Total vectors in '{namespace}' namespace\n"
+                        f"Status: {status}\n"
+                        f"Click to refresh"
+                    )
+                    self.vectorCountLabel.setStyleSheet("padding: 5px; color: #1a7f37;")  # Green for success
+                else:
+                    self.vectorCountLabel.setText(f"🗃️ Vectors: 0")
+                    self.vectorCountLabel.setToolTip(
+                        f"No vectors in '{namespace}' namespace yet.\n"
+                        f"Ingest documents to create vectors."
+                    )
+                    self.vectorCountLabel.setStyleSheet("padding: 5px; color: #cf222e;")  # Red for empty
+                    
+                self.logsWidget.debug(f"Vector count updated: {vector_count:,} in '{namespace}'")
+            else:
+                # Non-200 response
+                self.vectorCountLabel.setText(f"🗃️ Vectors: Error")
+                self.vectorCountLabel.setToolTip(f"Server returned status code: {response.status_code}")
+                self.vectorCountLabel.setStyleSheet("padding: 5px; color: #d1242f;")
+                self.logsWidget.warning(f"Vector count API returned status {response.status_code}")
+                
+        except requests.exceptions.Timeout:
+            self.vectorCountLabel.setText(f"🗃️ Vectors: --")
+            self.vectorCountLabel.setToolTip("Request timed out. Server may be busy.")
+            self.vectorCountLabel.setStyleSheet("padding: 5px; color: #6e7781;")  # Gray for timeout
+            self.logsWidget.debug("Vector count request timed out")
+            
+        except requests.exceptions.ConnectionError:
+            self.vectorCountLabel.setText(f"🗃️ Vectors: Offline")
+            self.vectorCountLabel.setToolTip("Cannot connect to server. Check if server is running.")
+            self.vectorCountLabel.setStyleSheet("padding: 5px; color: #6e7781;")  # Gray for offline
+            self.logsWidget.debug("Cannot connect to server for vector count")
+            
+        except Exception as e:
+            # Unknown error
+            self.vectorCountLabel.setText(f"🗃️ Vectors: --")
+            self.vectorCountLabel.setToolTip(f"Error: {str(e)}")
+            self.vectorCountLabel.setStyleSheet("padding: 5px; color: #6e7781;")  # Gray for error
+            self.logsWidget.debug(f"Unexpected error updating vector count: {e}")
+    
     def onDocumentsChanged(self, count: int):
-        """Handle document count change"""
-        self.docCountLabel.setText(f"📚 Docs: {count}")
+        """Handle document count change - triggers vector count update"""
+        # Simply update the vector count from the database
+        self.updateVectorCount()
     
     def ingestSelectedDocuments(self, docs):
         """Ingest selected documents from advanced tab"""
@@ -631,6 +697,9 @@ class MainWindow(QMainWindow):
                 self.serverStatusLabel.setStyleSheet("color: green; padding: 5px;")
                 self.logsWidget.success("Server is online")
                 
+                # Update vector count when server comes online
+                self.updateVectorCount()
+                
                 # Also fetch current strategy when server is confirmed online
                 try:
                     strategy = self.fetchCurrentStrategy()
@@ -657,6 +726,9 @@ class MainWindow(QMainWindow):
                 f"✅ Successfully ingested {docs} documents into {chunks} chunks"
             )
             self.logsWidget.success(f"Ingested {docs} documents into {chunks} chunks")
+            
+            # Update vector count display
+            self.updateVectorCount()
             
         elif task == "ask":
             answer = result.get("answer", "No answer")

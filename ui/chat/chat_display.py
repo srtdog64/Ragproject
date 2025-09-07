@@ -487,6 +487,8 @@ class ChatDisplay(QTextBrowser):
             display_language = 'JavaScript'
         elif language.lower() == 'py':
             display_language = 'Python'
+        elif language.lower() in ['typescript', 'ts']:
+            display_language = 'TypeScript'
         
         # Auto-correct indentation for the code
         corrected_lines = self.auto_correct_indentation(lines, language)
@@ -501,17 +503,21 @@ class ChatDisplay(QTextBrowser):
         # Insert a block for spacing
         cursor.insertBlock()
         
-        # Create container with header
+        # Create simple code block with lines and language label
         container_start = f'''
-        <div style="border:1px solid #d1d5db;border-radius:6px;margin:8px 0;overflow:hidden;">
-            <div style="background:#f3f4f6;padding:8px 12px;border-bottom:1px solid #d1d5db;display:flex;justify-content:space-between;align-items:center;">
-                <span style="color:#6b7280;font-weight:600;font-size:12px;font-family:Consolas,Monaco,monospace;">{display_language if display_language else 'CODE'}</span>
-                <span>
-                    <a href="copy:{code_block_index}" style="color:#3b82f6;text-decoration:none;font-size:12px;font-family:Consolas,Monaco,monospace;">📋 Copy</a>
-                </span>
+        <div style="margin:10px 0;font-family:'Cascadia Code','Fira Code',Monaco,monospace;">
+            <div style="border-top:1px solid #d0d0d0;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;background:#f5f5f5;">
+                <span style="color:#0969da;font-size:13px;font-weight:600;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;">{display_language}</span>
+                <a href="copy:{code_block_index}" id="copy-btn-{code_block_index}" style="background:#ffffff;color:#24292f;text-decoration:none;font-size:13px;padding:5px 12px;border-radius:6px;border:1px solid #d1d9e0;font-weight:500;display:inline-flex;align-items:center;gap:6px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;transition:all 0.2s;">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="stroke:currentColor;stroke-width:1.5;">
+                        <rect x="5.5" y="5.5" width="6" height="8" rx="1"/>
+                        <path d="M4.5 5.5V3.5C4.5 2.94772 4.94772 2.5 5.5 2.5H11.5C12.0523 2.5 12.5 2.94772 12.5 3.5V10.5C12.5 11.0523 12.0523 11.5 11.5 11.5H10.5"/>
+                    </svg>
+                    <span>Copy</span>
+                </a>
             </div>
-            <div style="background:#f9fafb;padding:0;overflow-x:auto;">
-                <table style="width:100%;margin:0;padding:0;border:none;border-collapse:collapse;border-spacing:0;">
+            <div style="background:#f8f8f8;padding:12px;overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;">
         '''
         
         cursor.insertHtml(container_start)
@@ -519,29 +525,26 @@ class ChatDisplay(QTextBrowser):
         # Process each line with line numbers
         code_lines = code_content.split('\n')
         for i, line in enumerate(code_lines, 1):
-            # Preserve original spaces/tabs
-            # HTML will render them properly with white-space: pre
-            
-            # Apply simple highlighting
+            # Apply syntax highlighting
             highlighted = self.simple_syntax_highlight(line, language)
             
-            # Create table row with light theme and no spacing
-            row_html = f'''
-                <tr style="margin:0;padding:0;">
-                    <td style="padding:0 8px;text-align:right;color:#6b7280;font-size:12px;background:#f3f4f6;border-right:1px solid #e5e7eb;min-width:40px;user-select:none;font-family:Consolas,Monaco,monospace;vertical-align:top;line-height:18px;">{i}</td>
-                    <td style="padding:0 12px;font-size:13px;font-family:Consolas,Monaco,monospace;line-height:18px;background:#f9fafb;color:#374151;white-space:pre;overflow-x:auto;">{highlighted}</td>
+            # Create line with simple style
+            line_html = f'''
+                <tr>
+                    <td style="width:45px;text-align:right;color:#999;font-size:12px;user-select:none;padding-right:12px;border-right:1px solid #e0e0e0;">{i}</td>
+                    <td style="padding-left:12px;font-size:13px;color:#333;white-space:pre;font-family:inherit;">{highlighted}</td>
                 </tr>
             '''
-            cursor.insertHtml(row_html)
+            cursor.insertHtml(line_html)
         
-        # Close table and container
-        cursor.insertHtml('</table></div></div>')
+        # Close with bottom line
+        cursor.insertHtml('</table></div><div style="border-bottom:1px solid #d0d0d0;margin-top:8px;"></div></div>')
         
         # Insert spacing after code block
         cursor.insertBlock()
     
     def simple_syntax_highlight(self, text: str, language: str) -> str:
-        """Enhanced syntax highlighting with light theme colors"""
+        """Simple syntax highlighting with light theme colors"""
         if not text:
             return ''
         
@@ -560,10 +563,10 @@ class ChatDisplay(QTextBrowser):
         
         # Check for comments first
         if language.lower() in ['python', 'py'] and code_part.strip().startswith('#'):
-            return leading_ws + f'<span style="color:#6b7280;font-style:italic;">{self.escape_html(code_part)}</span>'
+            return leading_ws + f'<span style="color:#008000;">{self.escape_html(code_part)}</span>'
         elif language.lower() in ['csharp', 'cs', 'c#', 'java', 'js', 'javascript', 'typescript', 'ts', 'cpp', 'c++', 'c']:
             if code_part.strip().startswith('//'):
-                return leading_ws + f'<span style="color:#6b7280;font-style:italic;">{self.escape_html(code_part)}</span>'
+                return leading_ws + f'<span style="color:#008000;">{self.escape_html(code_part)}</span>'
         
         # Process the code part
         result = ''
@@ -582,7 +585,7 @@ class ChatDisplay(QTextBrowser):
                     else:
                         k += 1
                 string_part = code_part[j:k]
-                result += f'<span style="color:#059669;">{self.escape_html(string_part)}</span>'
+                result += f'<span style="color:#a31515;">{self.escape_html(string_part)}</span>'
                 j = k
             # Check for numbers
             elif code_part[j].isdigit():
@@ -590,7 +593,7 @@ class ChatDisplay(QTextBrowser):
                 while k < len(code_part) and (code_part[k].isdigit() or code_part[k] in '.xXbBoO'):
                     k += 1
                 num_part = code_part[j:k]
-                result += f'<span style="color:#0891b2;">{self.escape_html(num_part)}</span>'
+                result += f'<span style="color:#098658;">{self.escape_html(num_part)}</span>'
                 j = k
             # Check for words (keywords, identifiers)
             elif code_part[j].isalpha() or code_part[j] == '_':
@@ -608,10 +611,10 @@ class ChatDisplay(QTextBrowser):
                                'while', 'return', 'new', 'this', 'var', 'const', 'readonly']
                     types = ['int', 'string', 'bool', 'double', 'float', 'void', 'var']
                     if word in keywords:
-                        result += f'<span style="color:#dc2626;font-weight:600;">{self.escape_html(word)}</span>'
+                        result += f'<span style="color:#0000ff;">{self.escape_html(word)}</span>'
                         is_keyword = True
                     elif word in types:
-                        result += f'<span style="color:#7c3aed;">{self.escape_html(word)}</span>'
+                        result += f'<span style="color:#2b91af;">{self.escape_html(word)}</span>'
                         is_keyword = True
                 elif language.lower() in ['python', 'py']:
                     keywords = ['def', 'class', 'if', 'elif', 'else', 'for', 'while', 'return',
@@ -619,10 +622,10 @@ class ChatDisplay(QTextBrowser):
                                'pass', 'break', 'continue', 'global', 'nonlocal', 'assert', 'yield']
                     builtins = ['True', 'False', 'None', 'print', 'len', 'range', 'int', 'str', 'list']
                     if word in keywords:
-                        result += f'<span style="color:#dc2626;font-weight:600;">{self.escape_html(word)}</span>'
+                        result += f'<span style="color:#0000ff;">{self.escape_html(word)}</span>'
                         is_keyword = True
                     elif word in builtins:
-                        result += f'<span style="color:#7c3aed;">{self.escape_html(word)}</span>'
+                        result += f'<span style="color:#2b91af;">{self.escape_html(word)}</span>'
                         is_keyword = True
                 elif language.lower() in ['javascript', 'js', 'typescript', 'ts']:
                     keywords = ['function', 'const', 'let', 'var', 'if', 'else', 'for', 'while', 'return',
@@ -630,27 +633,27 @@ class ChatDisplay(QTextBrowser):
                                'async', 'await', 'try', 'catch', 'finally', 'throw', 'typeof', 'instanceof']
                     types = ['string', 'number', 'boolean', 'any', 'void', 'interface', 'type', 'enum']
                     if word in keywords:
-                        result += f'<span style="color:#dc2626;font-weight:600;">{self.escape_html(word)}</span>'
+                        result += f'<span style="color:#0000ff;">{self.escape_html(word)}</span>'
                         is_keyword = True
                     elif word in types and language.lower() in ['typescript', 'ts']:
-                        result += f'<span style="color:#7c3aed;">{self.escape_html(word)}</span>'
+                        result += f'<span style="color:#2b91af;">{self.escape_html(word)}</span>'
                         is_keyword = True
                 
                 if not is_keyword:
                     # Check if it's a function/method call (followed by parenthesis)
                     if k < len(code_part) and code_part[k] == '(':
-                        result += f'<span style="color:#2563eb;">{self.escape_html(word)}</span>'
+                        result += f'<span style="color:#795e26;">{self.escape_html(word)}</span>'
                     else:
-                        result += self.escape_html(word)
+                        result += f'<span style="color:#000000;">{self.escape_html(word)}</span>'
                 j = k
             # Handle operators and other characters
             else:
                 if code_part[j] in '()[]{}' :
-                    result += f'<span style="color:#6b7280;">{self.escape_html(code_part[j])}</span>'
+                    result += f'<span style="color:#000000;">{self.escape_html(code_part[j])}</span>'
                 elif code_part[j] in '+-*/%=<>!&|^~':
-                    result += f'<span style="color:#ea580c;">{self.escape_html(code_part[j])}</span>'
+                    result += f'<span style="color:#000000;">{self.escape_html(code_part[j])}</span>'
                 else:
-                    result += self.escape_html(code_part[j])
+                    result += f'<span style="color:#000000;">{self.escape_html(code_part[j])}</span>'
                 j += 1
         
         return leading_ws + result
@@ -828,21 +831,20 @@ class ChatDisplay(QTextBrowser):
     
     def handle_anchor_click(self, url):
         """Handle clicks on anchor links (like copy buttons)"""
-        print(f"[ChatDisplay] Anchor clicked: {url.toString()}")  # Debug log
-        
         url_str = url.toString()
         
         if url_str.startswith('copy:'):
             # Extract code block index
             try:
                 index = int(url_str.split(':')[1])
-                print(f"[ChatDisplay] Copying code block {index}")  # Debug log
                 
                 if 0 <= index < len(self.code_blocks):
                     # Copy code block to clipboard
                     clipboard = QApplication.clipboard()
                     clipboard.setText(self.code_blocks[index])
-                    print(f"[ChatDisplay] Code copied: {len(self.code_blocks[index])} chars")  # Debug log
+                    
+                    # Update button appearance to show success
+                    self.update_copy_button_feedback(index)
                     
                     # Show feedback tooltip
                     try:
@@ -856,8 +858,6 @@ class ChatDisplay(QTextBrowser):
                         QToolTip.showText(global_pos, "✅ Code copied to clipboard!")
                     except Exception as e:
                         print(f"[ChatDisplay] Tooltip error: {e}")  # Debug log
-                else:
-                    print(f"[ChatDisplay] Invalid code block index: {index}")  # Debug log
                     
             except (ValueError, IndexError) as e:
                 print(f"[ChatDisplay] Error parsing copy link: {e}")  # Debug log
@@ -866,6 +866,30 @@ class ChatDisplay(QTextBrowser):
         
         # Important: Prevent any default handling
         # This stops the browser from trying to navigate
+    
+    def update_copy_button_feedback(self, index: int):
+        """Update copy button to show feedback after copying"""
+        # Create JavaScript to update button
+        js_code = f'''
+        var btn = document.getElementById('copy-btn-{index}');
+        if (btn) {{
+            var originalHTML = btn.innerHTML;
+            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="stroke:#1a7f37;stroke-width:2;"><path d="M3 8l3 3l7-7"/></svg><span style="color:#1a7f37;">Copied!</span>';
+            btn.style.borderColor = '#1a7f37';
+            btn.style.background = '#dafbe1';
+            setTimeout(function() {{
+                btn.innerHTML = originalHTML;
+                btn.style.borderColor = '#d1d9e0';
+                btn.style.background = '#ffffff';
+            }}, 2000);
+        }}
+        '''
+        
+        # Execute JavaScript in the QTextBrowser
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        # Note: QTextBrowser doesn't execute JavaScript directly, 
+        # so we'll just rely on the tooltip for feedback
     
     def copy_all_code_blocks(self):
         """Extract and copy all code blocks to clipboard"""

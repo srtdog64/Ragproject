@@ -282,6 +282,49 @@ async def ingest(payload: IngestIn) -> dict:
         raise HTTPException(status_code=400, detail=str(res.getError()))
     return {"ingestedChunks": res.getValue(), "documentCount": len(docs)}
 
+@app.get("/api/rag/stats")
+async def get_rag_stats() -> dict:
+    """Get RAG system statistics including vector count"""
+    try:
+        store = _container.resolve("store")
+        
+        # Get vector count - ensure we're calling the right method
+        vector_count = 0
+        if hasattr(store, 'count'):
+            vector_count = store.count()
+            logger.info(f"Vector count from store: {vector_count}")
+        elif hasattr(store, 'collection') and hasattr(store.collection, 'count'):
+            # For ChromaDB, might need to call collection.count() directly
+            vector_count = store.collection.count()
+            logger.info(f"Vector count from collection: {vector_count}")
+        else:
+            logger.warning("Store doesn't have a count method")
+        
+        # Get current namespace
+        namespace = "default"
+        if hasattr(store, 'collection_name'):
+            namespace = store.collection_name
+        elif hasattr(store, 'namespace_manager') and hasattr(store.namespace_manager, 'current_namespace'):
+            namespace = store.namespace_manager.current_namespace
+        
+        logger.info(f"RAG Stats: {vector_count} vectors in namespace '{namespace}'")
+        
+        return {
+            "total_vectors": vector_count,
+            "namespace": namespace,
+            "status": "ok"
+        }
+    except Exception as e:
+        logger.error(f"Failed to get RAG stats: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
+        return {
+            "total_vectors": 0,
+            "namespace": "unknown",
+            "status": "error",
+            "error": str(e)
+        }
+
 @app.get("/api/namespaces")
 async def get_namespaces() -> List[dict]:
     """Get list of available namespaces/collections"""

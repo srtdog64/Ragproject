@@ -43,18 +43,20 @@ class MarkdownRenderer:
         self.h3_format.setFontPointSize(base_font_size + 6)
         self.h3_format.setFontWeight(QFont.Bold)
         
-        # Text formatting
+        # Text formatting - consistent text colors
         self.bold_format = QTextCharFormat()
         self.bold_format.setFontWeight(QFont.Bold)
+        self.bold_format.setForeground(QColor("#24292f"))  # Consistent dark color
         
         self.italic_format = QTextCharFormat()
         self.italic_format.setFontItalic(True)
+        self.italic_format.setForeground(QColor("#24292f"))  # Consistent dark color
         
         # Code formats
         self.inline_code_format = QTextCharFormat()
         self.inline_code_format.setFontFamily("Consolas, Monaco, 'Courier New', monospace")
-        self.inline_code_format.setBackground(QColor("#f5f5f5"))
-        self.inline_code_format.setForeground(QColor("#d73a49"))
+        self.inline_code_format.setBackground(QColor("#f6f8fa"))
+        self.inline_code_format.setForeground(QColor("#24292f"))  # Dark gray instead of blue
         
         self.code_block_format = QTextBlockFormat()
         self.code_block_format.setBackground(QColor("#f6f8fa"))
@@ -71,9 +73,9 @@ class MarkdownRenderer:
         self.list_format = QTextBlockFormat()
         self.list_format.setLeftMargin(20)
         
-        # Link format
+        # Link format - only links should be blue
         self.link_format = QTextCharFormat()
-        self.link_format.setForeground(QColor("#0366d6"))
+        self.link_format.setForeground(QColor("#0969da"))  # Modern GitHub blue for links only
         self.link_format.setFontUnderline(True)
         
     def render_markdown(self, markdown_text: str):
