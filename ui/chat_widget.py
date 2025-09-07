@@ -130,7 +130,7 @@ class ChatWidget(QWidget):
         topToolbar.addWidget(exportBtn)
         
         # Chat display area
-        self.chatDisplay = ChatDisplay()
+        self.chatDisplay = ChatDisplay(self.config)
         
         # Keep reference to markdown renderer for backward compatibility
         self.markdown_renderer = self.chatDisplay.markdown_renderer

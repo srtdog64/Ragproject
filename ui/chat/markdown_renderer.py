@@ -10,28 +10,37 @@ from PySide6.QtGui import (
     QTextTableFormat, QTextLength
 )
 import re
+from .renderers import get_renderer
 
 
 class MarkdownRenderer:
     """Enhanced markdown renderer with better code block support"""
     
-    def __init__(self, text_edit: QTextEdit):
+    def __init__(self, text_edit: QTextEdit, config_manager=None):
         self.text_edit = text_edit
+        self.config = config_manager
         self.setup_styles()
         
     def setup_styles(self):
         """Setup text formats for different markdown elements"""
+        # Get font sizes from config
+        base_font_size = 10
+        code_font_size = 10
+        if self.config:
+            base_font_size = self.config.get("ui.font_size", 10, "qt")
+            code_font_size = self.config.get("ui.code_font_size", 10, "qt")
+        
         # Headers
         self.h1_format = QTextCharFormat()
-        self.h1_format.setFontPointSize(20)
+        self.h1_format.setFontPointSize(base_font_size + 10)  # Dynamic sizing
         self.h1_format.setFontWeight(QFont.Bold)
         
         self.h2_format = QTextCharFormat()
-        self.h2_format.setFontPointSize(18)
+        self.h2_format.setFontPointSize(base_font_size + 8)
         self.h2_format.setFontWeight(QFont.Bold)
         
         self.h3_format = QTextCharFormat()
-        self.h3_format.setFontPointSize(16)
+        self.h3_format.setFontPointSize(base_font_size + 6)
         self.h3_format.setFontWeight(QFont.Bold)
         
         # Text formatting
@@ -56,7 +65,7 @@ class MarkdownRenderer:
         
         self.code_text_format = QTextCharFormat()
         self.code_text_format.setFontFamily("Consolas, Monaco, 'Courier New', monospace")
-        self.code_text_format.setFontPointSize(10)
+        self.code_text_format.setFontPointSize(code_font_size)  # Use config font size
         
         # List format
         self.list_format = QTextBlockFormat()
@@ -200,105 +209,15 @@ class MarkdownRenderer:
         cursor.setBlockFormat(QTextBlockFormat())
     
     def insert_code_line(self, cursor: QTextCursor, line: str, language: str):
-        """Insert a line of code with basic syntax highlighting"""
-        # Basic syntax highlighting
-        if language.lower() in ['python', 'py']:
-            self.highlight_python(cursor, line)
-        elif language.lower() in ['javascript', 'js', 'typescript', 'ts']:
-            self.highlight_javascript(cursor, line)
-        elif language.lower() in ['java', 'c', 'cpp', 'c++', 'csharp', 'c#']:
-            self.highlight_c_style(cursor, line)
-        else:
-            # Default: just insert with code format
-            cursor.insertText(line, self.code_text_format)
+        """Insert a line of code using language-specific renderer"""
+        # Get appropriate renderer for the language
+        renderer = get_renderer(language)
+        
+        # Use the renderer to render the line
+        renderer.render_line(cursor, line)
     
-    def highlight_python(self, cursor: QTextCursor, line: str):
-        """Apply Python syntax highlighting"""
-        keywords = [
-            'def', 'class', 'if', 'elif', 'else', 'for', 'while', 'return',
-            'import', 'from', 'as', 'try', 'except', 'finally', 'with',
-            'lambda', 'pass', 'break', 'continue', 'global', 'nonlocal',
-            'assert', 'yield', 'raise', 'del', 'in', 'is', 'not', 'and', 'or'
-        ]
-        
-        # Apply highlighting
-        self.apply_syntax_highlighting(cursor, line, keywords, language='python')
-    
-    def highlight_javascript(self, cursor: QTextCursor, line: str):
-        """Apply JavaScript syntax highlighting"""
-        keywords = [
-            'function', 'var', 'let', 'const', 'if', 'else', 'for', 'while',
-            'return', 'class', 'extends', 'import', 'export', 'from', 'async',
-            'await', 'try', 'catch', 'finally', 'throw', 'new', 'this',
-            'super', 'typeof', 'instanceof', 'in', 'of', 'delete'
-        ]
-        
-        self.apply_syntax_highlighting(cursor, line, keywords, language='javascript')
-    
-    def highlight_c_style(self, cursor: QTextCursor, line: str):
-        """Apply C-style syntax highlighting"""
-        keywords = [
-            'if', 'else', 'for', 'while', 'do', 'switch', 'case', 'default',
-            'break', 'continue', 'return', 'void', 'int', 'float', 'double',
-            'char', 'bool', 'true', 'false', 'class', 'public', 'private',
-            'protected', 'static', 'const', 'new', 'delete', 'this', 'using',
-            'namespace', 'try', 'catch', 'throw', 'finally'
-        ]
-        
-        self.apply_syntax_highlighting(cursor, line, keywords, language='c')
-    
-    def apply_syntax_highlighting(self, cursor: QTextCursor, line: str, 
-                                 keywords: list, language: str):
-        """Apply syntax highlighting to a line of code"""
-        # Create formats
-        keyword_format = QTextCharFormat(self.code_text_format)
-        keyword_format.setForeground(QColor("#d73a49"))
-        keyword_format.setFontWeight(QFont.Bold)
-        
-        string_format = QTextCharFormat(self.code_text_format)
-        string_format.setForeground(QColor("#032f62"))
-        
-        comment_format = QTextCharFormat(self.code_text_format)
-        comment_format.setForeground(QColor("#6a737d"))
-        comment_format.setFontItalic(True)
-        
-        number_format = QTextCharFormat(self.code_text_format)
-        number_format.setForeground(QColor("#005cc5"))
-        
-        # Check for comment
-        comment_start = '#' if language == 'python' else '//'
-        if comment_start in line:
-            comment_pos = line.index(comment_start)
-            # Insert pre-comment part
-            self.highlight_line_part(cursor, line[:comment_pos], keywords, 
-                                    keyword_format, string_format, number_format)
-            # Insert comment
-            cursor.insertText(line[comment_pos:], comment_format)
-            return
-        
-        # Process the entire line
-        self.highlight_line_part(cursor, line, keywords, keyword_format, 
-                                string_format, number_format)
-    
-    def highlight_line_part(self, cursor: QTextCursor, text: str, keywords: list,
-                           keyword_format, string_format, number_format):
-        """Highlight part of a line"""
-        # Simple tokenization
-        tokens = re.findall(r'("[^"]*"|\'[^\']*\'|\b\w+\b|\W+)', text)
-        
-        for token in tokens:
-            if token.startswith('"') or token.startswith("'"):
-                # String
-                cursor.insertText(token, string_format)
-            elif token in keywords:
-                # Keyword
-                cursor.insertText(token, keyword_format)
-            elif token.isdigit():
-                # Number
-                cursor.insertText(token, number_format)
-            else:
-                # Default
-                cursor.insertText(token, self.code_text_format)
+    # Legacy methods - kept for backward compatibility but now using modular renderers
+    # These can be removed if no other code depends on them
     
     def render_header(self, cursor: QTextCursor, content: str, level: int):
         """Render a header"""

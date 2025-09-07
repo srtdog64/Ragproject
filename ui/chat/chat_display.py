@@ -12,13 +12,14 @@ import re
 class ChatDisplay(QTextBrowser):
     """Enhanced chat display with markdown support"""
     
-    def __init__(self):
+    def __init__(self, config_manager=None):
         super().__init__()
+        self.config = config_manager
         self.setReadOnly(True)
         self.setAcceptRichText(True)
         
-        # Setup markdown renderer
-        self.markdown_renderer = MarkdownRenderer(self)
+        # Setup markdown renderer with config
+        self.markdown_renderer = MarkdownRenderer(self, config_manager)
         
         # Setup styles
         self.setup_styles()

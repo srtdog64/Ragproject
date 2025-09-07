@@ -40,8 +40,9 @@ class VariablesTab(QWidget):
         
         # Organize by category
         categories = {
+            "UI Settings": ["ui"],
             "Pipeline": ["query_expansion", "context_compression", "parsing", "prompt"],
-            "Retrieval": ["retrieval", "policy"],  # reranking 제거 (중복)
+            "Retrieval": ["retrieval", "policy"],
             "Ingestion": ["ingester", "documents"],
             "Storage": ["store"],
             "Logging": ["logging"],
@@ -67,9 +68,11 @@ class VariablesTab(QWidget):
                             if full_key == "reranking.enabled" or full_key == "reranking.topK":
                                 continue
                             
-                            # Rename topK to context_chunks_max for clarity
+                            # Rename topK to default_context_chunks for clarity
                             display_name = sub_key
-                            if sub_key == "topK":
+                            if key == "policy" and sub_key == "defaultTopK":
+                                display_name = "default_context_chunks"
+                            elif sub_key == "topK":
                                 display_name = "context_chunks_max"
                             
                             if isinstance(sub_value, bool):
@@ -217,6 +220,12 @@ class VariablesTab(QWidget):
     def getDefaultSystemVariables(self):
         """Get default system variables"""
         return {
+            "ui": {
+                "font_size": self.config.get("ui.font_size", 10, "qt"),
+                "code_font_size": self.config.get("ui.code_font_size", 10, "qt"),
+                "default_context_chunks": self.config.get("ui.defaults.top_k", 10, "qt"),
+                "auto_scroll": self.config.get("chat.auto_scroll", True, "qt")
+            },
             "query_expansion": {
                 "enabled": self.config.get("pipeline.query_expansion.enabled", True, "server"),
                 "expansions": self.config.get("pipeline.query_expansion.expansions", 0, "server")
@@ -237,7 +246,7 @@ class VariablesTab(QWidget):
                 "context_chunks_max": self.config.get("pipeline.retrieval.topK", None, "server")  # Renamed for clarity
             },
             "policy": {
-                "defaultTopK": self.config.get("policy.defaultTopK", 10, "server"),
+                "default_context_chunks": self.config.get("policy.defaultTopK", 10, "server"),
                 "maxContextChars": self.config.get("policy.maxContextChars", 12000, "server")
             },
             "ingester": {
@@ -293,11 +302,19 @@ class VariablesTab(QWidget):
             
             # Handle renamed variables
             save_key = key
-            if "context_chunks_max" in key:
+            if "default_context_chunks" in key:
+                if key == "ui.default_context_chunks":
+                    save_key = "ui.defaults.top_k"
+                elif key == "policy.default_context_chunks":
+                    save_key = "policy.defaultTopK"
+            elif "context_chunks_max" in key:
                 save_key = key.replace("context_chunks_max", "topK")
             
-            # Save to config
-            self.config.set(save_key, value, "server")
+            # Save to correct config source (qt or server)
+            if key.startswith("ui."):
+                self.config.set(save_key, value, "qt")
+            else:
+                self.config.set(save_key, value, "server")
         
         QMessageBox.information(self, "Success", 
                               "System variables updated successfully!")
