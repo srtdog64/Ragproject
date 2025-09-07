@@ -79,7 +79,7 @@ class BaseCodeRenderer:
     
     def render_line(self, cursor: QTextCursor, line: str, line_number: int = 0):
         """Render a single line of code with syntax highlighting"""
-        # Preserve indentation
+        # Preserve indentation - use regular spaces (will be preserved in HTML with white-space: pre)
         leading_spaces = len(line) - len(line.lstrip())
         if leading_spaces > 0:
             cursor.insertText(' ' * leading_spaces, self.code_format)

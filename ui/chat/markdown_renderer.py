@@ -191,15 +191,21 @@ class MarkdownRenderer:
             lang_format.setForeground(QColor("#6f42c1"))
             cursor.insertText(f"[{language}]", lang_format)
         
-        # Apply code block format
+        # Apply code block format with monospace font
         cursor.insertBlock()
-        cursor.setBlockFormat(self.code_block_format)
+        code_block_fmt = QTextBlockFormat()
+        code_block_fmt.setBackground(QColor("#f6f8fa"))
+        code_block_fmt.setLeftMargin(10)  # Reduced margin
+        code_block_fmt.setRightMargin(10)
+        code_block_fmt.setTopMargin(5)
+        code_block_fmt.setBottomMargin(5)
+        cursor.setBlockFormat(code_block_fmt)
         
         # Insert code with preserved indentation
         for i, line in enumerate(lines):
             if i > 0:
                 cursor.insertBlock()
-                cursor.setBlockFormat(self.code_block_format)
+                cursor.setBlockFormat(code_block_fmt)
             
             # Preserve indentation and apply syntax highlighting
             self.insert_code_line(cursor, line, language)

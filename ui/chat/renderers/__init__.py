@@ -5,6 +5,7 @@ Language-specific code renderers for chat display
 from .base_renderer import BaseCodeRenderer
 from .python_renderer import PythonRenderer
 from .javascript_renderer import JavaScriptRenderer
+from .typescript_renderer import TypeScriptRenderer
 from .cpp_renderer import CppRenderer
 from .java_renderer import JavaRenderer
 from .csharp_renderer import CSharpRenderer
@@ -20,8 +21,8 @@ RENDERER_REGISTRY = {
     'python3': PythonRenderer,
     'javascript': JavaScriptRenderer,
     'js': JavaScriptRenderer,
-    'typescript': JavaScriptRenderer,
-    'ts': JavaScriptRenderer,
+    'typescript': TypeScriptRenderer,
+    'ts': TypeScriptRenderer,
     'cpp': CppRenderer,
     'c++': CppRenderer,
     'c': CppRenderer,
@@ -51,6 +52,7 @@ __all__ = [
     'BaseCodeRenderer',
     'PythonRenderer',
     'JavaScriptRenderer',
+    'TypeScriptRenderer',
     'CppRenderer',
     'JavaRenderer',
     'CSharpRenderer',
