@@ -63,6 +63,15 @@ class VariablesTab(QWidget):
                         for sub_key, sub_value in var_data.items():
                             full_key = f"{key}.{sub_key}"
                             
+                            # Skip if already added or if it's reranking (duplicate)
+                            if full_key == "reranking.enabled" or full_key == "reranking.topK":
+                                continue
+                            
+                            # Rename topK to context_chunks_max for clarity
+                            display_name = sub_key
+                            if sub_key == "topK":
+                                display_name = "context_chunks_max"
+                            
                             if isinstance(sub_value, bool):
                                 widget = QCheckBox()
                                 widget.setChecked(sub_value)
@@ -77,14 +86,18 @@ class VariablesTab(QWidget):
                                     widget.setRange(0, 100000)
                                     widget.setValue(sub_value)
                             elif isinstance(sub_value, list):
-                                widget = QLineEdit()
-                                widget.setText(", ".join(map(str, sub_value)))
+                                # For watched_folders, create a special widget
+                                if sub_key == "watched_folders":
+                                    widget = self.createFolderWidget(sub_value)
+                                else:
+                                    widget = QLineEdit()
+                                    widget.setText(", ".join(map(str, sub_value)))
                             else:
                                 widget = QLineEdit()
                                 widget.setText(str(sub_value))
                             
                             self.var_widgets[full_key] = widget
-                            group_layout.addRow(f"{sub_key}:", widget)
+                            group_layout.addRow(f"{display_name}:", widget)
             
             group.setLayout(group_layout)
             scroll_layout.addWidget(group)
@@ -113,6 +126,58 @@ class VariablesTab(QWidget):
         
         layout.addWidget(scroll_area)
         self.setLayout(layout)
+    
+    def createFolderWidget(self, folders):
+        """Create a widget for folder selection with browse button"""
+        container = QWidget()
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # List widget for folders
+        self.folder_list = QListWidget()
+        self.folder_list.setMaximumHeight(100)
+        for folder in folders:
+            self.folder_list.addItem(folder)
+        
+        # Buttons
+        btn_layout = QVBoxLayout()
+        
+        add_btn = QPushButton("Add...")
+        add_btn.clicked.connect(self.addFolder)
+        btn_layout.addWidget(add_btn)
+        
+        remove_btn = QPushButton("Remove")
+        remove_btn.clicked.connect(self.removeFolder)
+        btn_layout.addWidget(remove_btn)
+        
+        btn_layout.addStretch()
+        
+        layout.addWidget(self.folder_list)
+        layout.addLayout(btn_layout)
+        
+        container.setLayout(layout)
+        return container
+    
+    def addFolder(self):
+        """Add a folder to watched folders list"""
+        folder = QFileDialog.getExistingDirectory(
+            self,
+            "Select Folder to Watch",
+            "",
+            QFileDialog.ShowDirsOnly | QFileDialog.DontResolveSymlinks
+        )
+        
+        if folder:
+            # Check if folder already exists
+            items = [self.folder_list.item(i).text() for i in range(self.folder_list.count())]
+            if folder not in items:
+                self.folder_list.addItem(folder)
+    
+    def removeFolder(self):
+        """Remove selected folder from list"""
+        current_item = self.folder_list.currentItem()
+        if current_item:
+            self.folder_list.takeItem(self.folder_list.row(current_item))
     
     def getDefaultSystemVariables(self):
         """Get default system variables"""
@@ -176,6 +241,13 @@ class VariablesTab(QWidget):
                 value = widget.isChecked()
             elif isinstance(widget, (QSpinBox, QDoubleSpinBox)):
                 value = widget.value()
+            elif isinstance(widget, QWidget):  # Custom folder widget
+                # Check if it has folder_list (our custom widget)
+                if hasattr(self, 'folder_list'):
+                    value = [self.folder_list.item(i).text() 
+                            for i in range(self.folder_list.count())]
+                else:
+                    continue
             elif isinstance(widget, QLineEdit):
                 text = widget.text()
                 # Try to parse as list if contains comma
@@ -186,8 +258,13 @@ class VariablesTab(QWidget):
             else:
                 continue
             
+            # Handle renamed variables
+            save_key = key
+            if "context_chunks_max" in key:
+                save_key = key.replace("context_chunks_max", "topK")
+            
             # Save to config
-            self.config.set(key, value, "server")
+            self.config.set(save_key, value, "server")
         
         QMessageBox.information(self, "Success", 
                               "System variables updated successfully!")
