@@ -83,7 +83,7 @@ class ChatDisplay(QTextBrowser):
             role_format.setForeground(QColor("#0066cc"))
             cursor.insertText("👤 You", role_format)
         else:
-            role_format.setForeground(QColor("#008800"))
+            role_format.setForeground(QColor("#1a7f37"))  # Consistent green for assistant
             cursor.insertText("🤖 Assistant", role_format)
         
         cursor.insertBlock()
@@ -477,8 +477,8 @@ class ChatDisplay(QTextBrowser):
             language = lines[0][3:].strip()
             lines = lines[1:-1] if lines and lines[-1] == '```' else lines[1:]
         
-        # Format language display
-        display_language = language.upper()
+        # Format language display - Use proper case
+        display_language = language
         if language.lower() in ['csharp', 'cs']:
             display_language = 'C#'
         elif language.lower() == 'cpp':
@@ -489,6 +489,38 @@ class ChatDisplay(QTextBrowser):
             display_language = 'Python'
         elif language.lower() in ['typescript', 'ts']:
             display_language = 'TypeScript'
+        elif language.lower() == 'java':
+            display_language = 'Java'
+        elif language.lower() == 'html':
+            display_language = 'HTML'
+        elif language.lower() == 'css':
+            display_language = 'CSS'
+        elif language.lower() == 'sql':
+            display_language = 'SQL'
+        elif language.lower() == 'json':
+            display_language = 'JSON'
+        elif language.lower() == 'xml':
+            display_language = 'XML'
+        elif language.lower() == 'yaml':
+            display_language = 'YAML'
+        elif language.lower() == 'bash':
+            display_language = 'Bash'
+        elif language.lower() == 'shell':
+            display_language = 'Shell'
+        elif language.lower() == 'go':
+            display_language = 'Go'
+        elif language.lower() == 'rust':
+            display_language = 'Rust'
+        elif language.lower() == 'ruby':
+            display_language = 'Ruby'
+        elif language.lower() == 'php':
+            display_language = 'PHP'
+        elif language.lower() == 'swift':
+            display_language = 'Swift'
+        elif language.lower() == 'kotlin':
+            display_language = 'Kotlin'
+        elif language.lower() == 'r':
+            display_language = 'R'
         
         # Auto-correct indentation for the code
         corrected_lines = self.auto_correct_indentation(lines, language)
@@ -513,7 +545,7 @@ class ChatDisplay(QTextBrowser):
                         <rect x="5.5" y="5.5" width="6" height="8" rx="1"/>
                         <path d="M4.5 5.5V3.5C4.5 2.94772 4.94772 2.5 5.5 2.5H11.5C12.0523 2.5 12.5 2.94772 12.5 3.5V10.5C12.5 11.0523 12.0523 11.5 11.5 11.5H10.5"/>
                     </svg>
-                    <span>Copy</span>
+                    <span>📋 Copy</span>
                 </a>
             </div>
             <div style="background:#f8f8f8;padding:12px;overflow-x:auto;">
@@ -761,16 +793,20 @@ class ChatDisplay(QTextBrowser):
         if not text.strip():
             return
         
+        # Default text format for assistant messages
+        default_format = QTextCharFormat()
+        default_format.setForeground(QColor("#1a7f37"))  # Green for assistant text
+        
         # Split by inline code first
         parts = re.split(r'(`[^`]+`)', text)
         
         for part in parts:
             if part.startswith('`') and part.endswith('`'):
-                # Inline code
+                # Inline code - use green like regular text but with background
                 code_format = QTextCharFormat()
                 code_format.setFontFamily("Consolas, Monaco, monospace")
                 code_format.setBackground(QColor("#f6f8fa"))
-                code_format.setForeground(QColor("#0550ae"))
+                code_format.setForeground(QColor("#1a7f37"))  # Green like regular text
                 cursor.insertText(part[1:-1], code_format)
             else:
                 # Check for bold and italic
@@ -789,16 +825,19 @@ class ChatDisplay(QTextBrowser):
             text_format = QTextCharFormat()
             
             if part.startswith('**') and part.endswith('**'):
-                # Bold
+                # Bold - keep green color
                 text_format.setFontWeight(QFont.Bold)
+                text_format.setForeground(QColor("#1a7f37"))  # Green
                 cursor.insertText(part[2:-2], text_format)
             elif part.startswith('*') and part.endswith('*'):
-                # Italic
+                # Italic - keep green color
                 text_format.setFontItalic(True)
+                text_format.setForeground(QColor("#1a7f37"))  # Green
                 cursor.insertText(part[1:-1], text_format)
             else:
-                # Regular text
-                cursor.insertText(part)
+                # Regular text - green for assistant
+                text_format.setForeground(QColor("#1a7f37"))  # Green
+                cursor.insertText(part, text_format)
     
     def show_context_menu(self, position):
         """Show custom context menu"""
