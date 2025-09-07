@@ -7,6 +7,7 @@ from .python_renderer import PythonRenderer
 from .javascript_renderer import JavaScriptRenderer
 from .cpp_renderer import CppRenderer
 from .java_renderer import JavaRenderer
+from .csharp_renderer import CSharpRenderer
 from .html_renderer import HtmlRenderer
 from .css_renderer import CssRenderer
 from .sql_renderer import SqlRenderer
@@ -25,6 +26,9 @@ RENDERER_REGISTRY = {
     'c++': CppRenderer,
     'c': CppRenderer,
     'java': JavaRenderer,
+    'csharp': CSharpRenderer,
+    'cs': CSharpRenderer,
+    'c#': CSharpRenderer,
     'html': HtmlRenderer,
     'xml': HtmlRenderer,
     'css': CssRenderer,
@@ -49,6 +53,7 @@ __all__ = [
     'JavaScriptRenderer',
     'CppRenderer',
     'JavaRenderer',
+    'CSharpRenderer',
     'HtmlRenderer',
     'CssRenderer',
     'SqlRenderer',

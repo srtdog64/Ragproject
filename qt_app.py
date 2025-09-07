@@ -53,10 +53,12 @@ class RagWorkerThread(QThread):
         self.payload = None
     
     def setTask(self, task: str, payload=None):
+        print(f"[Worker] setTask called: task={task}, payload={payload}")  # Debug log
         self.task = task
         self.payload = payload
     
     def run(self):
+        print(f"[Worker] run() started with task: {self.task}")  # Debug log
         try:
             if self.task == "health":
                 self.progress.emit("Checking server...")
@@ -121,6 +123,7 @@ class RagWorkerThread(QThread):
                 
             elif self.task == "ask":
                 self.progress.emit("Getting answer...")
+                print(f"[Worker] Sending question to server: {self.baseUrl}/ask")  # Debug log
                 
                 # Include model info in request if available
                 provider = self.config.get_current_provider()
@@ -132,11 +135,14 @@ class RagWorkerThread(QThread):
                     "model": model  # Changed from model_name
                 }
                 
+                print(f"[Worker] Request payload: {request_payload}")  # Debug log
+                
                 response = requests.post(
                     f"{self.baseUrl}/ask",
                     json=request_payload,
                     timeout=self.timeout
                 )
+                print(f"[Worker] Response received: {response.status_code}")  # Debug log
                 self.finished.emit({"task": "ask", "result": response.json()})
             
             elif self.task == "set_strategy":
@@ -188,6 +194,11 @@ class MainWindow(QMainWindow):
         
         # Server status
         self.serverOnline = False
+        
+        # Response timeout timer
+        self.responseTimer = QTimer()
+        self.responseTimer.timeout.connect(self.handleResponseTimeout)
+        self.responseTimer.setSingleShot(True)
         
         # Initialize UI
         self.initUI()
@@ -490,11 +501,28 @@ class MainWindow(QMainWindow):
     
     def askQuestion(self, question: str, topK: int, strict_mode: bool = False):
         """Send question to server"""
+        print(f"[MainWindow] askQuestion called: {question[:50]}...")  # Debug log
+        
         if not self.serverOnline:
+            print("[MainWindow] Server is offline")  # Debug log
             QMessageBox.warning(self, "Server Offline", "Server is not available")
             # Re-enable input if server is offline
             self.chatWidget.setInputEnabled(True)
             return
+        
+        # Check if worker is already running - if health check, ignore it
+        if self.worker.isRunning():
+            current_task = getattr(self.worker, 'task', None)
+            if current_task == "health":
+                # Stop health check and proceed with question
+                print("[MainWindow] Stopping health check to process question")  # Debug log
+                self.worker.terminate()
+                self.worker.wait(500)  # Wait up to 500ms for termination
+            elif current_task == "ask":
+                print("[MainWindow] Already processing a question, ignoring request")  # Debug log
+                return
+            else:
+                print(f"[MainWindow] Worker busy with task: {current_task}, queuing question")  # Debug log
         
         # Note: User message is already added in chat_widget.onSendMessage
         # Don't add it again here to avoid duplicate
@@ -505,9 +533,33 @@ class MainWindow(QMainWindow):
             # strict_mode will be implemented later
         }
         
+        print(f"[MainWindow] Setting worker task with payload: {payload}")  # Debug log
         self.worker.setTask("ask", payload)
+        print(f"[MainWindow] Starting worker...")  # Debug log
         self.worker.start()
+        
+        # Start response timeout timer (30 seconds)
+        self.responseTimer.start(30000)
+        
         self.logsWidget.info(f"Asking question with top_k={topK}")
+    
+    def handleResponseTimeout(self):
+        """Handle response timeout"""
+        print("[MainWindow] Response timeout!")  # Debug log
+        
+        # Terminate worker if still running
+        if self.worker.isRunning():
+            self.worker.terminate()
+            self.worker.wait(1000)  # Wait up to 1 second for termination
+        
+        # Re-enable input
+        self.chatWidget.setInputEnabled(True)
+        
+        # Show error message
+        self.chatWidget.addMessage("Assistant", 
+            "⚠️ Request timed out. The server might be busy or unresponsive. Please try again.")
+        
+        self.logsWidget.error("Request timed out after 30 seconds")
     
     def applyStrategy(self, strategy: str):
         """Apply selected chunking strategy"""
@@ -566,6 +618,10 @@ class MainWindow(QMainWindow):
         """Handle worker thread results"""
         task = data["task"]
         result = data["result"]
+        
+        # Stop response timer if running
+        if self.responseTimer.isActive():
+            self.responseTimer.stop()
         
         if task == "health":
             status = result.get("status", "unknown")

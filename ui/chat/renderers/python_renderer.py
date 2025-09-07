@@ -44,7 +44,7 @@ class PythonRenderer(BaseCodeRenderer):
             '+', '-', '*', '/', '//', '%', '**', '=', '==', '!=', '<', '>',
             '<=', '>=', 'and', 'or', 'not', 'in', 'is', '&', '|', '^', '~',
             '<<', '>>', '+=', '-=', '*=', '/=', '//=', '%=', '**=', '&=',
-            '|=', '^=', '<<=', '>>=', ':=', '->', '=>'
+            '|=', '^=', '<<=', '>>=', ':=', '->'
         ]
     
     def get_comment_pattern(self):
@@ -71,3 +71,15 @@ class PythonRenderer(BaseCodeRenderer):
         else:
             # Use base class rendering
             super().render_line(cursor, line, line_number)
+    
+    def render_tokens_as_html(self, text: str) -> str:
+        """Override to handle Python-specific syntax like decorators"""
+        if not text:
+            return ''
+        
+        # Check for decorators
+        if text.startswith('@'):
+            return f'<span style="color:#6f42c1;font-weight:bold;">{self.escape_html(text)}</span>'
+        
+        # Use parent implementation for everything else
+        return super().render_tokens_as_html(text)

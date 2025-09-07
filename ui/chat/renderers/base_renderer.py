@@ -106,45 +106,184 @@ class BaseCodeRenderer:
         values = self.get_builtin_values()
         operators = self.get_operators()
         
-        # Enhanced tokenization pattern
-        token_pattern = r'''
-            ("(?:[^"\\]|\\.)*")|           # Double-quoted strings
-            ('(?:[^'\\]|\\.)*')|           # Single-quoted strings
-            (\b\d+\.?\d*[eE]?[+-]?\d*\b)|  # Numbers (int, float, scientific)
-            (\b\w+\b)|                      # Words (identifiers, keywords)
-            ([\+\-\*/%=<>!&\|\^~]+)|       # Operators
-            (\S)                            # Any other non-whitespace
-        '''
+        # Process character by character for more accurate tokenization
+        i = 0
+        while i < len(text):
+            # Check for strings
+            if i < len(text) and text[i] in '"\'':
+                quote = text[i]
+                j = i + 1
+                while j < len(text):
+                    if text[j] == '\\':
+                        j += 2  # Skip escaped character
+                    elif text[j] == quote:
+                        j += 1
+                        break
+                    else:
+                        j += 1
+                string_token = text[i:j]
+                cursor.insertText(string_token, self.string_format)
+                i = j
+            # Check for numbers
+            elif text[i].isdigit():
+                j = i
+                while j < len(text) and (text[j].isdigit() or text[j] == '.'):
+                    j += 1
+                num_token = text[i:j]
+                cursor.insertText(num_token, self.number_format)
+                i = j
+            # Check for words (keywords, identifiers)
+            elif text[i].isalpha() or text[i] == '_':
+                j = i
+                while j < len(text) and (text[j].isalnum() or text[j] == '_'):
+                    j += 1
+                word = text[i:j]
+                if word in keywords:
+                    cursor.insertText(word, self.keyword_format)
+                elif word in builtins or word in values:
+                    cursor.insertText(word, self.builtin_format)
+                else:
+                    cursor.insertText(word, self.code_format)
+                i = j
+            # Check for operators
+            elif text[i] in '+-*/%=<>!&|^~:':
+                j = i + 1
+                # Handle multi-character operators
+                while j < len(text) and text[j] in '=<>&|+-':
+                    j += 1
+                op = text[i:j]
+                if op in operators:
+                    cursor.insertText(op, self.operator_format)
+                else:
+                    cursor.insertText(op, self.code_format)
+                i = j
+            # Check for whitespace
+            elif text[i] in ' \t':
+                j = i
+                while j < len(text) and text[j] in ' \t':
+                    j += 1
+                ws = text[i:j]
+                cursor.insertText(ws, self.code_format)
+                i = j
+            # Handle other characters (parentheses, brackets, etc.)
+            else:
+                cursor.insertText(text[i], self.code_format)
+                i += 1
+    
+    def render_line_as_html(self, line: str, line_number: int = 0) -> str:
+        """Render a single line of code as HTML with syntax highlighting"""
+        # Handle empty lines
+        if not line:
+            return '&nbsp;'
         
-        tokens = re.findall(token_pattern, text, re.VERBOSE)
+        # Calculate leading spaces/tabs
+        leading_spaces = 0
+        i = 0
+        while i < len(line) and line[i] in ' \t':
+            if line[i] == ' ':
+                leading_spaces += 1
+            else:  # tab
+                leading_spaces += 4
+            i += 1
         
-        for token_groups in tokens:
-            # Find which group matched
-            for i, token in enumerate(token_groups):
-                if token:
-                    if i in [0, 1]:  # String groups
-                        cursor.insertText(token, self.string_format)
-                    elif i == 2:  # Number group
-                        cursor.insertText(token, self.number_format)
-                    elif i == 3:  # Word group
-                        if token in keywords:
-                            cursor.insertText(token, self.keyword_format)
-                        elif token in builtins:
-                            cursor.insertText(token, self.builtin_format)
-                        elif token in values:
-                            cursor.insertText(token, self.builtin_format)
-                        else:
-                            cursor.insertText(token, self.code_format)
-                    elif i == 4:  # Operator group
-                        if token in operators:
-                            cursor.insertText(token, self.operator_format)
-                        else:
-                            cursor.insertText(token, self.code_format)
-                    else:  # Other
-                        cursor.insertText(token, self.code_format)
-                    break
+        # Create indentation HTML
+        indent_html = '&nbsp;' * leading_spaces
         
-        # Handle remaining whitespace
-        remaining = re.sub(token_pattern, '', text, flags=re.VERBOSE)
-        if remaining:
-            cursor.insertText(remaining, self.code_format)
+        # Get the actual code content (after indentation)
+        code_content = line[i:]
+        
+        # If no code content, just return indentation
+        if not code_content:
+            return indent_html if indent_html else '&nbsp;'
+        
+        # Check for comments
+        comment_pattern = self.get_comment_pattern()
+        
+        if comment_pattern and comment_pattern in code_content:
+            comment_pos = code_content.index(comment_pattern)
+            # Render pre-comment part
+            pre_comment = self.render_tokens_as_html(code_content[:comment_pos])
+            # Render comment
+            comment_html = f'<span style="color:#6b7280;font-style:italic;">{self.escape_html(code_content[comment_pos:])}</span>'
+            return indent_html + pre_comment + comment_html
+        else:
+            # No comment, render the whole line
+            return indent_html + self.render_tokens_as_html(code_content)
+    
+    def render_tokens_as_html(self, text: str) -> str:
+        """Tokenize and render text as HTML with appropriate formatting"""
+        if not text:
+            return ''
+        
+        keywords = self.get_keywords()
+        builtins = self.get_builtin_functions()
+        values = self.get_builtin_values()
+        operators = self.get_operators()
+        
+        # Process character by character for more accurate tokenization
+        html = ''
+        i = 0
+        while i < len(text):
+            # Check for strings
+            if i < len(text) and text[i] in '"\'':
+                quote = text[i]
+                j = i + 1
+                while j < len(text):
+                    if text[j] == '\\':
+                        j += 2  # Skip escaped character
+                    elif text[j] == quote:
+                        j += 1
+                        break
+                    else:
+                        j += 1
+                string_token = text[i:j]
+                html += f'<span style="color:#059669;">{self.escape_html(string_token)}</span>'
+                i = j
+            # Check for numbers
+            elif text[i].isdigit():
+                j = i
+                while j < len(text) and (text[j].isdigit() or text[j] == '.'):
+                    j += 1
+                num_token = text[i:j]
+                html += f'<span style="color:#0891b2;">{self.escape_html(num_token)}</span>'
+                i = j
+            # Check for words (keywords, identifiers)
+            elif text[i].isalpha() or text[i] == '_':
+                j = i
+                while j < len(text) and (text[j].isalnum() or text[j] == '_'):
+                    j += 1
+                word = text[i:j]
+                if word in keywords:
+                    html += f'<span style="color:#dc2626;font-weight:600;">{self.escape_html(word)}</span>'
+                elif word in builtins or word in values:
+                    html += f'<span style="color:#7c3aed;font-weight:500;">{self.escape_html(word)}</span>'
+                else:
+                    html += self.escape_html(word)
+                i = j
+            # Check for operators
+            elif text[i] in '+-*/%=<>!&|^~:':
+                j = i + 1
+                # Handle multi-character operators
+                while j < len(text) and text[j] in '=<>&|+-':
+                    j += 1
+                op = text[i:j]
+                html += f'<span style="color:#ea580c;">{self.escape_html(op)}</span>'
+                i = j
+            # Check for whitespace
+            elif text[i] in ' \t':
+                j = i
+                while j < len(text) and text[j] in ' \t':
+                    j += 1
+                ws = text[i:j]
+                html += ws.replace(' ', '&nbsp;').replace('\t', '&nbsp;' * 4)
+                i = j
+            # Handle other characters (parentheses, brackets, etc.)
+            else:
+                html += self.escape_html(text[i])
+                i += 1
+        
+        return html
+    
+    def escape_html(self, text: str) -> str:
+        """Escape HTML special characters"""
+        return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;')
