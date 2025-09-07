@@ -492,9 +492,12 @@ class MainWindow(QMainWindow):
         """Send question to server"""
         if not self.serverOnline:
             QMessageBox.warning(self, "Server Offline", "Server is not available")
+            # Re-enable input if server is offline
+            self.chatWidget.setInputEnabled(True)
             return
         
-        self.chatWidget.addMessage("You", question)
+        # Note: User message is already added in chat_widget.onSendMessage
+        # Don't add it again here to avoid duplicate
         
         payload = {
             "question": question,
@@ -608,6 +611,8 @@ class MainWindow(QMainWindow):
             }
             self.chatWidget.addMessage("Assistant", answer, metadata)
             self.logsWidget.info(f"Answer generated in {metadata['latencyMs']}ms")
+            # Re-enable input after answer is received
+            self.chatWidget.setInputEnabled(True)
         
         elif task == "set_strategy":
             strategy = result.get("strategy", "unknown")
@@ -632,6 +637,9 @@ class MainWindow(QMainWindow):
         """Handle worker thread errors"""
         # Hide progress bar if visible
         self.chatWidget.setIngestionProgress(100, 100)
+        
+        # Re-enable input if it was disabled
+        self.chatWidget.setInputEnabled(True)
         
         QMessageBox.critical(self, "Error", error)
         self.logsWidget.error(error)

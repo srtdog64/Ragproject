@@ -187,66 +187,32 @@ class ChatDisplay(QTextBrowser):
         # Insert a block for the code container
         cursor.insertBlock()
         
-        # Create the header block format
-        header_format = QTextBlockFormat()
-        header_format.setBackground(QColor("#f0f0f0"))
-        header_format.setTopMargin(5)
-        header_format.setBottomMargin(0)
-        header_format.setLeftMargin(10)
-        header_format.setRightMargin(10)
+        # Create a unified code block with HTML
+        html = f'''
+        <div style="background-color: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; margin: 8px 0; font-family: 'Consolas', 'Monaco', monospace;">
+            <div style="background-color: #f0f0f0; padding: 8px 12px; border-bottom: 1px solid #d0d7de; display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #6f42c1; font-weight: bold; font-size: 12px;">{language if language else 'code'}</span>
+                <a href="copy:{code_block_index}" style="color: #0969da; text-decoration: none; font-size: 12px;">📋 Copy</a>
+            </div>
+            <pre style="margin: 0; padding: 12px; overflow-x: auto;">
+        '''
         
-        cursor.setBlockFormat(header_format)
-        
-        # Insert language label and copy button in header
-        if language:
-            lang_format = QTextCharFormat()
-            lang_format.setFontWeight(QFont.Bold)
-            lang_format.setForeground(QColor("#6f42c1"))
-            lang_format.setFontFamily("Consolas, Monaco, monospace")
-            lang_format.setFontPointSize(9)
-            cursor.insertText(f"{language}", lang_format)
-        
-        # Add copy button
-        cursor.insertText("  ")
-        copy_format = QTextCharFormat()
-        copy_format.setForeground(QColor("#0366d6"))
-        copy_format.setFontUnderline(True)
-        copy_format.setAnchor(True)
-        copy_format.setAnchorHref(f"copy:{code_block_index}")
-        copy_format.setToolTip("Click to copy code")
-        cursor.insertText("📋 Copy", copy_format)
-        
-        # Create code block format
-        code_block_format = QTextBlockFormat()
-        code_block_format.setBackground(QColor("#f6f8fa"))
-        code_block_format.setLeftMargin(10)
-        code_block_format.setRightMargin(10)
-        code_block_format.setTopMargin(0)
-        code_block_format.setBottomMargin(5)
-        
-        # Insert code lines
-        code_format = QTextCharFormat()
-        code_format.setFontFamily("Consolas, Monaco, 'Courier New', monospace")
-        code_format.setFontPointSize(9)
-        code_format.setForeground(QColor("#24292e"))
-        
-        for i, line in enumerate(lines):
-            cursor.insertBlock()
-            cursor.setBlockFormat(code_block_format)
-            
-            # Apply syntax highlighting
+        # Add code with syntax highlighting
+        for line in lines:
             if language.lower() in ['python', 'py']:
-                self.highlight_python_line(cursor, line)
-            elif language.lower() in ['javascript', 'js', 'typescript', 'ts']:
-                self.highlight_javascript_line(cursor, line)
+                html += self.highlight_python_line_html(line)
             else:
-                # No highlighting, just insert the line
-                cursor.insertText(line, code_format)
+                html += f'<div style="margin: 0; padding: 0;">{self.escape_html(line)}</div>'
+        
+        html += '''
+            </pre>
+        </div>
+        '''
+        
+        cursor.insertHtml(html)
         
         # Reset format for next content
         cursor.insertBlock()
-        default_format = QTextBlockFormat()
-        cursor.setBlockFormat(default_format)
     
     def highlight_python_line(self, cursor: QTextCursor, line: str):
         """Apply Python syntax highlighting to a line"""
@@ -455,6 +421,51 @@ class ChatDisplay(QTextBrowser):
         self.messages = []
         self.current_streaming_message = None
         self.code_blocks = []
+    
+    def escape_html(self, text: str) -> str:
+        """Escape HTML special characters"""
+        return text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;').replace("'", '&#39;')
+    
+    def highlight_python_line_html(self, line: str) -> str:
+        """Generate HTML for Python syntax highlighting"""
+        keywords = [
+            'def', 'class', 'if', 'elif', 'else', 'for', 'while', 'return',
+            'import', 'from', 'as', 'try', 'except', 'finally', 'with',
+            'lambda', 'pass', 'break', 'continue', 'global', 'nonlocal',
+            'assert', 'yield', 'raise', 'del', 'in', 'is', 'not', 'and', 'or',
+            'True', 'False', 'None'
+        ]
+        
+        # Simple tokenization
+        import re
+        pattern = r'("""[\s\S]*?"""|\'\'\' [\s\S]*?\'\'\'|"[^"]*"|\' [^\']*\'|#[^\n]*|\b\w+\b|[^\w\s]+|\s+)'
+        tokens = re.findall(pattern, line)
+        
+        html = '<div style="margin: 0; padding: 0; white-space: pre;">'
+        
+        for token in tokens:
+            if not token:
+                continue
+            
+            # Comments
+            if token.startswith('#'):
+                html += f'<span style="color: #6e7781; font-style: italic;">{self.escape_html(token)}</span>'
+            # Strings
+            elif (token.startswith('"') and token.endswith('"')) or \
+                 (token.startswith("'") and token.endswith("'")):
+                html += f'<span style="color: #0a3069;">{self.escape_html(token)}</span>'
+            # Keywords
+            elif token in keywords:
+                html += f'<span style="color: #cf222e; font-weight: bold;">{self.escape_html(token)}</span>'
+            # Numbers
+            elif token.isdigit():
+                html += f'<span style="color: #0550ae;">{self.escape_html(token)}</span>'
+            # Default
+            else:
+                html += self.escape_html(token)
+        
+        html += '</div>'
+        return html
     
     def get_all_messages(self):
         """Get all messages as a list"""

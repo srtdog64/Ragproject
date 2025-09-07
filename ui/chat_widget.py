@@ -22,6 +22,7 @@ class ChatWidget(QWidget):
         super().__init__()
         self.config = config_manager
         self.chat_history = []  # Store messages for export
+        self.isProcessing = False  # Flag to prevent double-sending
         self.initUI()
     
     def initUI(self):
@@ -240,11 +241,50 @@ class ChatWidget(QWidget):
     
     def onSendMessage(self):
         """Handle sending message"""
+        # Check if already processing
+        if self.isProcessing:
+            return
+        
         question = self.inputField.toPlainText().strip()
         if question:
+            # Set processing flag and disable input
+            self.isProcessing = True
+            self.setInputEnabled(False)
+            
+            # Add user message
+            self.addMessage("You", question)
+            
+            # Clear input field immediately after getting the text
+            self.inputField.clear()
+            
+            # Emit signal to send question
             # For now, don't use strict mode
             self.questionAsked.emit(question, self.topKSpin.value(), False)
-            self.inputField.clear()
+    
+    def setInputEnabled(self, enabled: bool):
+        """Enable/disable input controls during processing"""
+        self.inputField.setEnabled(enabled)
+        self.sendBtn.setEnabled(enabled)
+        
+        # Update processing flag
+        self.isProcessing = not enabled
+        
+        if not enabled:
+            # Change button to show processing
+            self.sendBtn.setText("⏳ Generating...")
+            self.sendBtn.setStyleSheet("""
+                QPushButton {
+                    background-color: #ffc107;
+                    color: white;
+                    font-weight: bold;
+                    border-radius: 4px;
+                    padding: 8px 12px;
+                    font-size: 13px;
+                }
+            """)
+        else:
+            # Restore button based on mode
+            self.onModeChanged(self.strictModeToggle.isChecked())
     
     def onModeChanged(self, checked):
         """Handle mode change - UI only for now"""
