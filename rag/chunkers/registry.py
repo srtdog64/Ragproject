@@ -126,6 +126,10 @@ class ChunkerRegistry:
         self._current_strategy = name
         self._save_config()
     
+    def set_current_strategy(self, name: str):
+        """Alias for set_strategy for backward compatibility"""
+        self.set_strategy(name)
+    
     def get_current_strategy(self) -> str:
         """Get the current active strategy"""
         return self._current_strategy
@@ -209,40 +213,3 @@ class ChunkerRegistry:
 
 # Global registry instance
 registry = ChunkerRegistry()
-
-# Auto-register available chunkers after registry is created
-def _register_chunkers():
-    """Register all available chunkers"""
-    try:
-        from rag.chunkers.sentence_chunker import SentenceChunker
-        registry.register("sentence", SentenceChunker)
-    except ImportError as e:
-        print(f"Could not import SentenceChunker: {e}")
-
-    try:
-        from rag.chunkers.paragraph_chunker import ParagraphChunker
-        registry.register("paragraph", ParagraphChunker)
-    except ImportError as e:
-        print(f"Could not import ParagraphChunker: {e}")
-
-    try:
-        from rag.chunkers.sliding_window_chunker import SlidingWindowChunker
-        registry.register("sliding_window", SlidingWindowChunker)
-    except ImportError as e:
-        print(f"Could not import SlidingWindowChunker: {e}")
-
-    try:
-        from rag.chunkers.adaptive_chunker import AdaptiveChunker
-        registry.register("adaptive", AdaptiveChunker)
-        print("Adaptive chunker registered successfully")
-    except ImportError as e:
-        print(f"Could not import AdaptiveChunker: {e}")
-
-    try:
-        from rag.chunkers.overlap_chunker import SimpleOverlapChunker
-        registry.register("simple_overlap", SimpleOverlapChunker)
-    except ImportError as e:
-        print(f"Could not import SimpleOverlapChunker: {e}")
-
-# Register chunkers
-_register_chunkers()

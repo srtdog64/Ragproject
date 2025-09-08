@@ -47,21 +47,36 @@ async def get_rag_stats() -> dict:
             except Exception as e:
                 logger.error(f"[RAG API] Error getting count: {e}")
         
-        # Get namespace
+        # Get namespace and collection info
         namespace = "default"
+        actual_collection = "unknown"
+        base_collection = "unknown"
+        
         if hasattr(store, "collection_name"):
-            namespace = store.collection_name
+            actual_collection = store.collection_name
+            namespace = actual_collection  # Use full collection name as namespace
+        
+        if hasattr(store, "base_collection_name"):
+            base_collection = store.base_collection_name
         elif hasattr(store, "namespace"):
             namespace = store.namespace
         
         logger.info(f"[RAG API] Returning stats: vectors={vector_count}, namespace={namespace}")
         
-        return {
+        result = {
             "total_vectors": vector_count,
             "namespace": namespace,
             "store_type": store_type,
             "status": "ok"
         }
+        
+        # Add additional collection info if available
+        if actual_collection != "unknown":
+            result["collection_name"] = actual_collection
+        if base_collection != "unknown":
+            result["base_collection"] = base_collection
+            
+        return result
         
     except Exception as e:
         logger.error(f"[RAG API] Failed to get stats: {e}")
