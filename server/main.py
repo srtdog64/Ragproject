@@ -7,7 +7,7 @@ import sys
 import logging
 from pathlib import Path
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # Add parent directory to path for imports
@@ -21,11 +21,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Import routers
-from server.routers import health, rag
+from server.routers import health, rag, ingest, ask, namespaces, config
 from rag.chunkers.api_router import router as chunkers_router
 
 # Import dependencies
-from config_loader import config
+from config_loader import config as app_config
 from server.dependencies import (
     initialize_components,
     get_container,
@@ -37,6 +37,25 @@ from server.dependencies import (
 _container = None
 _ingester = None
 _pipeline_builder = None
+
+def rebuild_components():
+    """Rebuild components after configuration change"""
+    global _container, _ingester, _pipeline_builder
+    try:
+        logger.info("Rebuilding components after config change...")
+        _container, _ingester, _pipeline_builder = initialize_components()
+        
+        # Update all routers with new components
+        rag.set_container(_container)
+        ingest.set_ingester(_ingester)
+        ask.set_pipeline_builder(_pipeline_builder)
+        ask.set_container(_container)
+        namespaces.set_container(_container)
+        
+        logger.info("Components rebuilt successfully")
+    except Exception as e:
+        logger.error(f"Failed to rebuild components: {e}")
+        raise
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -55,8 +74,14 @@ async def lifespan(app: FastAPI):
         _container, _ingester, _pipeline_builder = initialize_components()
         logger.info("All components initialized successfully")
         
-        # Set container for routers that need it
+        # Set components for routers
         rag.set_container(_container)
+        ingest.set_ingester(_ingester)
+        ask.set_pipeline_builder(_pipeline_builder)
+        ask.set_container(_container)
+        namespaces.set_container(_container)
+        config.set_config(app_config)
+        config.set_rebuild_callback(rebuild_components)
         
         # Log initial stats
         try:
@@ -71,8 +96,12 @@ async def lifespan(app: FastAPI):
         logger.error(f"Failed to initialize components: {e}")
         import traceback
         logger.error(traceback.format_exc())
-        # Even if initialization fails, set None container to prevent 404 errors
+        # Set None values to prevent errors
         rag.set_container(None)
+        ingest.set_ingester(None)
+        ask.set_pipeline_builder(None)
+        ask.set_container(None)
+        namespaces.set_container(None)
     
     # Log registered routes after everything is set up
     logger.info("Registered routes:")
@@ -98,7 +127,7 @@ app = FastAPI(
 )
 
 # Configure CORS
-cors_config = config.get_section('cors')
+cors_config = app_config.get_section('cors')
 app.add_middleware(
     CORSMiddleware,
     allow_origins=cors_config.get('allow_origins', ["*"]),
@@ -107,38 +136,14 @@ app.add_middleware(
     allow_headers=cors_config.get('allow_headers', ["*"]),
 )
 
-# Include routers - move logging to after lifespan when routes are available
-app.include_router(health.router)
-app.include_router(rag.router)
-app.include_router(chunkers_router)
-
-# Additional endpoints can be added here if needed
-@app.post("/ingest")
-async def ingest(payload: dict) -> dict:
-    """Document ingestion endpoint"""
-    if _ingester is None:
-        raise HTTPException(status_code=503, detail="Ingester not initialized")
-    
-    # Implementation will be moved to separate router
-    return {"status": "ok", "message": "Ingestion endpoint"}
-
-@app.post("/ask")
-async def ask(question: str) -> dict:
-    """Query endpoint"""
-    if _pipeline_builder is None:
-        raise HTTPException(status_code=503, detail="Pipeline not initialized")
-    
-    # Implementation will be moved to separate router
-    return {"status": "ok", "question": question}
-
-@app.get("/api/namespaces")
-async def get_namespaces() -> list:
-    """Get available namespaces"""
-    if _container is None:
-        return []
-    
-    # Implementation will be moved to separate router
-    return ["default", "rag_documents"]
+# Include all routers
+app.include_router(health.router)      # /health endpoints
+app.include_router(rag.router)         # /api/rag/* endpoints
+app.include_router(ingest.router)      # /api/ingest endpoints
+app.include_router(ask.router)         # /api/ask endpoints
+app.include_router(namespaces.router)  # /api/namespaces endpoints
+app.include_router(config.router)      # /api/config/* endpoints
+app.include_router(chunkers_router)    # /api/chunkers/* endpoints
 
 if __name__ == "__main__":
     import uvicorn
