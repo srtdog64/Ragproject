@@ -170,9 +170,64 @@ def build_pipeline(container: Container) -> Tuple:
     )
     logger.info("Ingester created successfully")
     
-    # Create pipeline builder - does not take container as argument
+    # Import necessary steps
+    from rag.pipeline.steps import (
+        RetrieveStep,
+        RerankStep,
+        ContextCompressionStep,
+        BuildPromptStep,
+        GenerateStep,
+        ParseStep
+    )
+    
+    # Create pipeline builder without container
     pipeline_builder = PipelineBuilder()
-    logger.info("PipelineBuilder created successfully")
+    
+    # Get policy for configuration
+    policy = container.resolve("policy")
+    
+    # Add retrieve step
+    pipeline_builder.add(RetrieveStep(
+        retriever=container.resolve("retriever"),
+        policy=policy
+    ))
+    
+    # Add reranker if available
+    try:
+        reranker = container.resolve("reranker")
+        if reranker is not None:
+            # Get topK from config or use default
+            reranker_config = config.get_section('reranker')
+            top_k = reranker_config.get('top_k', 5) if reranker_config else 5
+            pipeline_builder.add(RerankStep(reranker=reranker, topK=top_k))
+            logger.info(f"Added RerankStep to pipeline with topK={top_k}")
+    except KeyError:
+        logger.info("No reranker configured, skipping RerankStep")
+    
+    # Add context compression
+    pipeline_builder.add(ContextCompressionStep(policy=policy))
+    
+    # Add prompt building
+    pipeline_builder.add(BuildPromptStep())
+    
+    # Add generation step
+    pipeline_builder.add(GenerateStep(llm=container.resolve("llm")))
+    
+    # Add parse step - create simple parser if not in container
+    try:
+        parser = container.resolve("parser")
+        pipeline_builder.add(ParseStep(parser=parser))
+    except KeyError:
+        # Create a simple parser that just returns the text
+        from rag.core.types import Answer
+        class SimpleParser:
+            def parse(self, text: str) -> dict:
+                return {"answer": text}
+        
+        pipeline_builder.add(ParseStep(parser=SimpleParser()))
+        logger.info("Using SimpleParser for answer parsing")
+    
+    logger.info("PipelineBuilder created successfully with all steps")
     
     return ingester, pipeline_builder
 

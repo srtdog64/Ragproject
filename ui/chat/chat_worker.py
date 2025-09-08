@@ -43,7 +43,7 @@ class RagWorkerThread(QThread):
         
         try:
             response = requests.post(
-                f"{self.server_url}/ask",
+                f"{self.server_url}/api/ask",
                 json={"question": self.question, "k": self.k},
                 headers={"Content-Type": "application/json"},
                 timeout=30

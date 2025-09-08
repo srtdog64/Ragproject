@@ -100,10 +100,38 @@ async def ask_question(body: AskRequest) -> AskResponse:
         
         # Build and run pipeline
         logger.debug(f"[ASK] Building pipeline for request {request_id}")
+        
+        if _pipeline_builder is None:
+            logger.error(f"[ASK] Pipeline builder is None!")
+            raise HTTPException(
+                status_code=503,
+                detail="Pipeline builder not initialized"
+            )
+        
         pipeline = _pipeline_builder.build()
         
+        if pipeline is None:
+            logger.error(f"[ASK] Built pipeline is None!")
+            raise HTTPException(
+                status_code=503,
+                detail="Pipeline build failed"
+            )
+        
         logger.debug(f"[ASK] Running pipeline for request {request_id}")
-        result = await pipeline.run(ctx)
+        logger.debug(f"[ASK] Context question: {ctx.question[:100]}...")
+        logger.debug(f"[ASK] Context k: {ctx.k}")
+        
+        try:
+            result = await pipeline.run(ctx)
+            logger.debug(f"[ASK] Pipeline execution completed for {request_id}")
+        except Exception as e:
+            logger.error(f"[ASK] Pipeline execution error: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            raise HTTPException(
+                status_code=500,
+                detail=f"Pipeline execution failed: {str(e)}"
+            )
         
         # Check result
         if result.isErr():
@@ -116,11 +144,14 @@ async def ask_question(body: AskRequest) -> AskResponse:
         
         # Get the answer
         answer = result.getValue()
+        logger.debug(f"[ASK] Raw answer type: {type(answer)}")
+        logger.debug(f"[ASK] Raw answer: {str(answer)[:200]}...")
         
         # Extract context IDs from retrieved chunks
         ctx_ids = []
         if hasattr(ctx, 'retrieved') and ctx.retrieved:
             ctx_ids = [chunk.chunk.id for chunk in ctx.retrieved[:5]]  # Top 5 context IDs
+            logger.debug(f"[ASK] Context IDs: {ctx_ids}")
         
         # Calculate latency
         latency_ms = int((time.time() - start_time) * 1000)
@@ -129,14 +160,21 @@ async def ask_question(body: AskRequest) -> AskResponse:
         
         # Format response based on parsed result type
         response_text = ""
-        if hasattr(answer, 'text'):
+        if answer is None:
+            logger.error(f"[ASK] Answer is None!")
+            response_text = "Error: No answer generated"
+        elif hasattr(answer, 'text'):
             response_text = answer.text
+            logger.debug(f"[ASK] Using answer.text: {response_text[:100]}...")
         elif hasattr(answer, 'getValue'):
             response_text = answer.getValue()
+            logger.debug(f"[ASK] Using answer.getValue(): {response_text[:100]}...")
         elif isinstance(answer, str):
             response_text = answer
+            logger.debug(f"[ASK] Using string answer: {response_text[:100]}...")
         else:
             response_text = str(answer)
+            logger.debug(f"[ASK] Using str(answer): {response_text[:100]}...")
         
         return AskResponse(
             answer=response_text,

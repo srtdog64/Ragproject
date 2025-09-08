@@ -276,7 +276,7 @@ class DocumentsWidget(QWidget):
             try:
                 # Send to server for ingestion
                 response = requests.post(
-                    f"{self.config.get_server_url()}/ingest",
+                    f"{self.config.get_server_url()}/api/ingest",
                     json={"documents": [doc]},
                     headers={"Content-Type": "application/json"},
                     timeout=60
@@ -633,7 +633,7 @@ class DocumentsWidget(QWidget):
             try:
                 # Send to server for ingestion
                 response = requests.post(
-                    f"{self.config.get_server_url()}/ingest",
+                    f"{self.config.get_server_url()}/api/ingest",
                     json={"documents": [doc]},
                     headers={"Content-Type": "application/json"},
                     timeout=60
@@ -1073,7 +1073,7 @@ class DocumentsWidget(QWidget):
             try:
                 # Send to server for ingestion
                 response = requests.post(
-                    f"{self.config.get_server_url()}/ingest",
+                    f"{self.config.get_server_url()}/api/ingest",
                     json={"documents": [doc]},
                     headers={"Content-Type": "application/json"},
                     timeout=60

@@ -87,7 +87,7 @@ class RagWorkerThread(QThread):
                                                f"Processing {processed_docs}/{total_docs} documents...")
                         
                         response = requests.post(
-                            f"{self.baseUrl}/ingest",
+                            f"{self.baseUrl}/api/ingest",
                             json={"documents": batch},
                             timeout=self.timeout
                         )
@@ -113,7 +113,7 @@ class RagWorkerThread(QThread):
                     self.progressUpdate.emit(0, total_docs, "Processing documents...")
                     
                     response = requests.post(
-                        f"{self.baseUrl}/ingest",
+                        f"{self.baseUrl}/api/ingest",
                         json={"documents": docs},
                         timeout=self.timeout
                     )
@@ -123,7 +123,7 @@ class RagWorkerThread(QThread):
                 
             elif self.task == "ask":
                 self.progress.emit("Getting answer...")
-                print(f"[Worker] Sending question to server: {self.baseUrl}/ask")  # Debug log
+                print(f"[Worker] Sending question to server: {self.baseUrl}/api/ask")  # Debug log
                 
                 # Include model info in request if available
                 provider = self.config.get_current_provider()
@@ -138,7 +138,7 @@ class RagWorkerThread(QThread):
                 print(f"[Worker] Request payload: {request_payload}")  # Debug log
                 
                 response = requests.post(
-                    f"{self.baseUrl}/ask",
+                    f"{self.baseUrl}/api/ask",
                     json=request_payload,
                     timeout=self.timeout
                 )
@@ -161,7 +161,7 @@ class RagWorkerThread(QThread):
                 
             elif self.task == "reload_config":
                 self.progress.emit("Reloading configuration...")
-                response = requests.get(f"{self.baseUrl}/config/reload", timeout=5)
+                response = requests.get(f"{self.baseUrl}/api/config/reload", timeout=5)
                 self.finished.emit({"task": "reload_config", "result": {"status": "ok"}})
                 
         except requests.ConnectionError as e:
