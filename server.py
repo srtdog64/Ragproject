@@ -78,7 +78,7 @@ def buildContainer() -> Container:
     # Register components with config values
     c.register("policy", lambda _: Policy(
         maxContextChars=policy_config.get('maxContextChars', 8000),
-        defaultcontext_chunk=policy_config.get('defaultcontext_chunk', 5)
+        defaultTopK=policy_config.get('defaultTopK', 5)
     ))
     
     # Create embedder manager from YAML config
@@ -251,8 +251,8 @@ def buildPipeline(c: Container) -> tuple[Ingester, PipelineBuilder]:
     
     # Reranking
     if pipeline_config.get('reranking', {}).get('enabled', True):
-        context_chunk = pipeline_config['reranking'].get('context_chunk') or policy.getDefaultcontext_chunk()
-        pipeline_builder.add(RerankStep(reranker=c.resolve("reranker"), context_chunk=context_chunk))
+        topK = pipeline_config['reranking'].get('topK') or policy.getDefaultTopK()
+        pipeline_builder.add(RerankStep(reranker=c.resolve("reranker"), topK=topK))
     
     # Context compression
     if pipeline_config.get('context_compression', {}).get('enabled', True):
@@ -511,7 +511,7 @@ async def ask(body: AskIn) -> AskOut:
     
     try:
         policy = _container.resolve("policy")
-        k = body.k if body.k is not None else policy.getDefaultcontext_chunk()
+        k = body.k if body.k is not None else policy.getDefaultTopK()
 
         # Create context with strict_mode as part of the question or handle it separately
         # Since RagContext doesn't have metadata, we'll handle strict_mode in the pipeline
@@ -613,7 +613,7 @@ async def get_current_reranker() -> dict:
         "type": reranker_config.get('type', 'cross-encoder'),
         "model": reranker_config.get('model', 'cross-encoder/ms-marco-MiniLM-L-6-v2'),
         "enabled": reranker_config.get('enabled', True),
-        "context_chunk": reranker_config.get('context_chunk', 5)
+        "topK": reranker_config.get('topK', 5)
     }
 
 @app.post("/api/rerankers/update")
@@ -639,8 +639,8 @@ async def update_reranker(payload: dict) -> dict:
             reranker_config['model'] = payload['model']
         if 'enabled' in payload:
             reranker_config['enabled'] = payload['enabled']
-        if 'context_chunk' in payload:
-            reranker_config['context_chunk'] = payload['context_chunk']
+        if 'topK' in payload:
+            reranker_config['topK'] = payload['topK']
         
         # Save updated config
         with open(config_path, 'w', encoding='utf-8') as f:

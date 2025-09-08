@@ -126,14 +126,24 @@ def build_container() -> Container:
     wrapper = ChunkerWrapper()
     c.register("chunker", lambda _: wrapper)
     
-    # Register reranker
-    pipeline_config = config.get_section('pipeline')
-    if pipeline_config:
-        reranker_config = pipeline_config.get('reranking', {})
-    else:
-        reranker_config = {}
+    # Register reranker - get from 'reranker' section, not 'pipeline.reranking'
+    reranker_config = config.get_section('reranker')
+    if not reranker_config:
+        # Fallback to pipeline.reranking for backward compatibility
+        pipeline_config = config.get_section('pipeline')
+        if pipeline_config:
+            reranker_config = pipeline_config.get('reranking', {})
+        else:
+            reranker_config = {}
+    
     reranker_type = reranker_config.get('type', 'simple')
-    reranker = RerankerFactory.create(reranker_type)
+    logger.info(f"Creating reranker of type: {reranker_type}")
+    
+    # Pass all reranker config parameters to the factory
+    reranker = RerankerFactory.create(
+        reranker_type=reranker_type,
+        **reranker_config  # Pass all config parameters
+    )
     c.register("reranker", lambda _: reranker)
     
     # Register policy

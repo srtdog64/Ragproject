@@ -3651,11 +3651,11 @@ class OptionsWidget(QWidget):
         settings_layout = QFormLayout()
         
         # Top K setting
-        self.rerank_context_chunk_spin = QSpinBox()
-        self.rerank_context_chunk_spin.setRange(1, 50)
-        self.rerank_context_chunk_spin.setValue(5)
-        self.rerank_context_chunk_spin.setToolTip("Number of documents to keep after reranking")
-        settings_layout.addRow("Top K:", self.rerank_context_chunk_spin)
+        self.rerank_topk_spin = QSpinBox()
+        self.rerank_topk_spin.setRange(1, 50)
+        self.rerank_topk_spin.setValue(5)
+        self.rerank_topk_spin.setToolTip("Number of documents to keep after reranking")
+        settings_layout.addRow("Top K:", self.rerank_topk_spin)
         
         # Enable/Disable reranking
         self.rerank_enabled_check = QCheckBox("Enable Reranking")
@@ -3893,7 +3893,7 @@ class OptionsWidget(QWidget):
                 self.current_reranker_label.setText(
                     f"Type: {data['type']}\n"
                     f"Model: {data.get('model', 'N/A')}\n"
-                    f"Top K: {data['context_chunk']}\n"
+                    f"Top K: {data['topK']}\n"
                     f"Enabled: {'Yes' if data['enabled'] else 'No'}"
                 )
                 
@@ -3909,7 +3909,7 @@ class OptionsWidget(QWidget):
                         combo.setCurrentIndex(index)
                 
                 # Set other settings
-                self.rerank_context_chunk_spin.setValue(data['context_chunk'])
+                self.rerank_topk_spin.setValue(data['topK'])
                 self.rerank_enabled_check.setChecked(data['enabled'])
                 
         except Exception as e:
@@ -3933,7 +3933,7 @@ class OptionsWidget(QWidget):
         payload = {
             "type": selected_type,
             "enabled": self.rerank_enabled_check.isChecked(),
-            "context_chunk": self.rerank_context_chunk_spin.value()
+            "topK": self.rerank_topk_spin.value()
         }
         
         # Add model if available

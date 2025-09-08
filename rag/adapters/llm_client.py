@@ -85,7 +85,7 @@ class GeminiLlm:
                 }],
                 "generationConfig": {
                     "temperature": self._temperature,
-                    "context_chunk": 40,
+                    "topK": 40,
                     "topP": 0.95,
                     "maxOutputTokens": self._max_tokens,
                 }

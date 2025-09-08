@@ -74,6 +74,13 @@ async def lifespan(app: FastAPI):
         # Even if initialization fails, set None container to prevent 404 errors
         rag.set_container(None)
     
+    # Log registered routes after everything is set up
+    logger.info("Registered routes:")
+    for route in app.routes:
+        if hasattr(route, 'path') and hasattr(route, 'methods'):
+            methods = ', '.join(route.methods) if route.methods else 'ANY'
+            logger.info(f"  {route.path} [{methods}]")
+    
     logger.info("="*60)
     logger.info("Server started successfully")
     logger.info("="*60)
@@ -100,18 +107,10 @@ app.add_middleware(
     allow_headers=cors_config.get('allow_headers', ["*"]),
 )
 
-# Include routers
-logger.info("Registering routers...")
+# Include routers - move logging to after lifespan when routes are available
 app.include_router(health.router)
 app.include_router(rag.router)
 app.include_router(chunkers_router)
-
-# Log registered routes
-logger.info("Registered routes:")
-for route in app.routes:
-    if hasattr(route, 'path') and hasattr(route, 'methods'):
-        methods = ', '.join(route.methods) if route.methods else 'ANY'
-        logger.info(f"  {route.path} [{methods}]")
 
 # Additional endpoints can be added here if needed
 @app.post("/ingest")
