@@ -4,7 +4,7 @@ Enhanced chat display widget with improved code rendering
 """
 from PySide6.QtWidgets import QTextBrowser, QMenu, QApplication, QToolTip
 from PySide6.QtCore import Qt, Signal, QTimer, QUrl
-from PySide6.QtGui import QTextCursor, QTextCharFormat, QFont, QColor, QAction, QTextBlockFormat
+from PySide6.QtGui import QTextCursor, QTextCharFormat, QFont, QColor, QAction, QTextBlockFormat, QCursor
 from .markdown_renderer import MarkdownRenderer
 import re
 
@@ -546,9 +546,7 @@ class ChatDisplay(QTextBrowser):
         <div style="margin:10px 0;font-family:'Cascadia Code','Fira Code',Monaco,monospace;">
             <div style="border-top:1px solid #d0d0d0;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;background:#f5f5f5;">
                 <span style="color:#0969da;font-size:13px;font-weight:600;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;">{display_language}</span>
-                <a href="copy:{code_block_index}" id="copy-btn-{code_block_index}" style="background:#ffffff;color:#24292f;text-decoration:none;font-size:13px;padding:5px 12px;border-radius:6px;border:1px solid #d1d9e0;font-weight:500;display:inline-flex;align-items:center;gap:6px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;transition:all 0.2s;">
-                    <span>📋 Copy</span>
-                </a>
+                <a href="copy:{code_block_index}" id="copy-btn-{code_block_index}" style="background:#ffffff;color:#24292f;text-decoration:none;font-size:13px;padding:5px 12px;border-radius:6px;border:1px solid #d1d9e0;font-weight:500;display:inline-flex;align-items:center;gap:6px;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;transition:all 0.2s;">📋 Copy</a>
             </div>
             <div style="background:#f8f8f8;padding:12px;overflow-x:auto;">
                 <table style="width:100%;border-collapse:collapse;">
@@ -565,7 +563,7 @@ class ChatDisplay(QTextBrowser):
             # Create line with simple style
             line_html = f'''
                 <tr>
-                    <td style="width:45px;text-align:right;color:#999;font-size:12px;user-select:none;padding-right:12px;border-right:1px solid #e0e0e0;">{i}</td>
+                    <td style="width:50px;text-align:center;color:#999;font-size:12px;user-select:none;padding-right:12px;border-right:1px solid #e0e0e0;vertical-align:top;">{i}</td>
                     <td style="padding-left:12px;font-size:13px;color:#333;white-space:pre;font-family:inherit;">{highlighted}</td>
                 </tr>
             '''
@@ -791,8 +789,8 @@ class ChatDisplay(QTextBrowser):
         cursor.insertText(line, default_format)
     
     def render_simple_markdown(self, text: str, cursor: QTextCursor):
-        """Render simple markdown (headers, bold, italic, inline code)"""
-        if not text.strip():
+        """Render simple markdown (headers, lists, bold, italic, inline code)"""
+        if not text:
             return
         
         # Check for headers first
@@ -824,28 +822,85 @@ class ChatDisplay(QTextBrowser):
                 cursor.insertText(header_text, header_format)
                 return
         
+        # Check for list items (bullets)
+        list_match = re.match(r'^(\s*)([*+-])\s+(.+)', text)
+        if list_match:
+            indent = list_match.group(1)
+            bullet = list_match.group(2)
+            content = list_match.group(3)
+            
+            # Add indentation based on spaces (4 spaces = 1 level)
+            indent_level = len(indent) // 4
+            indent_text = "    " * indent_level  # 4 spaces per level
+            
+            # Create bullet format
+            bullet_format = QTextCharFormat()
+            bullet_format.setForeground(QColor("#000000"))
+            
+            # Insert indentation, bullet and space
+            cursor.insertText(indent_text + "• ", bullet_format)  # Use bullet character
+            
+            # Process the content for bold/italic
+            self.render_text_with_formatting(content, cursor)
+            return
+        
+        # Check for numbered list items
+        numbered_match = re.match(r'^(\s*)(\d+)\.\s+(.+)', text)
+        if numbered_match:
+            indent = numbered_match.group(1)
+            number = numbered_match.group(2)
+            content = numbered_match.group(3)
+            
+            # Add indentation
+            indent_level = len(indent) // 4
+            indent_text = "    " * indent_level
+            
+            # Create number format
+            number_format = QTextCharFormat()
+            number_format.setForeground(QColor("#000000"))
+            
+            # Insert indentation, number and dot
+            cursor.insertText(indent_text + number + ". ", number_format)
+            
+            # Process the content for bold/italic
+            self.render_text_with_formatting(content, cursor)
+            return
+        
         # Default text format for assistant messages
         default_format = QTextCharFormat()
         default_format.setForeground(QColor("#000000"))  # Black for assistant text
         
-        # Split by inline code first
-        parts = re.split(r'(`[^`]+`)', text)
+        # Process regular text with bold/italic/code
+        self.render_text_with_formatting(text, cursor)
+    
+    def render_text_with_formatting(self, text: str, cursor: QTextCursor):
+        """Render text with bold, italic, and inline code formatting"""
+        # Enhanced pattern to match bold (**text**), italic (*text*), and inline code (`text`)
+        # Process inline code first to avoid conflicts
+        import re
         
-        for part in parts:
-            if part.startswith('`') and part.endswith('`'):
-                # Inline code - use green like regular text but with background
+        # First, handle inline code blocks
+        code_pattern = r'`([^`]+)`'
+        parts = re.split(f'({code_pattern})', text)
+        
+        for i, part in enumerate(parts):
+            if i % 3 == 1:  # This is the pattern match
+                continue
+            elif i % 3 == 2:  # This is the captured group (code content)
+                # Inline code
                 code_format = QTextCharFormat()
                 code_format.setFontFamily("Consolas, Monaco, monospace")
                 code_format.setBackground(QColor("#f6f8fa"))
-                code_format.setForeground(QColor("#000000"))  # Black like regular text
-                cursor.insertText(part[1:-1], code_format)
-            else:
-                # Check for bold and italic
-                self.render_text_formatting(part, cursor)
+                code_format.setForeground(QColor("#24292e"))
+                code_format.setFontPointSize(9)
+                cursor.insertText(part, code_format)
+            else:  # Regular text, process for bold/italic
+                if part:
+                    self.process_bold_italic(part, cursor)
     
-    def render_text_formatting(self, text: str, cursor: QTextCursor):
-        """Render text with bold and italic formatting"""
-        # Pattern for bold and italic
+    def process_bold_italic(self, text: str, cursor: QTextCursor):
+        """Process text for bold and italic formatting"""
+        # Pattern to match bold (**text**) and italic (*text*)
         pattern = r'(\*\*[^*]+\*\*|\*[^*]+\*)'
         parts = re.split(pattern, text)
         
@@ -853,22 +908,24 @@ class ChatDisplay(QTextBrowser):
             if not part:
                 continue
             
-            text_format = QTextCharFormat()
-            
             if part.startswith('**') and part.endswith('**'):
-                # Bold - keep black color
-                text_format.setFontWeight(QFont.Bold)
-                text_format.setForeground(QColor("#000000"))  # Black
-                cursor.insertText(part[2:-2], text_format)
-            elif part.startswith('*') and part.endswith('*'):
-                # Italic - keep black color
-                text_format.setFontItalic(True)
-                text_format.setForeground(QColor("#000000"))  # Black
-                cursor.insertText(part[1:-1], text_format)
+                # Bold text
+                bold_format = QTextCharFormat()
+                bold_format.setFontWeight(QFont.Bold)
+                bold_format.setForeground(QColor("#000000"))
+                cursor.insertText(part[2:-2], bold_format)
+            elif part.startswith('*') and part.endswith('*') and not part.startswith('**'):
+                # Italic text
+                italic_format = QTextCharFormat()
+                italic_format.setFontItalic(True)
+                italic_format.setForeground(QColor("#000000"))
+                cursor.insertText(part[1:-1], italic_format)
             else:
-                # Regular text - black for assistant
-                text_format.setForeground(QColor("#000000"))  # Black
+                # Regular text
+                text_format = QTextCharFormat()
+                text_format.setForeground(QColor("#000000"))
                 cursor.insertText(part, text_format)
+
     
     def show_context_menu(self, position):
         """Show custom context menu"""
@@ -939,27 +996,39 @@ class ChatDisplay(QTextBrowser):
     
     def update_copy_button_feedback(self, index: int):
         """Update copy button to show feedback after copying"""
-        # Create JavaScript to update button
-        js_code = f'''
-        var btn = document.getElementById('copy-btn-{index}');
-        if (btn) {{
-            var originalHTML = btn.innerHTML;
-            btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="stroke:#1a7f37;stroke-width:2;"><path d="M3 8l3 3l7-7"/></svg><span style="color:#1a7f37;">Copied!</span>';
-            btn.style.borderColor = '#1a7f37';
-            btn.style.background = '#dafbe1';
-            setTimeout(function() {{
-                btn.innerHTML = originalHTML;
-                btn.style.borderColor = '#d1d9e0';
-                btn.style.background = '#ffffff';
-            }}, 2000);
-        }}
-        '''
-        
-        # Execute JavaScript in the QTextBrowser
-        cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.End)
-        # Note: QTextBrowser doesn't execute JavaScript directly, 
-        # so we'll just rely on the tooltip for feedback
+        # QTextBrowser doesn't support JavaScript execution
+        # We'll use a timer to show temporary visual feedback
+        try:
+            # Find and temporarily modify the button text
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.Start)
+            
+            # Search for the copy button in the document
+            search_text = f"copy:{index}"
+            found = self.find(search_text)
+            
+            if found:
+                # Show tooltip as primary feedback
+                QToolTip.showText(QCursor.pos(), "✅ Copied to clipboard!")
+                
+                # Optional: Flash the background color
+                original_style = self.styleSheet()
+                self.setStyleSheet(original_style + """
+                    QTextBrowser {
+                        background-color: #f0f9ff;
+                    }
+                """)
+                
+                # Reset after 200ms
+                QTimer.singleShot(200, lambda: self.setStyleSheet(original_style))
+            else:
+                # Just show tooltip if button not found
+                QToolTip.showText(QCursor.pos(), "✅ Code copied!")
+                
+        except Exception as e:
+            print(f"[ChatDisplay] Copy feedback error: {e}")
+            # Fallback to just tooltip
+            QToolTip.showText(QCursor.pos(), "✅ Copied!")
     
     def copy_all_code_blocks(self):
         """Extract and copy all code blocks to clipboard"""

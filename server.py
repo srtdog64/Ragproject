@@ -1,13 +1,14 @@
 # server.py
 from __future__ import annotations
 import os
+import sys
 import uuid, time, asyncio
 import logging
 import traceback
 import yaml
 from pathlib import Path
 from typing import List, Optional
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -16,26 +17,26 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 from config_loader import config
-from di.container import Container
-from core.policy import Policy
-from core.result import Result
-from core.types import Document, RagContext
-from adapters.llm_client import LlmFactory  # Use factory for dynamic LLM selection
-from adapters.embedders.manager import EmbedderManager  # New embedder manager
-from adapters.semantic_embedder import EmbedderFactory  # Keep for backward compatibility
-from stores.memory_store import InMemoryVectorStore
-from chunkers.registry import registry
-from chunkers.wrapper import ChunkerWrapper
-from chunkers.api_router import router as chunkers_router
-from retrievers.vector_retriever import VectorRetrieverImpl
-from rerankers.factory import RerankerFactory
-from parsers.parser_builder import ParserBuilder
-from ingest.ingester import Ingester
-from pipeline.steps import (
+from rag.di.container import Container
+from rag.core.policy import Policy
+from rag.core.result import Result
+from rag.core.types import Document, RagContext
+from rag.adapters.llm_client import LlmFactory  # Use factory for dynamic LLM selection
+from rag.adapters.embedders.manager import EmbedderManager  # New embedder manager
+from rag.adapters.semantic_embedder import EmbedderFactory  # Keep for backward compatibility
+from rag.stores.memory_store import InMemoryVectorStore
+from rag.chunkers.registry import registry
+from rag.chunkers.wrapper import ChunkerWrapper
+from rag.chunkers.api_router import router as chunkers_router
+from rag.retrievers.vector_retriever import VectorRetrieverImpl
+from rag.rerankers.factory import RerankerFactory
+from rag.parsers.parser_builder import ParserBuilder
+from rag.ingest.ingester import Ingester
+from rag.pipeline.steps import (
     QueryExpansionStep, RetrieveStep, RerankStep,
     ContextCompressionStep, BuildPromptStep, GenerateStep, ParseStep
 )
-from pipeline.builder import PipelineBuilder
+from rag.pipeline.builder import PipelineBuilder
 
 # ---------- Pydantic I/O ----------
 class DocumentIn(BaseModel):
@@ -133,14 +134,23 @@ def buildContainer() -> Container:
             embedding_dim = 384
     
     if store_type == 'chroma':
-        from stores.chroma_store import ChromaVectorStore
-        persist_dir = store_config.get('persist_directory', 'E:\\Ragproject\\chroma_db')  # Full path
+        from rag.stores.chroma_store import ChromaVectorStore
+        persist_dir = store_config.get('persist_directory', './chroma_db')
         
-        # Convert relative path to absolute if needed
+        # Handle relative and absolute paths
         if not os.path.isabs(persist_dir):
-            persist_dir = os.path.abspath(persist_dir)
+            # If relative, make it relative to project root
+            project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            persist_dir = os.path.join(project_root, persist_dir)
+        
+        # Normalize path
+        persist_dir = os.path.normpath(persist_dir)
         
         collection = store_config.get('collection_name', 'rag_documents')
+        
+        # Log the actual path being used
+        logger.info(f"ChromaDB persist_directory: {persist_dir}")
+        logger.info(f"Directory exists: {os.path.exists(persist_dir)}")
         
         # Ensure directory exists
         os.makedirs(persist_dir, exist_ok=True)
@@ -267,8 +277,179 @@ def buildPipeline(c: Container) -> tuple[Ingester, PipelineBuilder]:
 # ---------- App ----------
 app = FastAPI(title="RAG Service with Gemini")
 
-# Include the chunkers router
-app.include_router(chunkers_router)
+# Global variables for components
+_container = None
+_ingester = None
+_pipelineBuilder = None
+
+def rebuild_components() -> None:
+    """Recreate DI container and pipeline after config change."""
+    global _container, _ingester, _pipelineBuilder
+    try:
+        logger.info("[rebuild_components] Starting rebuild...")
+        _container = buildContainer()
+        logger.info("[rebuild_components] Container built successfully")
+        _ingester, _pipelineBuilder = buildPipeline(_container)
+        logger.info("[rebuild_components] Pipeline built successfully")
+    except Exception as e:
+        logger.error(f"[rebuild_components] Failed: {e}")
+        logger.error(traceback.format_exc())
+        raise
+
+def initialize_components():
+    """Initialize RAG components"""
+    global _container, _ingester, _pipelineBuilder
+    
+    try:
+        logger.info("="*60)
+        logger.info("[INIT] Starting component initialization...")
+        logger.info("="*60)
+        
+        _container = buildContainer()
+        logger.info("[INIT] ✅ Container built successfully")
+        logger.info(f"[INIT] Container type: {type(_container)}")
+        
+        _ingester, _pipelineBuilder = buildPipeline(_container)
+        logger.info("[INIT] ✅ Pipeline built successfully")
+        logger.info(f"[INIT] Ingester type: {type(_ingester)}")
+        logger.info(f"[INIT] PipelineBuilder type: {type(_pipelineBuilder)}")
+        
+        # Test store connection
+        store = _container.resolve("store")
+        logger.info(f"[INIT] ✅ Store initialized: {type(store).__name__}")
+        
+        # Try to get initial count
+        try:
+            initial_count = store.count()
+            logger.info(f"[INIT] ✅ Initial vector count: {initial_count}")
+        except Exception as e:
+            logger.warning(f"[INIT] ⚠️ Could not get initial count: {e}")
+        
+        logger.info("="*60)
+        logger.info("[INIT] ✅ ALL COMPONENTS INITIALIZED SUCCESSFULLY")
+        logger.info("="*60)
+        return True
+        
+    except Exception as e:
+        logger.error("="*60)
+        logger.error("[INIT] ❌ FAILED TO INITIALIZE COMPONENTS")
+        logger.error(f"[INIT] Error: {e}")
+        logger.error("[INIT] Full traceback:")
+        logger.error(traceback.format_exc())
+        logger.error("="*60)
+        
+        # Create minimal components for health check
+        _container = Container()
+        _ingester = None
+        _pipelineBuilder = None
+        return False
+
+# Create RAG router
+logger.info("[ROUTER] Creating rag_router...")
+rag_router = APIRouter(prefix="/api/rag", tags=["rag"])
+logger.info(f"[ROUTER] rag_router created: {rag_router}")
+
+@rag_router.get("/stats")
+async def rag_stats() -> dict:
+    """Get RAG system statistics including vector count"""
+    logger.info("[API] GET /api/rag/stats called")
+    
+    if _container is None:
+        logger.warning("[API] Container is None!")
+        return {
+            "total_vectors": 0,
+            "namespace": "unknown",
+            "store_type": "not_initialized",
+            "status": "error",
+            "error": "System not initialized"
+        }
+    
+    try:
+        store = _container.resolve("store")
+        store_type = type(store).__name__
+        logger.info(f"[API] Store type: {store_type}")
+        
+        vector_count = 0
+        if hasattr(store, "count"):
+            try:
+                vector_count = store.count()
+                logger.info(f"[API] Vector count: {vector_count}")
+            except Exception as e:
+                logger.error(f"[API] Error getting vector count: {e}")
+        
+        namespace = "default"
+        if hasattr(store, "collection_name"):
+            namespace = store.collection_name
+        
+        logger.info(f"[API] Returning stats: vectors={vector_count}, namespace={namespace}")
+        return {
+            "total_vectors": vector_count,
+            "namespace": namespace,
+            "store_type": store_type,
+            "status": "ok"
+        }
+    except Exception as e:
+        logger.error(f"[API] Failed to get RAG stats: {e}")
+        logger.error(traceback.format_exc())
+        return {
+            "total_vectors": 0,
+            "namespace": "unknown",
+            "store_type": "unknown",
+            "status": "error",
+            "error": str(e)
+        }
+
+logger.info("[ROUTER] rag_router endpoints defined")
+
+@app.on_event("startup")
+async def startup_event():
+    """Log startup information and initialize components"""
+    logger.info("="*60)
+    logger.info("[STARTUP] RAG Server Starting")
+    logger.info("="*60)
+    logger.info(f"[STARTUP] Working directory: {os.getcwd()}")
+    logger.info(f"[STARTUP] Script location: {os.path.abspath(__file__)}")
+    logger.info(f"[STARTUP] Python version: {sys.version}")
+    
+    # Log configuration
+    store_config = config.get_section('store')
+    logger.info(f"[STARTUP] Store type: {store_config.get('type')}")
+    logger.info(f"[STARTUP] Persist directory (from config): {store_config.get('persist_directory')}")
+    logger.info(f"[STARTUP] Collection name: {store_config.get('collection_name')}")
+    
+    # Initialize components
+    logger.info("[STARTUP] Calling initialize_components()...")
+    success = initialize_components()
+    
+    if success:
+        logger.info("[STARTUP] ✅ All components initialized successfully")
+    else:
+        logger.error("[STARTUP] ⚠️ Some components failed to initialize")
+        logger.error("[STARTUP] Server will run with limited functionality")
+    
+    logger.info("="*60)
+    logger.info("[STARTUP] Startup sequence completed")
+    logger.info("="*60)
+
+# Include routers
+logger.info("[APP] Including routers...")
+try:
+    logger.info("[APP] Including chunkers_router...")
+    app.include_router(chunkers_router)
+    logger.info("[APP] ✅ chunkers_router included successfully")
+    
+    logger.info("[APP] Including rag_router...")
+    app.include_router(rag_router)  # RAG endpoints
+    logger.info("[APP] ✅ rag_router included successfully")
+    
+    # Debug: List all routes
+    logger.info("[APP] Registered routes:")
+    for route in app.routes:
+        if hasattr(route, 'path'):
+            logger.info(f"[APP]   - {route.path}")
+except Exception as e:
+    logger.error(f"[APP] ❌ Failed to include routers: {e}")
+    logger.error(traceback.format_exc())
 
 # CORS configuration from config file
 cors_config = config.get_section('cors')
@@ -279,11 +460,6 @@ app.add_middleware(
     allow_methods=cors_config.get('allow_methods', ["*"]),
     allow_headers=cors_config.get('allow_headers', ["*"]),
 )
-
-_container = buildContainer()
-_ingester, _pipelineBuilder = buildPipeline(_container)
-
-# Removed duplicate endpoint - the correct one is defined below
 
 @app.get("/health")
 def health() -> dict:
@@ -296,82 +472,6 @@ async def ingest(payload: IngestIn) -> dict:
     if res.isErr():
         raise HTTPException(status_code=400, detail=str(res.getError()))
     return {"ingestedChunks": res.getValue(), "documentCount": len(docs)}
-
-@app.get("/api/rag/stats")
-async def get_rag_stats() -> dict:
-    """Get RAG system statistics including vector count"""
-    try:
-        store = _container.resolve("store")
-        
-        # Debug: Check what type of store we have
-        store_type = type(store).__name__
-        logger.info(f"Store type: {store_type}")
-        
-        # Get vector count - ensure we're calling the right method
-        vector_count = 0
-        
-        # First try the standard count method
-        if hasattr(store, 'count'):
-            try:
-                vector_count = store.count()
-                logger.info(f"Vector count from store.count(): {vector_count}")
-            except Exception as e:
-                logger.error(f"Error calling store.count(): {e}")
-        
-        # For ChromaDB, try accessing the collection directly
-        if hasattr(store, 'collection'):
-            try:
-                if hasattr(store.collection, 'count'):
-                    collection_count = store.collection.count()
-                    logger.info(f"Vector count from collection.count(): {collection_count}")
-                    if collection_count > vector_count:
-                        vector_count = collection_count
-            except Exception as e:
-                logger.error(f"Error calling collection.count(): {e}")
-        
-        # Try to get more info from ChromaDB if available
-        if hasattr(store, 'client'):
-            try:
-                # List all collections to debug
-                collections = store.client.list_collections()
-                logger.info(f"Available collections: {[c.name for c in collections]}")
-                
-                # Try to get count from each collection
-                for coll in collections:
-                    try:
-                        coll_count = coll.count()
-                        logger.info(f"Collection '{coll.name}' has {coll_count} vectors")
-                    except:
-                        pass
-            except Exception as e:
-                logger.error(f"Error listing collections: {e}")
-        
-        # Get current namespace
-        namespace = "default"
-        if hasattr(store, 'collection_name'):
-            namespace = store.collection_name
-        elif hasattr(store, 'namespace_manager') and hasattr(store.namespace_manager, 'current_namespace'):
-            namespace = store.namespace_manager.current_namespace
-        
-        logger.info(f"RAG Stats Final: {vector_count} vectors in namespace '{namespace}'")
-        
-        return {
-            "total_vectors": vector_count,
-            "namespace": namespace,
-            "store_type": store_type,
-            "status": "ok"
-        }
-    except Exception as e:
-        logger.error(f"Failed to get RAG stats: {e}")
-        import traceback
-        logger.error(traceback.format_exc())
-        return {
-            "total_vectors": 0,
-            "namespace": "unknown",
-            "store_type": "unknown",
-            "status": "error",
-            "error": str(e)
-        }
 
 @app.get("/api/namespaces")
 async def get_namespaces() -> List[dict]:
@@ -548,7 +648,7 @@ async def update_reranker(payload: dict) -> dict:
         
         # Rebuild container with new reranker
         global _container, _ingester, _pipelineBuilder
-        _container, _ingester, _pipelineBuilder = initializeComponents(config)
+        rebuild_components()
         
         logger.info(f"Reranker updated to: {payload}")
         return {"success": True, "config": reranker_config}

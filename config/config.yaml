@@ -10,7 +10,7 @@ server:
 # === Database Settings ===
 store:
   type: chroma                          # Vector store type (chroma, faiss, memory)
-  persist_directory: E:\Ragproject\chroma_db  # Full path to DB directory
+  persist_directory: ./chroma_db        # Relative path to DB directory (will be relative to project root)
   collection_name: rag_documents        # Collection/namespace name
   
 # === Document Watching ===  
