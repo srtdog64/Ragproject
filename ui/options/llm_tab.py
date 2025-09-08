@@ -156,9 +156,20 @@ class LLMTab(QWidget):
         if not models:
             # Default models if not in config
             default_models = {
-                "openai": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
-                "claude": ["claude-3-5-sonnet", "claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
-                "gemini": ["gemini-2.0-flash", "gemini-1.5-pro", "gemini-1.5-flash"]
+                "openai": [
+                    "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4-turbo-preview",
+                    "gpt-4", "gpt-3.5-turbo", "gpt-3.5-turbo-16k"
+                ],
+                "claude": [
+                    "claude-3-5-sonnet", "claude-3-opus", "claude-3-sonnet", 
+                    "claude-3-haiku", "claude-2.1", "claude-2.0"
+                ],
+                "gemini": [
+                    "gemini-2.5-flash", "gemini-2.5-pro", 
+                    "gemini-2.0-flash-exp", "gemini-2.0-flash-thinking-exp",
+                    "gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-1.5-pro",
+                    "gemini-1.0-pro"
+                ]
             }
             models = default_models.get(provider, [])
         
@@ -167,8 +178,15 @@ class LLMTab(QWidget):
         
         # Select current model if it matches
         current_model = self.config.get_current_model()
-        if current_model in models:
+        current_provider = self.config.get_current_provider()
+        
+        # If provider changed, select first model, otherwise keep current if available
+        if provider != current_provider and models:
+            self.model_combo.setCurrentIndex(0)
+        elif current_model in models:
             self.model_combo.setCurrentText(current_model)
+        elif models:
+            self.model_combo.setCurrentIndex(0)
     
     def onTempChanged(self, value):
         """Handle temperature slider change"""
@@ -195,7 +213,8 @@ class LLMTab(QWidget):
             return
         
         # Save settings
-        self.config.set("llm.type", provider, "server")
+        self.config.set("llm.provider", provider, "server")  # Also save as provider
+        self.config.set("llm.type", provider, "server")  # Keep for backward compatibility
         self.config.set("llm.model", model, "server")
         self.config.set("llm.temperature", self.temp_slider.value() / 100, "server")
         self.config.set("llm.max_tokens", self.tokens_spin.value(), "server")
