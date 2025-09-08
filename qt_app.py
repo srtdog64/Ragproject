@@ -210,11 +210,23 @@ class RagWorkerThread(QThread):
                 self.config.set("chunker.default_params", params, 'server')
                 self.finished.emit({"task": "set_params", "result": {"status": "ok"}})
                 
+            elif self.task == "get_vector_count":
+                try:
+                    response = requests.get(
+                        f"{self.baseUrl}/api/rag/stats",
+                        timeout=5  # Shorter timeout for background task
+                    )
+                    if response.status_code == 200:
+                        self.finished.emit({"task": "get_vector_count", "result": response.json()})
+                    else:
+                        self.finished.emit({"task": "get_vector_count", "result": {"error": response.status_code}})
+                except Exception as e:
+                    self.finished.emit({"task": "get_vector_count", "result": {"error": str(e)}})
+                
             elif self.task == "reload_config":
                 self.progress.emit("Reloading configuration...")
                 response = requests.get(f"{self.baseUrl}/api/config/reload", timeout=5)
                 self.finished.emit({"task": "reload_config", "result": {"status": "ok"}})
-                
         except requests.ConnectionError as e:
             self.error.emit(f"Cannot connect to server at {self.baseUrl}\n"
                           f"Please check:\n"
@@ -637,122 +649,14 @@ class MainWindow(QMainWindow):
         self.logsWidget.success(f"Model changed to {provider}: {model}")
     
     def updateVectorCount(self):
-        """Update vector count from server - shows total vectors in DB"""
-        try:
-            import requests
-            import time
-            
-            # Initialize variables with defaults to avoid UnboundLocalError
-            vector_count = 0
-            namespace = 'default'
-            store_type = 'unknown'
-            status = 'unknown'
-            
-            # Retry logic for server initialization
-            max_retries = 3
-            for attempt in range(max_retries):
-                try:
-                    response = requests.get(
-                        f"{self.config.get_server_url()}/api/rag/stats",
-                        timeout=10  # Increased timeout
-                    )
-                    
-                    print(f"[VectorCount] API Response Status: {response.status_code}")
-                    
-                    if response.status_code == 200:
-                        data = response.json()
-                        vector_count = data.get('total_vectors', 0)
-                        namespace = data.get('namespace', 'default')
-                        store_type = data.get('store_type', 'unknown')
-                        status = data.get('status', 'ok')
-                        
-                        # Log the response for debugging
-                        print(f"[VectorCount] Full Response: {data}")
-                        print(f"[VectorCount] Store Type: {store_type}")
-                        print(f"[VectorCount] Vector Count: {vector_count}")
-                        print(f"[VectorCount] Namespace: {namespace}")
-                        
-                        # Format with thousands separator
-                        if vector_count > 0:
-                            self.vectorCountLabel.setText(f"🗃️ Vectors: {vector_count:,}")
-                            self.vectorCountLabel.setToolTip(
-                                f"Total vectors in '{namespace}' namespace\n"
-                                f"Store type: {store_type}"
-                            )
-                            self.vectorCountLabel.setStyleSheet("padding: 5px; color: #1a7f37;")  # Green
-                        else:
-                            self.vectorCountLabel.setText("🗃️ Vectors: 0")
-                            self.vectorCountLabel.setToolTip(
-                                f"No vectors in '{namespace}' namespace yet.\n"
-                                f"Store: {store_type}\n"
-                                f"Ingest documents to create vectors."
-                            )
-                            self.vectorCountLabel.setStyleSheet("padding: 5px; color: #cf222e;")  # Red
-                        
-                        self.logsWidget.debug(f"Vector count: {vector_count:,} in '{namespace}' ({store_type})")
-                        break  # Success, exit retry loop
-                        
-                    elif response.status_code == 404:
-                        print(f"[VectorCount] API Error: Not Found (attempt {attempt + 1}/{max_retries})")
-                        if attempt < max_retries - 1:
-                            time.sleep(2)  # Wait 2 seconds before retry
-                            continue
-                        else:
-                            self.vectorCountLabel.setText("🗃️ Vectors: N/A")
-                            self.vectorCountLabel.setToolTip("Server API not available")
-                    else:
-                        print(f"[VectorCount] API Error: {response.status_code}")
-                        self.vectorCountLabel.setText("🗃️ Vectors: Error")
-                        self.vectorCountLabel.setToolTip(f"Server error: {response.status_code}")
-                        break
-                        
-                except requests.exceptions.ConnectionError:
-                    print(f"[VectorCount] Connection error (attempt {attempt + 1}/{max_retries})")
-                    if attempt < max_retries - 1:
-                        time.sleep(2)
-                        continue
-                    else:
-                        self.vectorCountLabel.setText("🗃️ Vectors: Offline")
-                        self.vectorCountLabel.setToolTip("Server is offline")
-                        
-                except requests.exceptions.Timeout:
-                    print(f"[VectorCount] Timeout (attempt {attempt + 1}/{max_retries})")
-                    if attempt < max_retries - 1:
-                        time.sleep(2)
-                        continue
-                    else:
-                        self.vectorCountLabel.setText("🗃️ Vectors: Timeout")
-                        self.vectorCountLabel.setToolTip("Server request timed out")
-                        
-        except Exception as e:
-            print(f"[VectorCount] Unexpected error: {e}")
-            import traceback
-            traceback.print_exc()
-            self.vectorCountLabel.setText("🗃️ Vectors: Error")
-            self.vectorCountLabel.setToolTip(f"Error: {str(e)}")
-            print("[VectorCount] Request timed out")
-            self.vectorCountLabel.setText(f"🗃️ Vectors: --")
-            self.vectorCountLabel.setToolTip("Request timed out. Server may be busy.")
-            self.vectorCountLabel.setStyleSheet("padding: 5px; color: #6e7781;")  # Gray for timeout
-            self.logsWidget.debug("Vector count request timed out")
-            
-        except requests.exceptions.ConnectionError as e:
-            print(f"[VectorCount] Connection error: {e}")
-            self.vectorCountLabel.setText(f"🗃️ Vectors: Offline")
-            self.vectorCountLabel.setToolTip("Cannot connect to server. Check if server is running.")
-            self.vectorCountLabel.setStyleSheet("padding: 5px; color: #6e7781;")  # Gray for offline
-            self.logsWidget.debug("Cannot connect to server for vector count")
-            
-        except Exception as e:
-            # Unknown error
-            print(f"[VectorCount] Unexpected error: {e}")
-            import traceback
-            traceback.print_exc()
-            
-            self.vectorCountLabel.setText(f"🗃️ Vectors: --")
-            self.vectorCountLabel.setToolTip(f"Error: {str(e)}")
-            self.vectorCountLabel.setStyleSheet("padding: 5px; color: #6e7781;")  # Gray for error
-            self.logsWidget.debug(f"Unexpected error updating vector count: {e}")
+        """Update vector count from server - non-blocking"""
+        # Use worker thread for network request
+        if not self.worker.isRunning():
+            self.worker.setTask("get_vector_count")
+            self.worker.start()
+        else:
+            # If worker is busy, skip this update
+            self.logsWidget.debug("Skipping vector count update - worker busy")
     
     def onDocumentsChanged(self, count: int):
         """Handle document count change - triggers vector count update"""
@@ -900,10 +804,37 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "Success", "Parameters updated successfully")
             self.logsWidget.success("Updated chunking parameters")
         
+        elif task == "get_vector_count":
+            if "error" in result:
+                self.vectorCountLabel.setText("🗃️ Vectors: --")
+                self.vectorCountLabel.setToolTip(f"Error: {result.get('error')}")
+                self.vectorCountLabel.setStyleSheet("padding: 5px; color: #6e7781;")
+            else:
+                vector_count = result.get('total_vectors', 0)
+                namespace = result.get('namespace', 'default')
+                store_type = result.get('store_type', 'unknown')
+                
+                if vector_count > 0:
+                    self.vectorCountLabel.setText(f"🗃️ Vectors: {vector_count:,}")
+                    self.vectorCountLabel.setToolTip(
+                        f"Total vectors in '{namespace}' namespace\n"
+                        f"Store type: {store_type}"
+                    )
+                    self.vectorCountLabel.setStyleSheet("padding: 5px; color: #1a7f37;")
+                else:
+                    self.vectorCountLabel.setText("🗃️ Vectors: 0")
+                    self.vectorCountLabel.setToolTip(
+                        f"No vectors in '{namespace}' namespace yet.\n"
+                        f"Store: {store_type}\n"
+                        f"Ingest documents to create vectors."
+                    )
+                    self.vectorCountLabel.setStyleSheet("padding: 5px; color: #cf222e;")
+                
+                self.logsWidget.debug(f"Vector count: {vector_count:,} in '{namespace}' ({store_type})")
+        
         elif task == "reload_config":
             QMessageBox.information(self, "Success", "Configuration reloaded")
             self.logsWidget.success("Configuration reloaded")
-        
         # Update model status
         provider = self.config.get_current_provider()
         model = self.config.get_current_model()
