@@ -12,6 +12,7 @@ class ChunkingTab(QWidget):
     # Signal for strategy change
     strategyChanged = Signal(str)
     paramsChanged = Signal(dict)  # Add params change signal
+    contextChunksChanged = Signal(int)  # Signal for context chunks change
     
     def __init__(self, config_manager, parent=None):
         super().__init__(parent)
@@ -168,6 +169,13 @@ class ChunkingTab(QWidget):
         semantic_layout.addWidget(self.semanticLabel)
         params_layout.addRow("Semantic Threshold:", semantic_layout)
         
+        # Context chunks (for RAG retrieval)
+        self.contextChunksSpin = QSpinBox()
+        self.contextChunksSpin.setRange(1, 50)
+        self.contextChunksSpin.setValue(self.config.get("policy.defaultcontext_chunk", 20, "server"))
+        self.contextChunksSpin.setToolTip("Number of context chunks to retrieve for each question")
+        params_layout.addRow("Context Chunks:", self.contextChunksSpin)
+        
         params_group.setLayout(params_layout)
         layout.addWidget(params_group)
         
@@ -229,6 +237,7 @@ class ChunkingTab(QWidget):
         self.config.set("chunker.default_params.overlap", self.overlapSpin.value(), "server")
         self.config.set("chunker.default_params.windowSize", self.windowSizeSpin.value(), "server")
         self.config.set("chunker.default_params.semanticThreshold", self.semanticSlider.value() / 100, "server")
+        self.config.set("policy.defaultcontext_chunk", self.contextChunksSpin.value(), "server")
         
         # Update display
         self.currentStrategyLabel.setText(selected_strategy.capitalize())
@@ -244,6 +253,9 @@ class ChunkingTab(QWidget):
             'semanticThreshold': self.semanticSlider.value() / 100
         }
         self.paramsChanged.emit(params)
+        
+        # Emit context chunks changed signal
+        self.contextChunksChanged.emit(self.contextChunksSpin.value())
         
         QMessageBox.information(self, "Success", 
                               f"Chunking strategy changed to: {selected_strategy}")

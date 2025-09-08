@@ -454,3 +454,11 @@ class ChatWidget(QWidget):
         }
         color = colors.get(provider, "#666")
         self.modelLabel.setStyleSheet(f"font-weight: bold; color: {color};")
+    
+    def setContextChunks(self, value: int):
+        """Set the context chunks value from external source"""
+        self.context_chunkSpin.setValue(value)
+    
+    def getContextChunks(self) -> int:
+        """Get the current context chunks value"""
+        return self.context_chunkSpin.value()

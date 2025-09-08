@@ -24,6 +24,7 @@ class OptionsWidget(QWidget):
     paramsChanged = Signal(dict)
     configReloaded = Signal()  # Add configReloaded signal
     modelChanged = Signal(str, str)  # Add modelChanged signal (provider, model)
+    contextChunksChanged = Signal(int)  # Signal for context chunks change
     
     def __init__(self, config_manager=None):
         super().__init__()
@@ -67,6 +68,7 @@ class OptionsWidget(QWidget):
         self.chunking_tab = ChunkingTab(self.config, self)
         self.chunking_tab.strategyChanged.connect(self.strategyChanged)
         self.chunking_tab.paramsChanged.connect(self.paramsChanged)  # Connect params signal
+        self.chunking_tab.contextChunksChanged.connect(self.contextChunksChanged)  # Connect context chunks signal
         self.tabs.addTab(self.chunking_tab, "✂️ Chunking")
         
         # Set strategyCombo reference for backward compatibility
@@ -171,6 +173,7 @@ class OptionsWidget(QWidget):
         self.chunking_tab = ChunkingTab(self.config, self)
         self.chunking_tab.strategyChanged.connect(self.strategyChanged)
         self.chunking_tab.paramsChanged.connect(self.paramsChanged)  # Connect params signal
+        self.chunking_tab.contextChunksChanged.connect(self.contextChunksChanged)  # Connect context chunks signal
         self.tabs.addTab(self.chunking_tab, "✂️ Chunking")
         
         # Set strategyCombo reference for backward compatibility

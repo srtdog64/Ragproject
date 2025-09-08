@@ -97,11 +97,8 @@ class RagWorkerThread(QThread):
                         
                         self.progress.emit(f"Task {task_id[:8]}... created")
                         
-                        # Poll for task status
-                        poll_count = 0
-                        max_polls = 6000  # Max 5 minutes (1s * 6000)
-                        
-                        while poll_count < max_polls:
+                        # Poll for task status indefinitely until completion
+                        while True:
                             try:
                                 status_url = f"{self.baseUrl}/api/ingest/status/{task_id}"
                                 print(f"[Worker] Polling status: {status_url}")  # Debug
@@ -159,16 +156,11 @@ class RagWorkerThread(QThread):
                                 
                                 # Longer delay between polls to avoid overwhelming the server
                                 time.sleep(1.0)  # 1 second delay
-                                poll_count += 1
                                 
                             except Exception as e:
                                 print(f"[Worker] Error checking task status: {e}")  # Debug
                                 self.error.emit(f"Error checking task status: {e}")
                                 break
-                        
-                        if poll_count >= max_polls:
-                            print(f"[Worker] Timeout after {poll_count} polls")  # Debug
-                            self.error.emit("Ingestion task timeout - task may still be running")
                             
                     else:
                         print(f"[Worker] Failed to start ingestion: {response.text}")  # Debug
@@ -354,6 +346,7 @@ class MainWindow(QMainWindow):
         self.optionsWidget.paramsChanged.connect(self.applyParams)
         self.optionsWidget.modelChanged.connect(self.onModelChanged)
         self.optionsWidget.configReloaded.connect(self.reloadConfig)
+        self.optionsWidget.contextChunksChanged.connect(self.chatWidget.setContextChunks)  # Connect context chunks
         # Remove reference to loadChunkingStrategies
         self.optionsWidget.strategyCombo.currentTextChanged.connect(
             self.optionsWidget.onStrategyComboChanged
