@@ -502,7 +502,7 @@ class MainWindow(QMainWindow):
             self.worker.start()
             self.logsWidget.info(f"Starting ingestion of {len(docs)} documents")
     
-    def askQuestion(self, question: str, topK: int, strict_mode: bool = False):
+    def askQuestion(self, question: str, context_chunk: int, strict_mode: bool = False):
         """Send question to server"""
         print(f"[MainWindow] askQuestion called: {question[:50]}...")  # Debug log
         
@@ -532,7 +532,7 @@ class MainWindow(QMainWindow):
         
         payload = {
             "question": question,
-            "k": topK
+            "k": context_chunk
             # strict_mode will be implemented later
         }
         
@@ -544,7 +544,7 @@ class MainWindow(QMainWindow):
         # Start response timeout timer (30 seconds)
         self.responseTimer.start(30000)
         
-        self.logsWidget.info(f"Asking question with top_k={topK}")
+        self.logsWidget.info(f"Asking question with top_k={context_chunk}")
     
     def handleResponseTimeout(self):
         """Handle response timeout"""
@@ -588,31 +588,74 @@ class MainWindow(QMainWindow):
         """Update vector count from server - shows total vectors in DB"""
         try:
             import requests
-            response = requests.get(
-                f"{self.config.get_server_url()}/api/rag/stats",
-                timeout=5  # Increased timeout
-            )
+            import time
             
-            print(f"[VectorCount] API Response Status: {response.status_code}")
-            
-            if response.status_code == 200:
-                data = response.json()
-                vector_count = data.get('total_vectors', 0)
-                namespace = data.get('namespace', 'default')
-                store_type = data.get('store_type', 'unknown')
-                status = data.get('status', 'ok')
-                
-                # Log the response for debugging
-                print(f"[VectorCount] Full Response: {data}")
-                print(f"[VectorCount] Store Type: {store_type}")
-                print(f"[VectorCount] Vector Count: {vector_count}")
-                print(f"[VectorCount] Namespace: {namespace}")
-                
-                # Format with thousands separator
-                if vector_count > 0:
-                    self.vectorCountLabel.setText(f"🗃️ Vectors: {vector_count:,}")
-                    self.vectorCountLabel.setToolTip(
-                        f"Total vectors in '{namespace}' namespace\n"
+            # Retry logic for server initialization
+            max_retries = 3
+            for attempt in range(max_retries):
+                try:
+                    response = requests.get(
+                        f"{self.config.get_server_url()}/api/rag/stats",
+                        timeout=5
+                    )
+                    
+                    print(f"[VectorCount] API Response Status: {response.status_code}")
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        vector_count = data.get('total_vectors', 0)
+                        namespace = data.get('namespace', 'default')
+                        store_type = data.get('store_type', 'unknown')
+                        status = data.get('status', 'ok')
+                        
+                        # Log the response for debugging
+                        print(f"[VectorCount] Full Response: {data}")
+                        print(f"[VectorCount] Store Type: {store_type}")
+                        print(f"[VectorCount] Vector Count: {vector_count}")
+                        print(f"[VectorCount] Namespace: {namespace}")
+                        
+                        # Format with thousands separator
+                        if vector_count > 0:
+                            self.vectorCountLabel.setText(f"🗃️ Vectors: {vector_count:,}")
+                            self.vectorCountLabel.setToolTip(
+                                f"Total vectors in '{namespace}' namespace\n"
+                                f"Store type: {store_type}"
+                            )
+                        else:
+                            self.vectorCountLabel.setText("🗃️ Vectors: 0")
+                            self.vectorCountLabel.setToolTip("No vectors in database")
+                        break  # Success, exit retry loop
+                        
+                    elif response.status_code == 404:
+                        print(f"[VectorCount] API Error: Not Found (attempt {attempt + 1}/{max_retries})")
+                        if attempt < max_retries - 1:
+                            time.sleep(2)  # Wait 2 seconds before retry
+                            continue
+                        else:
+                            self.vectorCountLabel.setText("🗃️ Vectors: N/A")
+                            self.vectorCountLabel.setToolTip("Server API not available")
+                    else:
+                        print(f"[VectorCount] API Error: {response.status_code}")
+                        self.vectorCountLabel.setText("🗃️ Vectors: Error")
+                        self.vectorCountLabel.setToolTip(f"Server error: {response.status_code}")
+                        break
+                        
+                except requests.exceptions.ConnectionError:
+                    print(f"[VectorCount] Connection error (attempt {attempt + 1}/{max_retries})")
+                    if attempt < max_retries - 1:
+                        time.sleep(2)
+                        continue
+                    else:
+                        self.vectorCountLabel.setText("🗃️ Vectors: Offline")
+                        self.vectorCountLabel.setToolTip("Server is offline")
+                except requests.exceptions.Timeout:
+                    print(f"[VectorCount] Timeout (attempt {attempt + 1}/{max_retries})")
+                    if attempt < max_retries - 1:
+                        time.sleep(2)
+                        continue
+                    else:
+                        self.vectorCountLabel.setText("🗃️ Vectors: Timeout")
+                        self.vectorCountLabel.setToolTip("Server request timed out")
                         f"Store: {store_type}\n"
                         f"Status: {status}\n"
                         f"Click to refresh"
