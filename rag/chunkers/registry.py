@@ -5,7 +5,7 @@ import json
 import os
 import sys
 sys.path.append('E:/Ragproject/rag')
-from chunkers.base import IChunker, ChunkingParams
+from rag.chunkers.base import IChunker, ChunkingParams
 
 
 class ChunkerRegistry:
@@ -50,11 +50,11 @@ class ChunkerRegistry:
     def _register_defaults(self):
         """Register all default chunking strategies"""
         try:
-            from chunkers.sentence_chunker import SentenceChunker
-            from chunkers.paragraph_chunker import ParagraphChunker
-            from chunkers.sliding_window_chunker import SlidingWindowChunker
-            from chunkers.adaptive_chunker import AdaptiveChunker
-            from chunkers.overlap_chunker import SimpleOverlapChunker
+            from rag.chunkers.sentence_chunker import SentenceChunker
+            from rag.chunkers.paragraph_chunker import ParagraphChunker
+            from rag.chunkers.sliding_window_chunker import SlidingWindowChunker
+            from rag.chunkers.adaptive_chunker import AdaptiveChunker
+            from rag.chunkers.overlap_chunker import SimpleOverlapChunker
             
             self.register("sentence", SentenceChunker)
             self.register("paragraph", ParagraphChunker)
@@ -64,7 +64,7 @@ class ChunkerRegistry:
         except ImportError as e:
             print(f"Warning: Failed to import chunker: {e}")
             # Register at least one fallback chunker
-            from chunkers.sentence_chunker import SentenceChunker
+            from rag.chunkers.sentence_chunker import SentenceChunker
             self.register("sentence", SentenceChunker)
             self._current_strategy = "sentence"
     
@@ -209,3 +209,40 @@ class ChunkerRegistry:
 
 # Global registry instance
 registry = ChunkerRegistry()
+
+# Auto-register available chunkers after registry is created
+def _register_chunkers():
+    """Register all available chunkers"""
+    try:
+        from rag.chunkers.sentence_chunker import SentenceChunker
+        registry.register("sentence", SentenceChunker)
+    except ImportError as e:
+        print(f"Could not import SentenceChunker: {e}")
+
+    try:
+        from rag.chunkers.paragraph_chunker import ParagraphChunker
+        registry.register("paragraph", ParagraphChunker)
+    except ImportError as e:
+        print(f"Could not import ParagraphChunker: {e}")
+
+    try:
+        from rag.chunkers.sliding_window_chunker import SlidingWindowChunker
+        registry.register("sliding_window", SlidingWindowChunker)
+    except ImportError as e:
+        print(f"Could not import SlidingWindowChunker: {e}")
+
+    try:
+        from rag.chunkers.adaptive_chunker import AdaptiveChunker
+        registry.register("adaptive", AdaptiveChunker)
+        print("Adaptive chunker registered successfully")
+    except ImportError as e:
+        print(f"Could not import AdaptiveChunker: {e}")
+
+    try:
+        from rag.chunkers.overlap_chunker import SimpleOverlapChunker
+        registry.register("simple_overlap", SimpleOverlapChunker)
+    except ImportError as e:
+        print(f"Could not import SimpleOverlapChunker: {e}")
+
+# Register chunkers
+_register_chunkers()

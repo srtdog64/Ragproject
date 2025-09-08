@@ -38,7 +38,7 @@ class RetrieveStep:
         allRetrieved: List[Retrieved] = []
         for q in ctx.expandedQueries:
             logger.debug(f"  Retrieving for query: {q}")
-            items = await self._retriever.retrieve(q, ctx.k or self._policy.getDefaultTopK())
+            items = await self._retriever.retrieve(q, ctx.k or self._policy.getDefaultcontext_chunk())
             logger.info(f"  Retrieved {len(items)} items for query: {q}")
             allRetrieved.extend(items)
         
@@ -63,9 +63,9 @@ class RetrieveStep:
         return Result.ok(ctx.withRetrieved(uniq))
 
 class RerankStep:
-    def __init__(self, reranker: Reranker, topK: int):
+    def __init__(self, reranker: Reranker, context_chunk: int):
         self._reranker = reranker
-        self._topK = max(1, topK)
+        self._context_chunk = max(1, context_chunk)
 
     async def run(self, ctx: RagContext) -> Result[RagContext]:
         if not ctx.retrieved:
@@ -84,7 +84,7 @@ class RerankStep:
             # Legacy reranker without query support
             ranked = self._reranker.rerank(ctx.retrieved)
         
-        top_ranked = ranked[: self._topK]
+        top_ranked = ranked[: self._context_chunk]
         logger.info(f"RerankStep: Selected top {len(top_ranked)} after reranking")
         
         return Result.ok(ctx.withReranked(top_ranked))

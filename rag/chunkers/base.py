@@ -5,7 +5,7 @@ from typing import List, Dict, Any
 from dataclasses import dataclass
 import sys
 sys.path.append('E:/Ragproject/rag')
-from core.types import Document, Chunk
+from rag.core.types import Document, Chunk
 
 
 @dataclass

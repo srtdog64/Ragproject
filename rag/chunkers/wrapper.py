@@ -6,10 +6,10 @@ from __future__ import annotations
 from typing import List
 import sys
 sys.path.append('E:/Ragproject/rag')
-from core.types import Document, Chunk
+from rag.core.types import Document, Chunk
 from core.interfaces import Chunker
-from chunkers.base import IChunker, ChunkingParams
-from chunkers.registry import registry
+from rag.chunkers.base import IChunker, ChunkingParams
+from rag.chunkers.registry import registry
 
 
 class ChunkerWrapper:

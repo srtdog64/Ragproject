@@ -19,7 +19,7 @@ from pipeline.builder import PipelineBuilder
 
 def buildContainer() -> Container:
     c = Container()
-    c.register("policy", lambda _: Policy(maxContextChars=8000, defaultTopK=5))
+    c.register("policy", lambda _: Policy(maxContextChars=8000, defaultcontext_chunk=5))
     c.register("embedder", lambda _: HashEmbedder(dim=96))
     c.register("store", lambda _: InMemoryVectorStore())
     c.register("chunker800", lambda _: SimpleOverlapChunker(size=800, overlap=120))
@@ -43,14 +43,14 @@ async def main() -> None:
     ]
     await ingesterA.ingest(docs)
 
-    # --- Pipeline A: topK=5, chunker800 indexed data ---
+    # --- Pipeline A: context_chunk=5, chunker800 indexed data ---
     retrieverA = VectorRetrieverImpl(store=store, embedder=embedder, metaFilter=None)
     parser = ParserBuilder().setFormat("json").withJsonSchema({"type": "object", "required": ["answer"]}).build()
     pipelineA = (
         PipelineBuilder()
         .add(QueryExpansionStep(expansions=1))
         .add(RetrieveStep(retriever=retrieverA, policy=policy))
-        .add(RerankStep(reranker=c.resolve("reranker"), topK=5))
+        .add(RerankStep(reranker=c.resolve("reranker"), context_chunk=5))
         .add(ContextCompressionStep(policy=policy))
         .add(BuildPromptStep(systemHint="You are a helpful assistant."))
         .add(GenerateStep(llm=llm, system="You are concise."))
@@ -63,7 +63,7 @@ async def main() -> None:
     resA = await pipelineA.run(ctxA)
     print("A:", resA.getValue().text if resA.isOk() else resA.getError())
 
-    # --- Pipeline B: Different configuration (e.g., topK=8) ---
+    # --- Pipeline B: Different configuration (e.g., context_chunk=8) ---
     ingesterB = Ingester(chunker=c.resolve("chunker1200"), embedder=embedder, store=store, maxParallel=8)
     await ingesterB.ingest([Document(id="d3", title="Deep", source="api://deep", text="Context compression keeps token within budget.")])
 
@@ -72,7 +72,7 @@ async def main() -> None:
         PipelineBuilder()
         .add(QueryExpansionStep(expansions=0))
         .add(RetrieveStep(retriever=retrieverB, policy=policy))
-        .add(RerankStep(reranker=c.resolve("reranker"), topK=8))
+        .add(RerankStep(reranker=c.resolve("reranker"), context_chunk=8))
         .add(ContextCompressionStep(policy=policy))
         .add(BuildPromptStep(systemHint="You are a helpful assistant."))
         .add(GenerateStep(llm=llm, system="Be precise."))

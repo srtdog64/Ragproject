@@ -9,8 +9,8 @@ from typing import List, Dict, Any, Optional
 import sys
 sys.path.append('E:/Ragproject/rag')
 from chunkers.registry import registry
-from chunkers.base import ChunkingParams
-from core.types import Document
+from rag.chunkers.base import ChunkingParams
+from rag.core.types import Document
 
 router = APIRouter(prefix="/api/chunkers", tags=["chunkers"])
 

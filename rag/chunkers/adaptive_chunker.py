@@ -4,11 +4,11 @@ from typing import List, Dict
 import re
 import sys
 sys.path.append('E:/Ragproject/rag')
-from core.types import Document, Chunk
-from chunkers.base import IChunker, ChunkingParams
+from rag.core.types import Document, Chunk
+from rag.chunkers.base import IChunker, ChunkingParams
 from chunkers.paragraph_chunker import ParagraphChunker
 from chunkers.sentence_chunker import SentenceChunker
-from chunkers.utils import create_chunk_meta
+from rag.chunkers.utils import create_chunk_meta
 
 
 class AdaptiveChunker(IChunker):

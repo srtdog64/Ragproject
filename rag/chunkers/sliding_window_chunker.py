@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import List, Dict
 import sys
 sys.path.append('E:/Ragproject/rag')
-from core.types import Document, Chunk
-from chunkers.base import IChunker, ChunkingParams
-from chunkers.utils import create_chunk_meta, generate_chunk_id
+from rag.core.types import Document, Chunk
+from rag.chunkers.base import IChunker, ChunkingParams
+from rag.chunkers.utils import create_chunk_meta, generate_chunk_id
 
 
 class SlidingWindowChunker(IChunker):
