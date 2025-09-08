@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import os
 from typing import Optional, Dict, Any
-from core.result import Result
+from rag.core.result import Result
 from dotenv import load_dotenv
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

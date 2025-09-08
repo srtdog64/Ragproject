@@ -91,17 +91,17 @@ def buildContainer() -> Container:
         # Register default embedder for backward compatibility
         default_embedder = embedder_manager.getDefaultEmbedder()
         c.register("embedder", lambda _: default_embedder)
-        print("✅ Embedder manager initialized successfully")
+        logger.info("Embedder manager initialized successfully")
     except Exception as e:
-        print(f"⚠️ Warning: Failed to load embedder manager: {e}")
+        logger.warning(f"Warning: Failed to load embedder manager: {e}")
         # Fallback to old factory method
         try:
             default_embedder = EmbedderFactory.create(embedder_config)
             c.register("embedder", lambda _: default_embedder)
-            print("✅ Using legacy embedder factory")
+            logger.info("Using legacy embedder factory")
         except RuntimeError as e2:
-            print(f"❌ CRITICAL ERROR: {e2}")
-            print("The system cannot function without a proper embedder.")
+            logger.error(f"CRITICAL ERROR: {e2}")
+            logger.error("The system cannot function without a proper embedder.")
             raise
     
     # Create vector store based on config

@@ -52,7 +52,7 @@ echo ========================================
 echo RAG System started successfully!
 echo ========================================
 echo.
-echo Server running at: http://localhost:8000
+echo Server running at: http://localhost:7001
 echo.
 echo To stop the system, close both windows.
 echo.
