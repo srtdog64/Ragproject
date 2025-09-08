@@ -16,7 +16,7 @@ class ChatWidget(QWidget):
     """Chat interface widget with enhanced features"""
     
     ingestRequested = Signal()
-    questionAsked = Signal(str, int, bool)  # question, context_chunk, strict_mode
+    questionAsked = Signal(str, int, bool)  # question, topK, strict_mode
     
     def __init__(self, config_manager):
         super().__init__()
@@ -81,30 +81,30 @@ class ChatWidget(QWidget):
         
         topToolbar.addWidget(QLabel("  |  "))
         
-        # Context Chunks setting with better labeling
-        contextLabel = QLabel("Context Chunks:")
+        # topKs setting with better labeling
+        contextLabel = QLabel("topKs:")
         contextLabel.setToolTip(
             "Number of document chunks to include as context.\n"
             "Higher values = more context but slower responses."
         )
         topToolbar.addWidget(contextLabel)
         
-        self.context_chunkSpin = QSpinBox()
-        self.context_chunkSpin.setRange(1, 100)  # Increased max from 20 to 100
-        self.context_chunkSpin.setValue(self.config.get("ui.defaults.top_k", 10))  # Default to 10
-        self.context_chunkSpin.setToolTip(
+        self.topKSpin = QSpinBox()
+        self.topKSpin.setRange(1, 100)  # Increased max from 20 to 100
+        self.topKSpin.setValue(self.config.get("ui.defaults.top_k", 10))  # Default to 10
+        self.topKSpin.setToolTip(
             "How many document chunks to retrieve:\n"
             "• 1-5: Quick facts\n"
             "• 5-20: Standard (recommended)\n"
             "• 20-50: Complex analysis\n"
             "• 50+: Comprehensive research"
         )
-        self.context_chunkSpin.valueChanged.connect(self.updateContextLabel)
-        topToolbar.addWidget(self.context_chunkSpin)
+        self.topKSpin.valueChanged.connect(self.updateContextLabel)
+        topToolbar.addWidget(self.topKSpin)
         
         # Context info label
         self.contextInfoLabel = QLabel("")
-        self.updateContextLabel(self.context_chunkSpin.value())
+        self.updateContextLabel(self.topKSpin.value())
         topToolbar.addWidget(self.contextInfoLabel)
         
         # Clear button
@@ -259,7 +259,7 @@ class ChatWidget(QWidget):
             
             # Emit signal to send question
             # For now, don't use strict mode
-            self.questionAsked.emit(question, self.context_chunkSpin.value(), False)
+            self.questionAsked.emit(question, self.topKSpin.value(), False)
     
     def setInputEnabled(self, enabled: bool):
         """Enable/disable input controls during processing"""
@@ -456,9 +456,9 @@ class ChatWidget(QWidget):
         self.modelLabel.setStyleSheet(f"font-weight: bold; color: {color};")
     
     def setContextChunks(self, value: int):
-        """Set the context chunks value from external source"""
-        self.context_chunkSpin.setValue(value)
+        """Set the topKs value from external source"""
+        self.topKSpin.setValue(value)
     
     def getContextChunks(self) -> int:
-        """Get the current context chunks value"""
-        return self.context_chunkSpin.value()
+        """Get the current topKs value"""
+        return self.topKSpin.value()

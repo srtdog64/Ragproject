@@ -73,7 +73,7 @@ async def ask_question(body: AskRequest) -> AskResponse:
     try:
         # Get policy for default k value
         policy = _container.resolve("policy")
-        k = body.k if body.k is not None else policy.getDefaultcontext_chunk()
+        k = body.k if body.k is not None else policy.getDefaulttopK()
         
         logger.debug(f"[ASK] Using k={k} for retrieval")
         

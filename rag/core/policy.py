@@ -5,7 +5,7 @@ from dataclasses import dataclass
 @dataclass
 class Policy:
     maxContextChars: int = 12000
-    defaultcontext_chunk: int = 5
+    defaulttopK: int = 5
 
     def getMaxContextChars(self) -> int:
         return self.maxContextChars
@@ -13,8 +13,8 @@ class Policy:
     def setMaxContextChars(self, n: int) -> None:
         self.maxContextChars = max(2000, n)
 
-    def getDefaultcontext_chunk(self) -> int:
-        return self.defaultcontext_chunk
+    def getDefaulttopK(self) -> int:
+        return self.defaulttopK
 
-    def setDefaultcontext_chunk(self, k: int) -> None:
-        self.defaultcontext_chunk = max(1, k)
+    def setDefaulttopK(self, k: int) -> None:
+        self.defaulttopK = max(1, k)

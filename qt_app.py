@@ -346,7 +346,7 @@ class MainWindow(QMainWindow):
         self.optionsWidget.paramsChanged.connect(self.applyParams)
         self.optionsWidget.modelChanged.connect(self.onModelChanged)
         self.optionsWidget.configReloaded.connect(self.reloadConfig)
-        self.optionsWidget.contextChunksChanged.connect(self.chatWidget.setContextChunks)  # Connect context chunks
+        self.optionsWidget.contextChunksChanged.connect(self.chatWidget.setContextChunks)  # Connect topKs
         # Remove reference to loadChunkingStrategies
         self.optionsWidget.strategyCombo.currentTextChanged.connect(
             self.optionsWidget.onStrategyComboChanged
@@ -554,7 +554,7 @@ class MainWindow(QMainWindow):
             self.worker.start()
             self.logsWidget.info(f"Starting ingestion of {len(docs)} documents")
     
-    def askQuestion(self, question: str, context_chunk: int, strict_mode: bool = False):
+    def askQuestion(self, question: str, topK: int, strict_mode: bool = False):
         """Send question to server"""
         print(f"[MainWindow] askQuestion called: {question[:50]}...")  # Debug log
         
@@ -584,7 +584,7 @@ class MainWindow(QMainWindow):
         
         payload = {
             "question": question,
-            "k": context_chunk
+            "k": topK
             # strict_mode will be implemented later
         }
         
@@ -596,7 +596,7 @@ class MainWindow(QMainWindow):
         # Start response timeout timer (30 seconds)
         self.responseTimer.start(30000)
         
-        self.logsWidget.info(f"Asking question with top_k={context_chunk}")
+        self.logsWidget.info(f"Asking question with top_k={topK}")
     
     def handleResponseTimeout(self):
         """Handle response timeout"""

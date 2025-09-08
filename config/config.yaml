@@ -80,10 +80,10 @@ pipeline:
     expansions: 0
   retrieval:
     enabled: true
-    context_chunk: null
+    topK: null
   reranking:
     enabled: true
-    context_chunk: null
+    topK: null
   context_compression:
     enabled: true
   prompt:
@@ -97,7 +97,7 @@ pipeline:
 
 # === Policy Settings ===
 policy:
-  defaultcontext_chunk: 20
+  defaulttopK: 20
   maxContextChars: 12000
 
 # === Ingestion ===

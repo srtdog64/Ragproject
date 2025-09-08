@@ -65,15 +65,15 @@ class VariablesTab(QWidget):
                             full_key = f"{key}.{sub_key}"
                             
                             # Skip if already added or if it's reranking (duplicate)
-                            if full_key == "reranking.enabled" or full_key == "reranking.context_chunk":
+                            if full_key == "reranking.enabled" or full_key == "reranking.topK":
                                 continue
                             
-                            # Rename context_chunk to default_context_chunks for clarity
+                            # Rename topK to default_topKs for clarity
                             display_name = sub_key
-                            if key == "policy" and sub_key == "defaultcontext_chunk":
-                                display_name = "default_context_chunks"
-                            elif sub_key == "context_chunk":
-                                display_name = "context_chunks_max"
+                            if key == "policy" and sub_key == "defaulttopK":
+                                display_name = "default_topKs"
+                            elif sub_key == "topK":
+                                display_name = "topKs_max"
                             
                             if isinstance(sub_value, bool):
                                 widget = QCheckBox()
@@ -223,7 +223,7 @@ class VariablesTab(QWidget):
             "ui": {
                 "font_size": self.config.get("ui.font_size", 10, "qt"),
                 "code_font_size": self.config.get("ui.code_font_size", 10, "qt"),
-                "default_context_chunks": self.config.get("ui.defaults.top_k", 10, "qt"),
+                "default_topKs": self.config.get("ui.defaults.top_k", 10, "qt"),
                 "auto_scroll": self.config.get("chat.auto_scroll", True, "qt")
             },
             "query_expansion": {
@@ -243,10 +243,10 @@ class VariablesTab(QWidget):
             },
             "retrieval": {
                 "enabled": self.config.get("pipeline.retrieval.enabled", True, "server"),
-                "context_chunks_max": self.config.get("pipeline.retrieval.context_chunk", None, "server")  # Renamed for clarity
+                "topKs_max": self.config.get("pipeline.retrieval.topK", None, "server")  # Renamed for clarity
             },
             "policy": {
-                "default_context_chunks": self.config.get("policy.defaultcontext_chunk", 10, "server"),
+                "default_topKs": self.config.get("policy.defaulttopK", 10, "server"),
                 "maxContextChars": self.config.get("policy.maxContextChars", 12000, "server")
             },
             "ingester": {
@@ -302,13 +302,13 @@ class VariablesTab(QWidget):
             
             # Handle renamed variables
             save_key = key
-            if "default_context_chunks" in key:
-                if key == "ui.default_context_chunks":
+            if "default_topKs" in key:
+                if key == "ui.default_topKs":
                     save_key = "ui.defaults.top_k"
-                elif key == "policy.default_context_chunks":
-                    save_key = "policy.defaultcontext_chunk"
-            elif "context_chunks_max" in key:
-                save_key = key.replace("context_chunks_max", "context_chunk")
+                elif key == "policy.default_topKs":
+                    save_key = "policy.defaulttopK"
+            elif "topKs_max" in key:
+                save_key = key.replace("topKs_max", "topK")
             
             # Save to correct config source (qt or server)
             if key.startswith("ui."):

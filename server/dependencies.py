@@ -148,13 +148,13 @@ def build_container() -> Container:
     
     # Register policy
     pipeline_config = config.get_section('pipeline')
-    # Policy only accepts maxContextChars and defaultcontext_chunk
+    # Policy only accepts maxContextChars and defaulttopK
     policy_params = {}
     if pipeline_config:
         if 'max_context_chars' in pipeline_config:
             policy_params['maxContextChars'] = pipeline_config['max_context_chars']
         if 'default_top_k' in pipeline_config:
-            policy_params['defaultcontext_chunk'] = pipeline_config['default_top_k']
+            policy_params['defaulttopK'] = pipeline_config['default_top_k']
     policy = Policy(**policy_params) if policy_params else Policy()
     c.register("policy", lambda _: policy)
     
@@ -196,11 +196,11 @@ def build_pipeline(container: Container) -> Tuple:
     try:
         reranker = container.resolve("reranker")
         if reranker is not None:
-            # Get context_chunk from config or use default
+            # Get topK from config or use default
             reranker_config = config.get_section('reranker')
             top_k = reranker_config.get('top_k', 5) if reranker_config else 5
-            pipeline_builder.add(RerankStep(reranker=reranker, context_chunk=top_k))
-            logger.info(f"Added RerankStep to pipeline with context_chunk={top_k}")
+            pipeline_builder.add(RerankStep(reranker=reranker, topK=top_k))
+            logger.info(f"Added RerankStep to pipeline with topK={top_k}")
     except KeyError:
         logger.info("No reranker configured, skipping RerankStep")
     

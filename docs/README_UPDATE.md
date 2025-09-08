@@ -42,7 +42,7 @@ uvicorn server:app --reload --port 8000
 # 정책 설정
 policy:
   maxContextChars: 8000  # 최대 컨텍스트 문자 수
-  defaultcontext_chunk: 5          # 기본 검색 결과 수
+  defaulttopK: 5          # 기본 검색 결과 수
 
 # 청킹 설정
 chunker:
