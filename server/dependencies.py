@@ -196,11 +196,11 @@ def build_pipeline(container: Container) -> Tuple:
     try:
         reranker = container.resolve("reranker")
         if reranker is not None:
-            # Get topK from config or use default
+            # Get context_chunk from config or use default
             reranker_config = config.get_section('reranker')
             top_k = reranker_config.get('top_k', 5) if reranker_config else 5
-            pipeline_builder.add(RerankStep(reranker=reranker, topK=top_k))
-            logger.info(f"Added RerankStep to pipeline with topK={top_k}")
+            pipeline_builder.add(RerankStep(reranker=reranker, context_chunk=top_k))
+            logger.info(f"Added RerankStep to pipeline with context_chunk={top_k}")
     except KeyError:
         logger.info("No reranker configured, skipping RerankStep")
     

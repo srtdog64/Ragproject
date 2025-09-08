@@ -5,6 +5,8 @@ Main application with separated UI components
 """
 import sys
 import os
+import json
+import time
 from pathlib import Path
 from typing import Dict, Optional
 
@@ -26,6 +28,7 @@ from ui import (
     LogsWidget,
     ConfigManager
 )
+from ui.progress_widget import IngestProgressWidget, AsyncProgressDialog
 
 
 class RagWorkerThread(QThread):
@@ -67,92 +70,115 @@ class RagWorkerThread(QThread):
                 
             elif self.task == "ingest":
                 self.progress.emit("Starting document ingestion...")
+                print("[Worker] Starting ingest task")  # Debug
                 
                 docs = self.payload
                 total_docs = len(docs)
+                print(f"[Worker] Total documents to ingest: {total_docs}")  # Debug
                 
                 # Send initial ingestion request to start async task
                 self.progressUpdate.emit(0, total_docs, "Creating ingestion task...")
                 
-                response = requests.post(
-                    f"{self.baseUrl}/api/ingest",
-                    json={
-                        "documents": docs,
-                        "batch_size": 10  # Configurable batch size
-                    },
-                    timeout=10  # Short timeout for initial request
-                )
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    task_id = result.get("task_id")
+                try:
+                    response = requests.post(
+                        f"{self.baseUrl}/api/ingest",
+                        json={
+                            "documents": docs,
+                            "batch_size": 10  # Configurable batch size
+                        },
+                        timeout=30  # Increased timeout for initial request
+                    )
+                    print(f"[Worker] Ingest POST response: {response.status_code}")  # Debug
                     
-                    self.progress.emit(f"Task {task_id[:8]}... created")
-                    
-                    # Poll for task status
-                    poll_count = 0
-                    max_polls = 600  # Max 5 minutes (0.5s * 600)
-                    
-                    while poll_count < max_polls:
-                        try:
-                            status_response = requests.get(
-                                f"{self.baseUrl}/api/ingest/status/{task_id}",
-                                timeout=5
-                            )
-                            
-                            if status_response.status_code == 200:
-                                status = status_response.json()
-                                
-                                # Update progress
-                                progress = status.get("progress", 0)
-                                total = status.get("total", total_docs)
-                                current_item = status.get("current_item", "Processing...")
-                                percentage = status.get("progress_percentage", 0)
-                                
-                                self.progressUpdate.emit(
-                                    progress, total, 
-                                    f"{current_item} ({percentage:.1f}%)"
-                                )
-                                
-                                # Check task status
-                                task_status = status.get("status")
-                                
-                                if task_status == "completed":
-                                    final_result = status.get("result", {})
-                                    self.progressUpdate.emit(total, total, "Ingestion complete!")
-                                    self.finished.emit({
-                                        "task": "ingest",
-                                        "result": {
-                                            "ingestedChunks": final_result.get("total_chunks", 0),
-                                            "documentCount": final_result.get("processed_documents", 0),
-                                            "task_id": task_id
-                                        }
-                                    })
-                                    break
-                                    
-                                elif task_status == "failed":
-                                    error = status.get("error", "Unknown error")
-                                    self.error.emit(f"Ingestion failed: {error}")
-                                    break
-                                    
-                                elif task_status == "cancelled":
-                                    self.error.emit("Ingestion task was cancelled")
-                                    break
-                            
-                            # Small delay before next poll
-                            import time
-                            time.sleep(0.5)
-                            poll_count += 1
-                            
-                        except Exception as e:
-                            self.error.emit(f"Error checking task status: {e}")
-                            break
-                    
-                    if poll_count >= max_polls:
-                        self.error.emit("Ingestion task timeout - task may still be running")
+                    if response.status_code == 200:
+                        result = response.json()
+                        task_id = result.get("task_id")
+                        print(f"[Worker] Got task_id: {task_id}")  # Debug
                         
-                else:
-                    self.error.emit(f"Failed to start ingestion: {response.text}")
+                        self.progress.emit(f"Task {task_id[:8]}... created")
+                        
+                        # Poll for task status
+                        poll_count = 0
+                        max_polls = 600  # Max 10 minutes (1s * 600)
+                        
+                        while poll_count < max_polls:
+                            try:
+                                status_url = f"{self.baseUrl}/api/ingest/status/{task_id}"
+                                print(f"[Worker] Polling status: {status_url}")  # Debug
+                                
+                                # No timeout or very long timeout for status checks
+                                status_response = requests.get(status_url, timeout=60)  # 60 seconds timeout
+                                print(f"[Worker] Status response: {status_response.status_code}")  # Debug
+                                
+                                if status_response.status_code == 200:
+                                    status = status_response.json()
+                                    print(f"[Worker] Status data: {json.dumps(status, indent=2)}")  # Debug
+                                    
+                                    # Update progress
+                                    progress = status.get("progress", 0)
+                                    total = status.get("total", total_docs)
+                                    current_item = status.get("current_item", "Processing...")
+                                    percentage = status.get("progress_percentage", 0)
+                                    task_status = status.get("status")
+                                    
+                                    print(f"[Worker] Progress: {progress}/{total} ({percentage:.1f}%) - Status: {task_status}")  # Debug
+                                    
+                                    # Emit progress update
+                                    self.progressUpdate.emit(
+                                        progress, total, 
+                                        f"{current_item} ({percentage:.1f}%)"
+                                    )
+                                    
+                                    # Check task status
+                                    if task_status == "completed":
+                                        print("[Worker] Task completed!")  # Debug
+                                        final_result = status.get("result", {})
+                                        self.progressUpdate.emit(total, total, "Ingestion complete!")
+                                        self.finished.emit({
+                                            "task": "ingest",
+                                            "result": {
+                                                "ingestedChunks": final_result.get("total_chunks", 0),
+                                                "documentCount": final_result.get("processed_documents", 0),
+                                                "task_id": task_id
+                                            }
+                                        })
+                                        break
+                                        
+                                    elif task_status == "failed":
+                                        error = status.get("error", "Unknown error")
+                                        print(f"[Worker] Task failed: {error}")  # Debug
+                                        self.error.emit(f"Ingestion failed: {error}")
+                                        break
+                                        
+                                    elif task_status == "cancelled":
+                                        print("[Worker] Task cancelled")  # Debug
+                                        self.error.emit("Ingestion task was cancelled")
+                                        break
+                                else:
+                                    print(f"[Worker] Status check failed: {status_response.text}")  # Debug
+                                
+                                # Longer delay between polls to avoid overwhelming the server
+                                time.sleep(1.0)  # 1 second delay
+                                poll_count += 1
+                                
+                            except Exception as e:
+                                print(f"[Worker] Error checking task status: {e}")  # Debug
+                                self.error.emit(f"Error checking task status: {e}")
+                                break
+                        
+                        if poll_count >= max_polls:
+                            print(f"[Worker] Timeout after {poll_count} polls")  # Debug
+                            self.error.emit("Ingestion task timeout - task may still be running")
+                            
+                    else:
+                        print(f"[Worker] Failed to start ingestion: {response.text}")  # Debug
+                        self.error.emit(f"Failed to start ingestion: {response.text}")
+                        
+                except Exception as e:
+                    print(f"[Worker] Exception in ingest task: {e}")  # Debug
+                    import traceback
+                    print(traceback.format_exc())  # Debug
+                    self.error.emit(f"Ingestion error: {str(e)}")
                 
             elif self.task == "ask":
                 self.progress.emit("Getting answer...")
@@ -623,13 +649,19 @@ class MainWindow(QMainWindow):
             import requests
             import time
             
+            # Initialize variables with defaults to avoid UnboundLocalError
+            vector_count = 0
+            namespace = 'default'
+            store_type = 'unknown'
+            status = 'unknown'
+            
             # Retry logic for server initialization
             max_retries = 3
             for attempt in range(max_retries):
                 try:
                     response = requests.get(
                         f"{self.config.get_server_url()}/api/rag/stats",
-                        timeout=5
+                        timeout=10  # Increased timeout
                     )
                     
                     print(f"[VectorCount] API Response Status: {response.status_code}")
@@ -654,9 +686,17 @@ class MainWindow(QMainWindow):
                                 f"Total vectors in '{namespace}' namespace\n"
                                 f"Store type: {store_type}"
                             )
+                            self.vectorCountLabel.setStyleSheet("padding: 5px; color: #1a7f37;")  # Green
                         else:
                             self.vectorCountLabel.setText("🗃️ Vectors: 0")
-                            self.vectorCountLabel.setToolTip("No vectors in database")
+                            self.vectorCountLabel.setToolTip(
+                                f"No vectors in '{namespace}' namespace yet.\n"
+                                f"Store: {store_type}\n"
+                                f"Ingest documents to create vectors."
+                            )
+                            self.vectorCountLabel.setStyleSheet("padding: 5px; color: #cf222e;")  # Red
+                        
+                        self.logsWidget.debug(f"Vector count: {vector_count:,} in '{namespace}' ({store_type})")
                         break  # Success, exit retry loop
                         
                     elif response.status_code == 404:
@@ -681,6 +721,7 @@ class MainWindow(QMainWindow):
                     else:
                         self.vectorCountLabel.setText("🗃️ Vectors: Offline")
                         self.vectorCountLabel.setToolTip("Server is offline")
+                        
                 except requests.exceptions.Timeout:
                     print(f"[VectorCount] Timeout (attempt {attempt + 1}/{max_retries})")
                     if attempt < max_retries - 1:
@@ -689,35 +730,13 @@ class MainWindow(QMainWindow):
                     else:
                         self.vectorCountLabel.setText("🗃️ Vectors: Timeout")
                         self.vectorCountLabel.setToolTip("Server request timed out")
-                        f"Store: {store_type}\n"
-                        f"Status: {status}\n"
-                        f"Click to refresh"
-                    self.vectorCountLabel.setStyleSheet("padding: 5px; color: #1a7f37;")  # Green for success
-                else:
-                    self.vectorCountLabel.setText(f"🗃️ Vectors: 0")
-                    self.vectorCountLabel.setToolTip(
-                        f"No vectors in '{namespace}' namespace yet.\n"
-                        f"Store: {store_type}\n"
-                        f"Ingest documents to create vectors."
-                    )
-                    self.vectorCountLabel.setStyleSheet("padding: 5px; color: #cf222e;")  # Red for empty
-                    
-                self.logsWidget.debug(f"Vector count: {vector_count:,} in '{namespace}' ({store_type})")
-            else:
-                # Non-200 response
-                try:
-                    error_data = response.json()
-                    error_msg = error_data.get('detail', 'Unknown error')
-                    print(f"[VectorCount] API Error: {error_msg}")
-                except:
-                    error_msg = f"Status {response.status_code}"
-                
-                self.vectorCountLabel.setText(f"🗃️ Vectors: Error")
-                self.vectorCountLabel.setToolTip(f"Server error: {error_msg}")
-                self.vectorCountLabel.setStyleSheet("padding: 5px; color: #d1242f;")
-                self.logsWidget.warning(f"Vector count API error: {error_msg}")
-                
-        except requests.exceptions.Timeout:
+                        
+        except Exception as e:
+            print(f"[VectorCount] Unexpected error: {e}")
+            import traceback
+            traceback.print_exc()
+            self.vectorCountLabel.setText("🗃️ Vectors: Error")
+            self.vectorCountLabel.setToolTip(f"Error: {str(e)}")
             print("[VectorCount] Request timed out")
             self.vectorCountLabel.setText(f"🗃️ Vectors: --")
             self.vectorCountLabel.setToolTip("Request timed out. Server may be busy.")
@@ -747,6 +766,31 @@ class MainWindow(QMainWindow):
         # Simply update the vector count from the database
         self.updateVectorCount()
     
+    def onIngestionCompleted(self, result: dict):
+        """Handle completion of async ingestion"""
+        total_chunks = result.get("total_chunks", 0)
+        processed_docs = result.get("processed_documents", 0)
+        
+        QMessageBox.information(
+            self, "Ingestion Complete",
+            f"✅ Successfully processed {processed_docs} documents\n"
+            f"Generated {total_chunks} chunks"
+        )
+        
+        self.logsWidget.success(f"Ingestion completed: {processed_docs} docs, {total_chunks} chunks")
+        
+        # Update vector count
+        self.updateVectorCount()
+    
+    def onIngestionFailed(self, error: str):
+        """Handle ingestion failure"""
+        QMessageBox.critical(
+            self, "Ingestion Failed",
+            f"Failed to ingest documents:\n{error}"
+        )
+        
+        self.logsWidget.error(f"Ingestion failed: {error}")
+    
     def ingestSelectedDocuments(self, docs):
         """Ingest selected documents from advanced tab"""
         if not docs:
@@ -757,17 +801,23 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Server Offline", "Server is not available")
             return
         
+        # Use the new progress widget
+        progress_widget = IngestProgressWidget(self)
+        progress_widget.ingestionCompleted.connect(self.onIngestionCompleted)
+        progress_widget.ingestionFailed.connect(self.onIngestionFailed)
+        
         # Get batch settings from advanced tab
         batch_settings = self.docWidget.advancedTab.getBatchSettings()
+        batch_size = batch_settings.get('batch_size', 10)
         
-        # Show progress in advanced tab
-        self.docWidget.advancedTab.setProgress(0, len(docs), "Starting...")
+        # Start ingestion with progress tracking
+        task_id = progress_widget.start_ingestion(docs, batch_size=batch_size)
         
-        # Process documents with batch settings
-        self.worker.setTask("ingest", docs)
-        self.worker.start()
-        self.logsWidget.info(f"Starting selective ingestion of {len(docs)} documents")
-        self.logsWidget.info(f"Batch size: {batch_settings['batch_size']}, Delay: {batch_settings['delay']}s")
+        if task_id:
+            self.logsWidget.info(f"Started ingestion task: {task_id[:8]}...")
+            self.logsWidget.info(f"Processing {len(docs)} documents with batch size {batch_size}")
+        else:
+            self.logsWidget.error("Failed to start ingestion task")
     
     def reloadConfig(self):
         """Reload server configuration"""
@@ -778,8 +828,12 @@ class MainWindow(QMainWindow):
     
     def handleResult(self, data: Dict):
         """Handle worker thread results"""
+        print(f"[Main] handleResult called with data: {json.dumps(data, indent=2)}")  # Debug
+        
         task = data["task"]
         result = data["result"]
+        
+        print(f"[Main] Task: {task}, Result type: {type(result)}")  # Debug
         
         # Stop response timer if running
         if self.responseTimer.isActive():
@@ -809,8 +863,12 @@ class MainWindow(QMainWindow):
                 self.logsWidget.error("Server is offline")
             
         elif task == "ingest":
+            print(f"[Main] Processing ingest result: {result}")  # Debug
             chunks = result.get("ingestedChunks", 0)
             docs = result.get("documentCount", 0)
+            task_id = result.get("task_id", "")
+            
+            print(f"[Main] Chunks: {chunks}, Docs: {docs}, Task ID: {task_id}")  # Debug
             
             # Update progress to 100% then hide
             self.chatWidget.setIngestionProgress(docs, docs, "Complete!")
@@ -819,7 +877,8 @@ class MainWindow(QMainWindow):
             
             QMessageBox.information(
                 self, "Ingestion Complete",
-                f"✅ Successfully ingested {docs} documents into {chunks} chunks"
+                f"✅ Successfully ingested {docs} documents into {chunks} chunks\n"
+                f"Task ID: {task_id[:8]}..."
             )
             self.logsWidget.success(f"Ingested {docs} documents into {chunks} chunks")
             
@@ -935,7 +994,7 @@ class MainWindow(QMainWindow):
             <li>Log Viewer - System monitoring</li>
             </ul>
             
-            <p>© 2025 RAG System Development Team</p>"""
+            <p>© JDW</p>"""
         )
     
     def closeEvent(self, event):
