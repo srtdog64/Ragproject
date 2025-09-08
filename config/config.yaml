@@ -1,26 +1,17 @@
-# =================== RAG Configuration ===================
-
-# === Server Settings ===
 server:
   host: 0.0.0.0
   port: 7001
   reload: true
   log_level: info
-
-# === Database Settings ===
 store:
-  type: chroma                          # Vector store type (chroma, faiss, memory)
-  persist_directory: ./chroma_db        # Relative path to DB directory (will be relative to project root)
-  collection_name: rag_documents        # Collection/namespace name
-  
-# === Document Watching ===  
+  type: chroma
+  persist_directory: ./chroma_db
+  collection_name: rag_documents
 documents:
   watched_folders:
   - C:/Users/Pc/Desktop/스크립트 백업
-
-# === Chunking Strategy ===
 chunker:
-  default_strategy: adaptive             # adaptive, fixed, semantic, sentence, paragraph
+  default_strategy: adaptive
   default_params:
     maxTokens: 512
     windowSize: 1200
@@ -29,17 +20,13 @@ chunker:
     language: ko
     sentenceMinLen: 10
     paragraphMinLen: 49
-
-# === Embedding Model ===
 embedder:
   type: semantic
   model: multilingual-small
   dimension: 384
   cache_dir: null
-
-# === Language Model ===
 llm:
-  type: gemini                          # gemini, openai, claude
+  type: gemini
   model: gemini-2.5-flash
   temperature: 0.01
   max_tokens: 8192
@@ -62,18 +49,14 @@ llm:
     - claude-3-opus
     - claude-3-sonnet
     - claude-3-haiku
-
-# === Reranking ===
 reranker:
-  type: bm25                            # bm25, cross-encoder, simple
+  type: bm25
   model: cross-encoder/ms-marco-MiniLM-L-6-v2
   device: cpu
   k1: 1.2
   b: 0.75
   boost_recent: true
   boost_title_match: true
-
-# === RAG Pipeline ===
 pipeline:
   query_expansion:
     enabled: true
@@ -94,18 +77,12 @@ pipeline:
   parsing:
     enabled: true
     format: markdown-qa
-
-# === Policy Settings ===
 policy:
   defaulttopK: 20
   maxContextChars: 12000
-
-# === Ingestion ===
 ingester:
   max_parallel: 8
   batch_size: 100
-
-# === CORS Settings ===
 cors:
   allow_origins:
   - http://localhost:*
@@ -115,8 +92,6 @@ cors:
   - '*'
   allow_headers:
   - '*'
-
-# === Logging ===
 logging:
   level: INFO
   format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
