@@ -336,8 +336,34 @@ class ChatWidget(QWidget):
         # Determine role for ChatDisplay
         role = 'user' if sender == "You" else 'assistant'
         
+        # If it's an assistant message with metadata, append context info
+        display_message = message
+        if role == 'assistant' and metadata:
+            # Add metadata info at the end of the message
+            metadata_lines = []
+            
+            # Model info
+            if 'model' in metadata:
+                metadata_lines.append(f"Model: {metadata['model']}")
+            
+            # Context count
+            if 'ctxIds' in metadata and metadata['ctxIds']:
+                ctx_count = len(metadata['ctxIds'])
+                metadata_lines.append(f"Contexts: {ctx_count}")
+            
+            # Response time
+            if 'latencyMs' in metadata:
+                time_str = f"{metadata['latencyMs']}ms"
+                if metadata['latencyMs'] > 1000:
+                    time_str = f"{metadata['latencyMs']/1000:.1f}s"
+                metadata_lines.append(f"Time: {time_str}")
+            
+            # Append metadata to message if we have any
+            if metadata_lines:
+                display_message = f"{message}\n\n---\n*{' | '.join(metadata_lines)}*"
+        
         # Add message using ChatDisplay's enhanced rendering
-        self.chatDisplay.add_message(role, message)
+        self.chatDisplay.add_message(role, display_message)
         
         # Auto-scroll to bottom
         if self.config.get("chat.auto_scroll", True):

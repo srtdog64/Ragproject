@@ -99,7 +99,7 @@ class RagWorkerThread(QThread):
                         
                         # Poll for task status
                         poll_count = 0
-                        max_polls = 600  # Max 10 minutes (1s * 600)
+                        max_polls = 6000  # Max 5 minutes (1s * 6000)
                         
                         while poll_count < max_polls:
                             try:

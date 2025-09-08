@@ -23,12 +23,21 @@ class ConfigManager:
             return yaml.safe_load(f) or {}
     
     def save_config(self, path: str, config: Dict):
-        """Save configuration to YAML file"""
+        """Save configuration to YAML file with proper formatting"""
         config_path = Path(path)
         config_path.parent.mkdir(parents=True, exist_ok=True)
         
+        # Use custom YAML formatting for better structure
         with open(config_path, 'w', encoding='utf-8') as f:
-            yaml.dump(config, f, default_flow_style=False, allow_unicode=True)
+            yaml.dump(
+                config, 
+                f, 
+                default_flow_style=False,  # Use block style
+                allow_unicode=True,         # Allow Korean and other unicode
+                sort_keys=False,            # Preserve key order
+                indent=2,                   # Use 2-space indentation
+                width=120                   # Line width for wrapping
+            )
     
     def get(self, key: str, default=None, config_type='app'):
         """Get configuration value by dot notation"""
