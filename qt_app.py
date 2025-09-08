@@ -659,7 +659,6 @@ class MainWindow(QMainWindow):
                         f"Store: {store_type}\n"
                         f"Status: {status}\n"
                         f"Click to refresh"
-                    )
                     self.vectorCountLabel.setStyleSheet("padding: 5px; color: #1a7f37;")  # Green for success
                 else:
                     self.vectorCountLabel.setText(f"🗃️ Vectors: 0")
