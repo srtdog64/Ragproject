@@ -172,6 +172,7 @@ def build_pipeline(container: Container) -> Tuple:
     
     # Import necessary steps
     from rag.pipeline.steps import (
+        QueryExpansionStep,
         RetrieveStep,
         RerankStep,
         ContextCompressionStep,
@@ -186,11 +187,16 @@ def build_pipeline(container: Container) -> Tuple:
     # Get policy for configuration
     policy = container.resolve("policy")
     
+    # Add query expansion step (important for retrieval!)
+    pipeline_builder.add(QueryExpansionStep(expansions=0))  # 0 means just use original query
+    logger.info("Added QueryExpansionStep to pipeline")
+    
     # Add retrieve step
     pipeline_builder.add(RetrieveStep(
         retriever=container.resolve("retriever"),
         policy=policy
     ))
+    logger.info("Added RetrieveStep to pipeline")
     
     # Add reranker if available
     try:

@@ -125,13 +125,34 @@ class OptionsWidget(QWidget):
     def saveAllSettings(self):
         """Save all settings across all tabs"""
         try:
+            # Apply settings from each tab before saving
+            if hasattr(self, 'variables_tab'):
+                print("[Options] Applying variables before save")  # Debug
+                self.variables_tab.applyVariables()
+            
+            if hasattr(self, 'server_tab'):
+                print("[Options] Applying server settings")  # Debug
+                # Get values from server tab if it has an apply method
+                if hasattr(self.server_tab, 'applySettings'):
+                    self.server_tab.applySettings()
+            
+            if hasattr(self, 'llm_tab'):
+                print("[Options] Applying LLM settings")  # Debug
+                # Get current model selection
+                if hasattr(self.llm_tab, 'applySettings'):
+                    self.llm_tab.applySettings()
+            
             # Save config files
             self.config.save_config("config/config.yaml", self.config.server_config)
             self.config.save_config("config/qt_app_config.yaml", self.config.app_config)
             
+            print(f"[Options] Saved server config: {self.config.server_config}")  # Debug
+            
             QMessageBox.information(self, "Success", 
                                   "All settings saved successfully!")
         except Exception as e:
+            import traceback
+            print(f"[Options] Save error: {traceback.format_exc()}")  # Debug
             QMessageBox.critical(self, "Error", 
                                f"Failed to save settings: {e}")
     

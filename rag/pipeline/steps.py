@@ -34,13 +34,27 @@ class RetrieveStep:
     async def run(self, ctx: RagContext) -> Result[RagContext]:
         logger.info(f"RetrieveStep: Processing query '{ctx.question[:50]}...'")
         logger.info(f"RetrieveStep: Expanded queries: {ctx.expandedQueries}")
+        logger.info(f"RetrieveStep: k value: {ctx.k}")
+        
+        if not ctx.expandedQueries:
+            logger.error("RetrieveStep: No expanded queries! Check QueryExpansionStep")
+            return Result.ok(ctx.withRetrieved([]))
         
         allRetrieved: List[Retrieved] = []
         for q in ctx.expandedQueries:
-            logger.debug(f"  Retrieving for query: {q}")
-            items = await self._retriever.retrieve(q, ctx.k or self._policy.getDefaulttopK())
-            logger.info(f"  Retrieved {len(items)} items for query: {q}")
-            allRetrieved.extend(items)
+            logger.info(f"  Retrieving for query: '{q}'")
+            try:
+                k_value = ctx.k or self._policy.getDefaultTopK()
+                logger.info(f"  Using k={k_value} for retrieval")
+                items = await self._retriever.retrieve(q, k_value)
+                logger.info(f"  Retrieved {len(items)} items for query: {q}")
+                if items:
+                    logger.debug(f"  First item score: {items[0].score if items else 'N/A'}")
+                allRetrieved.extend(items)
+            except Exception as e:
+                logger.error(f"  Error during retrieval: {e}")
+                import traceback
+                logger.error(traceback.format_exc())
         
         logger.info(f"RetrieveStep: Total retrieved before dedup: {len(allRetrieved)}")
         

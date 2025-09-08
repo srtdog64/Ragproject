@@ -744,8 +744,10 @@ class MainWindow(QMainWindow):
                 self.serverStatusLabel.setStyleSheet("color: green; padding: 5px;")
                 self.logsWidget.success("Server is online")
                 
-                # Update vector count when server comes online
-                self.updateVectorCount()
+                # Only update vector count on initial connection, not every health check
+                if not hasattr(self, '_initial_vector_count_done'):
+                    self.updateVectorCount()
+                    self._initial_vector_count_done = True
                 
                 # Also fetch current strategy when server is confirmed online
                 try:
