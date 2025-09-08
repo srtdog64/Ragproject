@@ -66,60 +66,93 @@ class RagWorkerThread(QThread):
                 self.finished.emit({"task": "health", "result": response.json()})
                 
             elif self.task == "ingest":
-                self.progress.emit("Ingesting documents...")
+                self.progress.emit("Starting document ingestion...")
                 
-                # Batch processing for large document sets
-                batch_size = 10
                 docs = self.payload
                 total_docs = len(docs)
                 
-                if total_docs > batch_size:
-                    # Process in batches
-                    ingested_chunks = 0
-                    processed_docs = 0
+                # Send initial ingestion request to start async task
+                self.progressUpdate.emit(0, total_docs, "Creating ingestion task...")
+                
+                response = requests.post(
+                    f"{self.baseUrl}/api/ingest",
+                    json={
+                        "documents": docs,
+                        "batch_size": 10  # Configurable batch size
+                    },
+                    timeout=10  # Short timeout for initial request
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    task_id = result.get("task_id")
                     
-                    for i in range(0, total_docs, batch_size):
-                        batch = docs[i:i + batch_size]
-                        current_batch_size = len(batch)
-                        
-                        # Update progress before processing
-                        self.progressUpdate.emit(processed_docs, total_docs, 
-                                               f"Processing {processed_docs}/{total_docs} documents...")
-                        
-                        response = requests.post(
-                            f"{self.baseUrl}/api/ingest",
-                            json={"documents": batch},
-                            timeout=self.timeout
-                        )
-                        
-                        if response.status_code == 200:
-                            result = response.json()
-                            ingested_chunks += result.get("ingestedChunks", 0)
-                            processed_docs += current_batch_size
+                    self.progress.emit(f"Task {task_id[:8]}... created")
+                    
+                    # Poll for task status
+                    poll_count = 0
+                    max_polls = 600  # Max 5 minutes (0.5s * 600)
+                    
+                    while poll_count < max_polls:
+                        try:
+                            status_response = requests.get(
+                                f"{self.baseUrl}/api/ingest/status/{task_id}",
+                                timeout=5
+                            )
                             
-                            # Update progress after processing
-                            self.progressUpdate.emit(processed_docs, total_docs,
-                                                   f"Processed {processed_docs}/{total_docs} documents")
+                            if status_response.status_code == 200:
+                                status = status_response.json()
+                                
+                                # Update progress
+                                progress = status.get("progress", 0)
+                                total = status.get("total", total_docs)
+                                current_item = status.get("current_item", "Processing...")
+                                percentage = status.get("progress_percentage", 0)
+                                
+                                self.progressUpdate.emit(
+                                    progress, total, 
+                                    f"{current_item} ({percentage:.1f}%)"
+                                )
+                                
+                                # Check task status
+                                task_status = status.get("status")
+                                
+                                if task_status == "completed":
+                                    final_result = status.get("result", {})
+                                    self.progressUpdate.emit(total, total, "Ingestion complete!")
+                                    self.finished.emit({
+                                        "task": "ingest",
+                                        "result": {
+                                            "ingestedChunks": final_result.get("total_chunks", 0),
+                                            "documentCount": final_result.get("processed_documents", 0),
+                                            "task_id": task_id
+                                        }
+                                    })
+                                    break
+                                    
+                                elif task_status == "failed":
+                                    error = status.get("error", "Unknown error")
+                                    self.error.emit(f"Ingestion failed: {error}")
+                                    break
+                                    
+                                elif task_status == "cancelled":
+                                    self.error.emit("Ingestion task was cancelled")
+                                    break
+                            
+                            # Small delay before next poll
+                            import time
+                            time.sleep(0.5)
+                            poll_count += 1
+                            
+                        except Exception as e:
+                            self.error.emit(f"Error checking task status: {e}")
+                            break
                     
-                    self.finished.emit({
-                        "task": "ingest", 
-                        "result": {
-                            "ingestedChunks": ingested_chunks,
-                            "documentCount": total_docs
-                        }
-                    })
+                    if poll_count >= max_polls:
+                        self.error.emit("Ingestion task timeout - task may still be running")
+                        
                 else:
-                    # Small batch, process all at once
-                    self.progressUpdate.emit(0, total_docs, "Processing documents...")
-                    
-                    response = requests.post(
-                        f"{self.baseUrl}/api/ingest",
-                        json={"documents": docs},
-                        timeout=self.timeout
-                    )
-                    
-                    self.progressUpdate.emit(total_docs, total_docs, "Complete!")
-                    self.finished.emit({"task": "ingest", "result": response.json()})
+                    self.error.emit(f"Failed to start ingestion: {response.text}")
                 
             elif self.task == "ask":
                 self.progress.emit("Getting answer...")

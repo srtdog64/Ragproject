@@ -24,6 +24,9 @@ logger = logging.getLogger(__name__)
 from server.routers import health, rag, ingest, ask, namespaces, config
 from rag.chunkers.api_router import router as chunkers_router
 
+# Import task manager
+from server.tasks import get_task_manager
+
 # Import dependencies
 from config_loader import config as app_config
 from server.dependencies import (
@@ -69,6 +72,10 @@ async def lifespan(app: FastAPI):
     logger.info(f"Working directory: {os.getcwd()}")
     logger.info(f"Script location: {os.path.abspath(__file__)}")
     
+    # Initialize task manager
+    task_manager = get_task_manager()
+    logger.info("Task manager initialized")
+    
     # Initialize components
     try:
         _container, _ingester, _pipeline_builder = initialize_components()
@@ -77,6 +84,7 @@ async def lifespan(app: FastAPI):
         # Set components for routers
         rag.set_container(_container)
         ingest.set_ingester(_ingester)
+        ingest.set_task_manager(task_manager)  # Set task manager for async ingestion
         ask.set_pipeline_builder(_pipeline_builder)
         ask.set_container(_container)
         namespaces.set_container(_container)
