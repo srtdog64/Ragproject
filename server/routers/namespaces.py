@@ -21,6 +21,9 @@ class SwitchNamespaceRequest(BaseModel):
     """Request to switch to a different namespace"""
     model_name: str
     model_dim: Optional[int] = None
+    
+    class Config:
+        protected_namespaces = ()  # Disable protected namespace check
 
 class SwitchNamespaceResponse(BaseModel):
     """Response for namespace switch"""
