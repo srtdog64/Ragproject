@@ -1,88 +1,79 @@
 server:
   host: 0.0.0.0
   port: 7001
-  reload: true
-  log_level: info
+  reload: false
+
 store:
   type: chroma
-  persist_directory: ./chroma_db
   collection_name: rag_documents
-documents:
-  watched_folders:
-  - C:/Users/Pc/Desktop/스크립트 백업
+  persist_directory: ./chroma_db
+  batch_size: 100
+
+embedder:
+  type: huggingface
+  model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+  device: cpu
+  batch_size: 32
+
 chunker:
   default_strategy: adaptive
-  default_params:
-    maxTokens: 512
-    windowSize: 1200
-    overlap: 200
-    semanticThreshold: 0.82
-    language: ko
-    sentenceMinLen: 10
-    paragraphMinLen: 49
-embedder:
-  type: semantic
-  model: multilingual-small
-  dimension: 384
-  cache_dir: null
+  strategies:
+    adaptive:
+      min_length: 100
+      max_length: 500
+      overlap: 50
+      separators:
+      - "\n\n"
+      - "\n"
+      - ". "
+      - "! "
+      - "? "
+    fixed:
+      chunk_size: 200
+      overlap: 20
+    semantic:
+      min_chunk_size: 100
+      max_chunk_size: 500
+      overlap: 50
+    sentence:
+      sentences_per_chunk: 3
+      overlap_sentences: 1
+    markdown:
+      max_chunk_size: 500
+      respect_headers: true
+
 llm:
-  type: gemini
+  provider: gemini
   model: gemini-2.5-flash
-  temperature: 0.01
-  max_tokens: 8192
-  available_models:
-    gemini:
-    - gemini-2.5-flash
-    - gemini-2.5-pro
-    - gemini-2.0-flash
-    - gemini-2.0-pro
-    - gemini-1.5-flash
-    - gemini-1.5-pro
-    openai:
-    - gpt-4o
-    - gpt-4o-mini
-    - gpt-4-turbo
-    - gpt-4
-    - gpt-3.5-turbo
-    claude:
-    - claude-3-5-sonnet
-    - claude-3-opus
-    - claude-3-sonnet
-    - claude-3-haiku
+  api_key: ${GEMINI_API_KEY}
+  temperature: 0.7
+  max_tokens: 4000
+  timeout: 30
+
 reranker:
   type: bm25
-  model: cross-encoder/ms-marco-MiniLM-L-6-v2
-  device: cpu
+  enabled: true
   k1: 1.2
   b: 0.75
-  boost_recent: true
-  boost_title_match: true
+
+# Simplified retrieval settings
+retrieval:
+  # Number of documents to retrieve from vector store
+  retrieve_k: 30  # How many docs to get from vector store
+  # Number of documents after reranking (final context)
+  rerank_k: 10     # How many docs to keep after reranking
+  # Maximum context size in characters
+  max_context_chars: 12000
+
 pipeline:
   query_expansion:
-    enabled: true
+    enabled: false  # Set to false for simpler queries
     expansions: 0
-  retrieval:
-    enabled: true
-    topK: null
-  reranking:
-    enabled: true
-    topK: null
-  context_compression:
-    enabled: true
-  prompt:
-    system_hint: You are a helpful RAG assistant. Answer based on the context provided.
-    system_message: Be precise and helpful.
-  generation:
-    enabled: true
-  parsing:
-    enabled: true
-    format: markdown-qa
-policy:
-  defaulttopK: 20
-  maxContextChars: 12000
+  
 ingester:
   max_parallel: 8
   batch_size: 100
+
 cors:
   allow_origins:
   - http://localhost:*
@@ -92,6 +83,7 @@ cors:
   - '*'
   allow_headers:
   - '*'
+
 logging:
   level: INFO
   format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

@@ -147,15 +147,16 @@ def build_container() -> Container:
     c.register("reranker", lambda _: reranker)
     
     # Register policy
-    pipeline_config = config.get_section('pipeline')
-    # Policy only accepts maxContextChars and defaulttopK
-    policy_params = {}
-    if pipeline_config:
-        if 'max_context_chars' in pipeline_config:
-            policy_params['maxContextChars'] = pipeline_config['max_context_chars']
-        if 'default_top_k' in pipeline_config:
-            policy_params['defaulttopK'] = pipeline_config['default_top_k']
-    policy = Policy(**policy_params) if policy_params else Policy()
+    retrieval_config = config.get_section('retrieval')
+    # Create policy with retrieval settings
+    if retrieval_config:
+        policy = Policy(
+            maxContextChars=retrieval_config.get('max_context_chars', 12000),
+            retrieveK=retrieval_config.get('retrieve_k', 20),
+            rerankK=retrieval_config.get('rerank_k', 5)
+        )
+    else:
+        policy = Policy()  # Use defaults
     c.register("policy", lambda _: policy)
     
     return c
@@ -202,11 +203,11 @@ def build_pipeline(container: Container) -> Tuple:
     try:
         reranker = container.resolve("reranker")
         if reranker is not None:
-            # Get topK from config or use default
-            reranker_config = config.get_section('reranker')
-            top_k = reranker_config.get('top_k', 5) if reranker_config else 5
-            pipeline_builder.add(RerankStep(reranker=reranker, topK=top_k))
-            logger.info(f"Added RerankStep to pipeline with topK={top_k}")
+            # Get rerankK from config (how many to keep after reranking)
+            retrieval_config = config.get_section('retrieval')
+            rerank_k = retrieval_config.get('rerank_k', 5) if retrieval_config else 5
+            pipeline_builder.add(RerankStep(reranker=reranker, topK=rerank_k))
+            logger.info(f"Added RerankStep to pipeline with topK={rerank_k}")
     except KeyError:
         logger.info("No reranker configured, skipping RerankStep")
     

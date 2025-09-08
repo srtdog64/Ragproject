@@ -789,7 +789,9 @@ class MainWindow(QMainWindow):
             metadata = {
                 "ctxIds": result.get("ctxIds", []),
                 "latencyMs": result.get("latencyMs", 0),
-                "model": f"{self.config.get_current_provider()}: {self.config.get_current_model()}"
+                "model": f"{self.config.get_current_provider()}: {self.config.get_current_model()}",
+                "retrievedCount": result.get("retrievedCount", 0),
+                "rerankedCount": result.get("rerankedCount", 0)
             }
             self.chatWidget.addMessage("Assistant", answer, metadata)
             self.logsWidget.info(f"Answer generated in {metadata['latencyMs']}ms")

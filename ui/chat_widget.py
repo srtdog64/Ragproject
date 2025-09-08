@@ -81,23 +81,31 @@ class ChatWidget(QWidget):
         
         topToolbar.addWidget(QLabel("  |  "))
         
-        # topKs setting with better labeling
-        contextLabel = QLabel("topKs:")
+        # topK setting with better labeling
+        contextLabel = QLabel("Retrieve:")
         contextLabel.setToolTip(
-            "Number of document chunks to include as context.\n"
-            "Higher values = more context but slower responses."
+            "Number of documents to retrieve from vector store.\n"
+            "These will be reranked to select the best context."
         )
         topToolbar.addWidget(contextLabel)
         
         self.topKSpin = QSpinBox()
         self.topKSpin.setRange(1, 100)  # Increased max from 20 to 100
-        self.topKSpin.setValue(self.config.get("ui.defaults.top_k", 10))  # Default to 10
+        # Get default from server config's retrieval.retrieve_k
+        default_topk = 20
+        try:
+            server_config = self.config._load_config("config/config.yaml")
+            if 'retrieval' in server_config and 'retrieve_k' in server_config['retrieval']:
+                default_topk = server_config['retrieval']['retrieve_k']
+        except:
+            pass
+        self.topKSpin.setValue(default_topk)  # Use retrieval.retrieve_k
         self.topKSpin.setToolTip(
-            "How many document chunks to retrieve:\n"
-            "• 1-5: Quick facts\n"
-            "• 5-20: Standard (recommended)\n"
-            "• 20-50: Complex analysis\n"
-            "• 50+: Comprehensive research"
+            "How many documents to retrieve from vector store:\n"
+            "• 5-10: Quick facts\n"
+            "• 10-20: Standard (recommended)\n"
+            "• 20-50: Comprehensive analysis\n"
+            "• 50+: Exhaustive research"
         )
         self.topKSpin.valueChanged.connect(self.updateContextLabel)
         topToolbar.addWidget(self.topKSpin)
@@ -346,10 +354,19 @@ class ChatWidget(QWidget):
             if 'model' in metadata:
                 metadata_lines.append(f"Model: {metadata['model']}")
             
-            # Context count
+            # Context count - show both retrieved and reranked if available
+            if 'retrievedCount' in metadata and metadata['retrievedCount'] > 0:
+                retrieved = metadata['retrievedCount']
+                metadata_lines.append(f"Retrieved: {retrieved}")
+            
+            if 'rerankedCount' in metadata and metadata['rerankedCount'] > 0:
+                reranked = metadata['rerankedCount']
+                metadata_lines.append(f"Reranked: {reranked}")
+            
+            # Always show final context count if ctxIds exist
             if 'ctxIds' in metadata and metadata['ctxIds']:
                 ctx_count = len(metadata['ctxIds'])
-                metadata_lines.append(f"Contexts: {ctx_count}")
+                metadata_lines.append(f"Context Used: {ctx_count}")
             
             # Response time
             if 'latencyMs' in metadata:

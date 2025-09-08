@@ -44,7 +44,8 @@ class RetrieveStep:
         for q in ctx.expandedQueries:
             logger.info(f"  Retrieving for query: '{q}'")
             try:
-                k_value = ctx.k or self._policy.getDefaultTopK()
+                # Use retrieveK from policy (how many to get from vector store)
+                k_value = ctx.k or self._policy.getRetrieveK()
                 logger.info(f"  Using k={k_value} for retrieval")
                 items = await self._retriever.retrieve(q, k_value)
                 logger.info(f"  Retrieved {len(items)} items for query: {q}")

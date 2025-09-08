@@ -29,6 +29,8 @@ class AskResponse(BaseModel):
     requestId: str
     latencyMs: int
     status: str = "success"
+    retrievedCount: int = 0  # Number of documents retrieved from vector store
+    rerankedCount: int = 0   # Number of documents after reranking
 
 # Global references
 _pipeline_builder = None
@@ -147,11 +149,50 @@ async def ask_question(body: AskRequest) -> AskResponse:
         logger.debug(f"[ASK] Raw answer type: {type(answer)}")
         logger.debug(f"[ASK] Raw answer: {str(answer)[:200]}...")
         
-        # Extract context IDs from retrieved chunks
+        # Initialize counts
+        retrieved_count = 0
+        reranked_count = 0
         ctx_ids = []
-        if hasattr(ctx, 'retrieved') and ctx.retrieved:
-            ctx_ids = [chunk.chunk.id for chunk in ctx.retrieved[:5]]  # Top 5 context IDs
-            logger.debug(f"[ASK] Context IDs: {ctx_ids}")
+        
+        # Get rerank_k limit from config (this is the final context size)
+        from config_loader import config as app_config
+        retrieval_config = app_config.get_section('retrieval')
+        rerank_k = retrieval_config.get('rerank_k', 5) if retrieval_config else 5
+        
+        # First check if we have metadata from parsed answer (e.g., from a parser that adds metadata)
+        if hasattr(answer, 'metadata') and answer.metadata:
+            ctx_ids = answer.metadata.get('ctxIds', [])
+            # Apply limit
+            ctx_ids = ctx_ids[:rerank_k]
+            
+            # If we got ctxIds from metadata, assume they're from reranked
+            # Count based on what's available in the context
+            if hasattr(ctx, 'retrieved') and ctx.retrieved:
+                retrieved_count = len(ctx.retrieved)
+            if hasattr(ctx, 'reranked') and ctx.reranked:
+                reranked_count = len(ctx.reranked)
+            else:
+                # If no reranked, the ctxIds are the final context count
+                reranked_count = len(ctx_ids)
+            
+            logger.debug(f"[ASK] Got {len(ctx_ids)} context IDs from answer.metadata")
+        
+        # If not available from metadata, get from context
+        if not ctx_ids:
+            # Count documents
+            if hasattr(ctx, 'retrieved') and ctx.retrieved:
+                retrieved_count = len(ctx.retrieved)
+            if hasattr(ctx, 'reranked') and ctx.reranked:
+                reranked_count = len(ctx.reranked)
+                ctx_ids = [chunk.chunk.id for chunk in ctx.reranked[:rerank_k]]
+                logger.debug(f"[ASK] Got {len(ctx_ids)} context IDs from ctx.reranked")
+            elif hasattr(ctx, 'retrieved') and ctx.retrieved:
+                # No reranking, use retrieved directly
+                ctx_ids = [chunk.chunk.id for chunk in ctx.retrieved[:rerank_k]]
+                reranked_count = len(ctx_ids)  # Final context is what we're showing
+                logger.debug(f"[ASK] Got {len(ctx_ids)} context IDs from ctx.retrieved")
+        
+        logger.info(f"[ASK] Retrieved: {retrieved_count}, Reranked: {reranked_count}, Context IDs: {len(ctx_ids)}")
         
         # Calculate latency
         latency_ms = int((time.time() - start_time) * 1000)
@@ -181,7 +222,9 @@ async def ask_question(body: AskRequest) -> AskResponse:
             ctxIds=ctx_ids,
             requestId=request_id,
             latencyMs=latency_ms,
-            status="success"
+            status="success",
+            retrievedCount=retrieved_count,
+            rerankedCount=reranked_count
         )
         
     except HTTPException:

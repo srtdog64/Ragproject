@@ -31,3 +31,6 @@ ui:
     height: 900
     title: RAG System - Qt6 Interface
     width: 1400
+  font_size: 10
+  code_font_size: 10
+  auto_scroll: true
