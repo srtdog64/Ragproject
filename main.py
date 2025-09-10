@@ -378,9 +378,9 @@ Python: """ + sys.version.split()[0]
     # ASCII Art Banner
     print(f"""
     ╔═══════════════════════════════════════╗
-    ║     RAG System Launcher v2.0         ║
+    ║     RAG System Launcher v2.0          ║
     ║   Retrieval-Augmented Generation      ║
-    ║        Platform: {platform.system():20} ║
+    ║       Platform: {platform.system():20} ║
     ╚═══════════════════════════════════════╝
     """)
     
