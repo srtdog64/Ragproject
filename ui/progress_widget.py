@@ -31,7 +31,7 @@ class AsyncProgressDialog(QDialog):
         """Setup the progress dialog UI"""
         self.setWindowTitle("Processing...")
         self.setModal(True)
-        self.setMinimumWidth(500)
+        self.setMinimumWidth(400)  # Reduced from 500
         
         layout = QVBoxLayout()
         

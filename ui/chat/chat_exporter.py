@@ -19,8 +19,8 @@ class ChatExportDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Export Chat History")
         self.setModal(True)
-        self.setMinimumWidth(500)
-        self.setMinimumHeight(400)
+        self.setMinimumWidth(400)   # Reduced from 500
+        self.setMinimumHeight(300)  # Reduced from 400
         self.initUI()
         
     def initUI(self):

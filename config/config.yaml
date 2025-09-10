@@ -2,19 +2,16 @@ server:
   host: localhost
   port: 7001
   reload: false
-
 store:
   type: chroma
   collection_name: rag_documents
   persist_directory: ./chroma_db
   batch_size: 100
-
 embedder:
   type: huggingface
   model: sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
   device: cpu
   batch_size: 32
-
 chunker:
   default_strategy: adaptive
   strategies:
@@ -23,11 +20,16 @@ chunker:
       max_length: 500
       overlap: 50
       separators:
-      - "\n\n"
-      - "\n"
-      - ". "
-      - "! "
-      - "? "
+      - '
+
+
+        '
+      - '
+
+        '
+      - '. '
+      - '! '
+      - '? '
     fixed:
       chunk_size: 200
       overlap: 20
@@ -41,7 +43,6 @@ chunker:
     markdown:
       max_chunk_size: 500
       respect_headers: true
-
 llm:
   provider: gemini
   model: gemini-2.5-flash
@@ -74,27 +75,22 @@ llm:
     - claude-3-haiku
     - claude-2.1
     - claude-2.0
-
 reranker:
   type: bm25
   enabled: true
   k1: 1.2
   b: 0.75
-
 retrieval:
   retrieve_k: 30
   rerank_k: 10
   max_context_chars: 12000
-
 pipeline:
   query_expansion:
     enabled: false
     expansions: 0
-  
 ingester:
   max_parallel: 8
   batch_size: 100
-
 cors:
   allow_origins:
   - http://localhost:*
@@ -104,7 +100,6 @@ cors:
   - '*'
   allow_headers:
   - '*'
-
 logging:
   level: INFO
   format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

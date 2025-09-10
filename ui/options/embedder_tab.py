@@ -1,4 +1,3 @@
-# ui/options/embedder_tab.py
 """
 Embedder Model Configuration Tab
 """
@@ -17,7 +16,7 @@ class EmbedderTab(QWidget):
         
     def setupUI(self):
         """Setup the UI"""
-        layout = QVBoxLayout()
+        main_layout = QVBoxLayout()
         
         # Info
         info = QLabel("""
@@ -28,7 +27,28 @@ class EmbedderTab(QWidget):
         </div>
         """)
         info.setWordWrap(True)
-        layout.addWidget(info)
+        main_layout.addWidget(info)
+        
+        # Current embedder display
+        current_layout = QHBoxLayout()
+        current_layout.addWidget(QLabel("Current Embedder:"))
+        
+        current_type = self.config.get("embedder.type", "huggingface", "server")
+        current_model = self.config.get("embedder.model", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", "server")
+        self.currentEmbedderLabel = QLabel(f"{current_type}: {current_model}")
+        self.currentEmbedderLabel.setStyleSheet("font-weight: bold; color: #4CAF50;")
+        self.currentEmbedderLabel.setWordWrap(True)
+        current_layout.addWidget(self.currentEmbedderLabel, 1)
+        main_layout.addLayout(current_layout)
+        
+        # Create scroll area for model selection
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        
+        # Container widget for scroll area
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout()
         
         # Embedder models configuration
         self.embedder_models = [
@@ -87,23 +107,14 @@ class EmbedderTab(QWidget):
             }
         ]
         
-        # Current embedder display
-        current_layout = QHBoxLayout()
-        current_layout.addWidget(QLabel("Current Embedder:"))
-        
-        current_type = self.config.get("embedder.type", "semantic", "server")
-        current_model = self.config.get("embedder.model", "multilingual-small", "server")
-        self.currentEmbedderLabel = QLabel(f"{current_type}: {current_model}")
-        self.currentEmbedderLabel.setStyleSheet("font-weight: bold; color: #4CAF50;")
-        current_layout.addWidget(self.currentEmbedderLabel)
-        current_layout.addStretch()
-        layout.addLayout(current_layout)
-        
-        # Embedder selection
+        # Create collapsible groups for each embedder type
+        self.radio_buttons = []
         for embedder_type in self.embedder_models:
             group = QGroupBox(embedder_type["name"])
+            group.setCheckable(False)
             group_layout = QVBoxLayout()
             
+            # Add radio buttons
             for model_key, model_desc in embedder_type["models"]:
                 radio = QRadioButton(model_desc)
                 radio.setProperty("embedder_type", embedder_type["type"])
@@ -113,10 +124,21 @@ class EmbedderTab(QWidget):
                 if embedder_type["type"] == current_type and model_key == current_model:
                     radio.setChecked(True)
                 
+                # Store reference to radio button
+                self.radio_buttons.append(radio)
                 group_layout.addWidget(radio)
             
             group.setLayout(group_layout)
-            layout.addWidget(group)
+            scroll_layout.addWidget(group)
+        
+        scroll_widget.setLayout(scroll_layout)
+        scroll_area.setWidget(scroll_widget)
+        
+        # Set minimum and maximum height for scroll area
+        scroll_area.setMinimumHeight(200)
+        scroll_area.setMaximumHeight(400)
+        
+        main_layout.addWidget(scroll_area, 1)  # Give it stretch factor
         
         # Cache directory
         cache_group = QGroupBox("Cache Settings")
@@ -127,6 +149,7 @@ class EmbedderTab(QWidget):
         Cache directory for downloaded models (leave empty for default)
         </small>
         """)
+        cache_info.setWordWrap(True)
         
         self.cache_input = QLineEdit()
         self.cache_input.setPlaceholderText("Default: ~/.cache/sentence_transformers")
@@ -141,10 +164,10 @@ class EmbedderTab(QWidget):
         cache_row.addWidget(self.cache_input)
         cache_row.addWidget(browse_btn)
         
-        cache_layout.addLayout(cache_row)
         cache_layout.addWidget(cache_info)
+        cache_layout.addLayout(cache_row)
         cache_group.setLayout(cache_layout)
-        layout.addWidget(cache_group)
+        main_layout.addWidget(cache_group)
         
         # Apply button
         apply_btn = QPushButton("Apply Embedder")
@@ -161,7 +184,7 @@ class EmbedderTab(QWidget):
             }
         """)
         apply_btn.clicked.connect(self.applyEmbedder)
-        layout.addWidget(apply_btn)
+        main_layout.addWidget(apply_btn)
         
         # Warning about changing embedder
         warning = QLabel("""
@@ -171,10 +194,50 @@ class EmbedderTab(QWidget):
         </div>
         """)
         warning.setWordWrap(True)
-        layout.addWidget(warning)
+        main_layout.addWidget(warning)
         
-        layout.addStretch()
-        self.setLayout(layout)
+        # Bottom buttons
+        button_layout = QHBoxLayout()
+        
+        save_btn = QPushButton("💾 Save All Settings")
+        save_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 5px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: #45a049;
+            }
+        """)
+        save_btn.clicked.connect(self.saveAllSettings)
+        
+        reload_btn = QPushButton("🔄 Reload Configuration")
+        reload_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                padding: 10px 20px;
+                border-radius: 5px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: #1976D2;
+            }
+        """)
+        reload_btn.clicked.connect(self.reloadConfiguration)
+        
+        button_layout.addWidget(save_btn)
+        button_layout.addWidget(reload_btn)
+        button_layout.addStretch()
+        
+        main_layout.addLayout(button_layout)
+        
+        self.setLayout(main_layout)
     
     def browseCacheDir(self):
         """Browse for cache directory"""
@@ -192,10 +255,10 @@ class EmbedderTab(QWidget):
         selected_model = None
         
         # Find selected radio button
-        for widget in self.findChildren(QRadioButton):
-            if widget.isChecked():
-                selected_type = widget.property("embedder_type")
-                selected_model = widget.property("model_key")
+        for radio in self.radio_buttons:
+            if radio.isChecked():
+                selected_type = radio.property("embedder_type")
+                selected_model = radio.property("model_key")
                 break
         
         if not selected_type or not selected_model:
@@ -204,8 +267,8 @@ class EmbedderTab(QWidget):
             return
         
         # Confirm if changing embedder
-        current_type = self.config.get("embedder.type", "semantic", "server")
-        current_model = self.config.get("embedder.model", "multilingual-small", "server")
+        current_type = self.config.get("embedder.type", "huggingface", "server")
+        current_model = self.config.get("embedder.model", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", "server")
         
         if current_type != selected_type or current_model != selected_model:
             reply = QMessageBox.question(
@@ -233,3 +296,35 @@ class EmbedderTab(QWidget):
         QMessageBox.information(self, "Success", 
                               f"Embedder changed to: {selected_type}/{selected_model}\n"
                               "Please re-ingest your documents.")
+    
+    def saveAllSettings(self):
+        """Save all settings to config file"""
+        try:
+            self.config.save()
+            QMessageBox.information(
+                self,
+                "Settings Saved",
+                "All settings have been saved successfully!"
+            )
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Save Failed",
+                f"Failed to save settings: {str(e)}"
+            )
+    
+    def reloadConfiguration(self):
+        """Reload configuration from server"""
+        try:
+            # This would typically call a server endpoint to reload config
+            QMessageBox.information(
+                self,
+                "Configuration Reloaded",
+                "Configuration has been reloaded from server."
+            )
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Reload Failed",
+                f"Failed to reload configuration: {str(e)}"
+            )

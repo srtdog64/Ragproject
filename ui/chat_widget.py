@@ -163,8 +163,8 @@ class ChatWidget(QWidget):
         
         # Send button
         self.sendBtn = QPushButton("🚀 Send")
-        self.sendBtn.setMinimumHeight(40)
-        self.sendBtn.setMinimumWidth(80)
+        self.sendBtn.setMinimumHeight(35)  # Reduced from 40
+        self.sendBtn.setMinimumWidth(70)   # Reduced from 80
         self.sendBtn.setStyleSheet("""
             QPushButton {
                 background-color: #1976d2;

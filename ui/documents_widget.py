@@ -317,7 +317,7 @@ class DocumentsWidget(QWidget):
         folders_layout = QVBoxLayout()
         
         self.folders_list = QListWidget()
-        self.folders_list.setMinimumHeight(150)
+        self.folders_list.setMinimumHeight(100)  # Reduced from 150
         folders_layout.addWidget(self.folders_list)
         
         # Folder controls
@@ -674,7 +674,7 @@ class DocumentsWidget(QWidget):
         folders_layout = QVBoxLayout()
         
         self.folders_list = QListWidget()
-        self.folders_list.setMinimumHeight(150)
+        self.folders_list.setMinimumHeight(100)  # Reduced from 150
         folders_layout.addWidget(self.folders_list)
         
         # Folder controls
@@ -1114,7 +1114,7 @@ class DocumentsWidget(QWidget):
         folders_layout = QVBoxLayout()
         
         self.folders_list = QListWidget()
-        self.folders_list.setMinimumHeight(150)
+        self.folders_list.setMinimumHeight(100)  # Reduced from 150
         folders_layout.addWidget(self.folders_list)
         
         # Folder controls

@@ -52,7 +52,7 @@ class ChatInput(QWidget):
             }
         """)
         self.send_btn.clicked.connect(self.sendMessage)
-        self.send_btn.setMinimumHeight(40)
+        self.send_btn.setMinimumHeight(35)  # Reduced from 40
         
         layout.addWidget(self.input_text, 1)
         layout.addWidget(self.send_btn)
