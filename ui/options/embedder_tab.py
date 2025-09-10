@@ -33,7 +33,29 @@ class EmbedderTab(QWidget):
         # Embedder models configuration
         self.embedder_models = [
             {
-                "name": "Semantic (sentence-transformers)",
+                "name": "HuggingFace Sentence Transformers",
+                "type": "huggingface",
+                "models": [
+                    ("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", "Multilingual MiniLM L12 v2 (384d) ⭐ CURRENT"),
+                    ("sentence-transformers/all-MiniLM-L6-v2", "All MiniLM L6 v2 (384d) - English Fast"),
+                    ("sentence-transformers/all-mpnet-base-v2", "All MPNet Base v2 (768d) - English Quality"),
+                    ("sentence-transformers/paraphrase-MiniLM-L6-v2", "Paraphrase MiniLM L6 v2 (384d)"),
+                    ("sentence-transformers/paraphrase-multilingual-mpnet-base-v2", "Multilingual MPNet Base v2 (768d)"),
+                    ("sentence-transformers/distiluse-base-multilingual-cased-v2", "DistilUSE Multilingual v2 (512d)"),
+                    ("sentence-transformers/LaBSE", "LaBSE (768d) - 109 Languages"),
+                    ("sentence-transformers/xlm-r-100langs-bert-base-nli-stsb-mean-tokens", "XLM-R 100langs (768d)"),
+                    ("intfloat/e5-small-v2", "E5 Small v2 (384d) - Fast"),
+                    ("intfloat/e5-base-v2", "E5 Base v2 (768d) - Balanced"),
+                    ("intfloat/e5-large-v2", "E5 Large v2 (1024d) - Quality"),
+                    ("jhgan/ko-sroberta-multitask", "Korean RoBERTa (768d) - Korean optimized"),
+                    ("multi-qa-MiniLM-L6-cos-v1", "QA MiniLM (384d) - QA optimized"),
+                    ("BAAI/bge-small-en-v1.5", "BGE Small English v1.5 (384d)"),
+                    ("BAAI/bge-base-en-v1.5", "BGE Base English v1.5 (768d)"),
+                    ("BAAI/bge-large-en-v1.5", "BGE Large English v1.5 (1024d)")
+                ]
+            },
+            {
+                "name": "Semantic (E5 Models)",
                 "type": "semantic",
                 "models": [
                     ("multilingual-e5-large", "Multilingual E5 Large (1024d) - Best quality"),
