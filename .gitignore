@@ -14,6 +14,8 @@ build/
 venv/
 env/
 ENV/
+.venv/
+.ENV/
 
 # IDE
 .vscode/
@@ -21,27 +23,55 @@ ENV/
 *.swp
 *.swo
 *~
+*.sublime-*
 
 # OS
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# Environment Variables - NEVER commit these!
+.env
+.env.local
+.env.*.local
+# Keep the sample file
+!.env.sample
 
 # Project specific
 *.log
 *.backup
-.env
 .cache/
+temp/
+tmp/
 
 # Test coverage
 htmlcov/
 .coverage
+.coverage.*
 .pytest_cache/
+.tox/
+coverage.xml
+*.cover
 
 # Database
 *.db
 *.sqlite
 *.sqlite3
 chroma_db/
-chroma_db/3ba3149e-5020-49a0-843a-0050249376e4/
-chroma_db/3ba3149e-5020-49a0-843a-0050249376e4/
-chroma_db/21351b89-6e0b-4ab1-a3a1-e4c779fb4f84/
+vector_store/
+embeddings_cache/
+
+# Uploaded/Generated files
+uploads/
+downloads/
+output/
+
+# Config overrides (local settings)
+config.local.yaml
+qt_app_config.local.yaml
+
+# API Keys and Secrets
+*.key
+*.pem
+*.cert
+secrets/
