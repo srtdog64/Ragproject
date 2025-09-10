@@ -169,11 +169,17 @@ async def ask_question(body: AskRequest) -> AskResponse:
             # Count based on what's available in the context
             if hasattr(ctx, 'retrieved') and ctx.retrieved:
                 retrieved_count = len(ctx.retrieved)
+                logger.debug(f"[ASK] ctx.retrieved has {retrieved_count} items")
+            else:
+                logger.debug(f"[ASK] ctx.retrieved is empty or missing")
+                
             if hasattr(ctx, 'reranked') and ctx.reranked:
                 reranked_count = len(ctx.reranked)
+                logger.debug(f"[ASK] ctx.reranked has {reranked_count} items")
             else:
                 # If no reranked, the ctxIds are the final context count
                 reranked_count = len(ctx_ids)
+                logger.debug(f"[ASK] ctx.reranked is empty, using ctx_ids count: {reranked_count}")
             
             logger.debug(f"[ASK] Got {len(ctx_ids)} context IDs from answer.metadata")
         
@@ -191,6 +197,12 @@ async def ask_question(body: AskRequest) -> AskResponse:
                 ctx_ids = [chunk.chunk.id for chunk in ctx.retrieved[:rerank_k]]
                 reranked_count = len(ctx_ids)  # Final context is what we're showing
                 logger.debug(f"[ASK] Got {len(ctx_ids)} context IDs from ctx.retrieved")
+        
+        # If we have reranked count but no retrieved count, estimate retrieved as k value
+        # (since we requested k documents to be retrieved)
+        if reranked_count > 0 and retrieved_count == 0:
+            retrieved_count = k  # Use the requested k value as retrieved count
+            logger.debug(f"[ASK] Estimated retrieved_count as k={k} since reranked exists but retrieved is 0")
         
         logger.info(f"[ASK] Retrieved: {retrieved_count}, Reranked: {reranked_count}, Context IDs: {len(ctx_ids)}")
         

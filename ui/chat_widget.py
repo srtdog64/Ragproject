@@ -333,6 +333,10 @@ class ChatWidget(QWidget):
         """Add a message to the chat display with markdown rendering"""
         timestamp = datetime.now().strftime("%H:%M:%S")
         
+        # Debug: Print received metadata
+        if metadata:
+            print(f"[ChatWidget] Received metadata: {metadata}")
+        
         # Store in history for export
         self.chat_history.append({
             'sender': sender,
@@ -355,11 +359,11 @@ class ChatWidget(QWidget):
                 metadata_lines.append(f"Model: {metadata['model']}")
             
             # Context count - show both retrieved and reranked if available
-            if 'retrievedCount' in metadata and metadata['retrievedCount'] > 0:
+            if 'retrievedCount' in metadata:
                 retrieved = metadata['retrievedCount']
                 metadata_lines.append(f"Retrieved: {retrieved}")
             
-            if 'rerankedCount' in metadata and metadata['rerankedCount'] > 0:
+            if 'rerankedCount' in metadata:
                 reranked = metadata['rerankedCount']
                 metadata_lines.append(f"Reranked: {reranked}")
             
