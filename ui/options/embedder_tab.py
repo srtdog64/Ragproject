@@ -33,6 +33,7 @@ class EmbedderTab(QWidget):
         current_layout = QHBoxLayout()
         current_layout.addWidget(QLabel("Current Embedder:"))
         
+        # Get current settings once
         current_type = self.config.get("embedder.type", "huggingface", "server")
         current_model = self.config.get("embedder.model", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", "server")
         self.currentEmbedderLabel = QLabel(f"{current_type}: {current_model}")
@@ -56,7 +57,7 @@ class EmbedderTab(QWidget):
                 "name": "HuggingFace Sentence Transformers",
                 "type": "huggingface",
                 "models": [
-                    ("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", "Multilingual MiniLM L12 v2 (384d) ⭐ CURRENT"),
+                    ("sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", "Multilingual MiniLM L12 v2 (384d)"),
                     ("sentence-transformers/all-MiniLM-L6-v2", "All MiniLM L6 v2 (384d) - English Fast"),
                     ("sentence-transformers/all-mpnet-base-v2", "All MPNet Base v2 (768d) - English Quality"),
                     ("sentence-transformers/paraphrase-MiniLM-L6-v2", "Paraphrase MiniLM L6 v2 (384d)"),
@@ -107,7 +108,7 @@ class EmbedderTab(QWidget):
             }
         ]
         
-        # Create collapsible groups for each embedder type
+        # Create collapsible groups for each embedder type (using current_type and current_model from above)
         self.radio_buttons = []
         for embedder_type in self.embedder_models:
             group = QGroupBox(embedder_type["name"])
@@ -116,13 +117,19 @@ class EmbedderTab(QWidget):
             
             # Add radio buttons
             for model_key, model_desc in embedder_type["models"]:
-                radio = QRadioButton(model_desc)
+                # Check if this is the current model and add star if it is
+                is_current = (embedder_type["type"] == current_type and model_key == current_model)
+                display_text = f"{model_desc} ⭐ CURRENT" if is_current else model_desc
+                
+                radio = QRadioButton(display_text)
                 radio.setProperty("embedder_type", embedder_type["type"])
                 radio.setProperty("model_key", model_key)
+                radio.setProperty("original_desc", model_desc)  # Store original description
                 
                 # Check if this is the current model
-                if embedder_type["type"] == current_type and model_key == current_model:
+                if is_current:
                     radio.setChecked(True)
+                    radio.setStyleSheet("font-weight: bold; color: #4CAF50;")
                 
                 # Store reference to radio button
                 self.radio_buttons.append(radio)
@@ -249,6 +256,30 @@ class EmbedderTab(QWidget):
         if directory:
             self.cache_input.setText(directory)
     
+    def updateCurrentDisplay(self, embedder_type: str, model_key: str):
+        """Update the current embedder display and refresh radio button labels"""
+        # Update the current display label
+        self.currentEmbedderLabel.setText(f"{embedder_type}: {model_key}")
+        
+        # Update all radio buttons to refresh the CURRENT star
+        for radio in self.radio_buttons:
+            stored_type = radio.property("embedder_type")
+            stored_model = radio.property("model_key")
+            original_desc = radio.property("original_desc")
+            
+            # Check if this is now the current model
+            is_current = (stored_type == embedder_type and stored_model == model_key)
+            
+            # Update the display text
+            display_text = f"{original_desc} ⭐ CURRENT" if is_current else original_desc
+            radio.setText(display_text)
+            
+            # Update the style
+            if is_current:
+                radio.setStyleSheet("font-weight: bold; color: #4CAF50;")
+            else:
+                radio.setStyleSheet("")  # Reset to default style
+    
     def applyEmbedder(self):
         """Apply selected embedder"""
         selected_type = None
@@ -291,7 +322,7 @@ class EmbedderTab(QWidget):
             self.config.set("embedder.cache_dir", cache_dir, "server")
         
         # Update display
-        self.currentEmbedderLabel.setText(f"{selected_type}: {selected_model}")
+        self.updateCurrentDisplay(selected_type, selected_model)
         
         QMessageBox.information(self, "Success", 
                               f"Embedder changed to: {selected_type}/{selected_model}\n"
