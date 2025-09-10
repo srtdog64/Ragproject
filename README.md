@@ -169,6 +169,8 @@ deleteByDoc 최적화: collection.get()과 collection.delete(ids=...)의 2단계
 
 현재 모든 파이프라인을 Unit화해서 단계를 노드로 해서 그래프화 할것
 
+RAG 기능 끄고 켜기 추가해서, RAG 없이 단순 채팅용 LLM으로도 쓸수있게
+
 ## 📝 License
 
 [Your License]
