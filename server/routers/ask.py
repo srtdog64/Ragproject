@@ -169,17 +169,11 @@ async def ask_question(body: AskRequest) -> AskResponse:
             # Count based on what's available in the context
             if hasattr(ctx, 'retrieved') and ctx.retrieved:
                 retrieved_count = len(ctx.retrieved)
-                logger.debug(f"[ASK] ctx.retrieved has {retrieved_count} items")
-            else:
-                logger.debug(f"[ASK] ctx.retrieved is empty or missing")
-                
             if hasattr(ctx, 'reranked') and ctx.reranked:
                 reranked_count = len(ctx.reranked)
-                logger.debug(f"[ASK] ctx.reranked has {reranked_count} items")
             else:
                 # If no reranked, the ctxIds are the final context count
                 reranked_count = len(ctx_ids)
-                logger.debug(f"[ASK] ctx.reranked is empty, using ctx_ids count: {reranked_count}")
             
             logger.debug(f"[ASK] Got {len(ctx_ids)} context IDs from answer.metadata")
         

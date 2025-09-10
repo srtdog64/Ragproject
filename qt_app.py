@@ -792,10 +792,6 @@ class MainWindow(QMainWindow):
             
         elif task == "ask":
             answer = result.get("answer", "No answer")
-            
-            # Debug: Print the raw result to see what we're getting from server
-            print(f"[DEBUG] Raw server response: {result}")
-            
             metadata = {
                 "ctxIds": result.get("ctxIds", []),
                 "latencyMs": result.get("latencyMs", 0),
@@ -803,10 +799,6 @@ class MainWindow(QMainWindow):
                 "retrievedCount": result.get("retrievedCount", 0),
                 "rerankedCount": result.get("rerankedCount", 0)
             }
-            
-            # Debug: Print the metadata we're sending to chat widget
-            print(f"[DEBUG] Metadata being sent to chat widget: {metadata}")
-            
             self.chatWidget.addMessage("Assistant", answer, metadata)
             self.logsWidget.info(f"Answer generated in {metadata['latencyMs']}ms")
             # Re-enable input after answer is received

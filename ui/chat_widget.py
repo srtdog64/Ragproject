@@ -333,10 +333,6 @@ class ChatWidget(QWidget):
         """Add a message to the chat display with markdown rendering"""
         timestamp = datetime.now().strftime("%H:%M:%S")
         
-        # Debug: Print received metadata
-        if metadata:
-            print(f"[ChatWidget] Received metadata: {metadata}")
-        
         # Store in history for export
         self.chat_history.append({
             'sender': sender,
