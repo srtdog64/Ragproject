@@ -519,8 +519,13 @@ class MainWindow(QMainWindow):
         # Server health check timer
         self.serverCheckTimer = QTimer()
         self.serverCheckTimer.timeout.connect(self.checkServer)
-        interval = self.config.get("server.health_check_interval", 10) * 1000
+        interval = self.config.get("server.health_check_interval", 30) * 1000  # Changed from 10 to 30 seconds
         self.serverCheckTimer.start(interval)
+        
+        # Vector count update timer - separate from health check
+        self.vectorUpdateTimer = QTimer()
+        self.vectorUpdateTimer.timeout.connect(self.updateVectorCount)
+        self.vectorUpdateTimer.start(15000)  # Update every 15 seconds
     
     def checkServer(self):
         """Check server status"""

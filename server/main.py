@@ -155,10 +155,17 @@ app.include_router(chunkers_router)    # /api/chunkers/* endpoints
 
 if __name__ == "__main__":
     import uvicorn
+    from config_loader import config as app_config
+    
+    # Get server config
+    server_config = app_config.get_section('server')
+    host = server_config.get('host', '127.0.0.1')
+    port = server_config.get('port', 7001)
+    
     uvicorn.run(
         "server.main:app",
-        host="0.0.0.0",
-        port=7001,
-        reload=True,
+        host=host,
+        port=port,
+        reload=False,
         log_level="info"
     )

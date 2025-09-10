@@ -1,61 +1,154 @@
-# RAG System with Qt6 Interface
+# RAG (Retrieval-Augmented Generation) System
 
-A Retrieval-Augmented Generation (RAG) system with modular architecture and Qt6 GUI.
+A production-ready RAG system with Qt-based UI for document indexing and intelligent question answering.
 
-## 🚀 Quick Start
+## 🚀 Features
 
-### Prerequisites
+- **Multi-Provider LLM Support**: Gemini, OpenAI, Claude
+- **Advanced Document Processing**: Multiple chunking strategies (adaptive, semantic, fixed, sentence-based)
+- **Intelligent Retrieval**: Vector search with BM25 reranking
+- **Real-time UI**: Qt-based desktop application with progress tracking
+- **Asynchronous Processing**: Background document ingestion
+- **Configurable Pipeline**: Modular architecture with dependency injection
+
+## 📋 Prerequisites
+
+- Python 3.8+
+- Qt/PySide6
+- ChromaDB for vector storage
+
+## 🔧 Installation
+
+1. **Clone the repository**
+```bash
+git clone [your-repo-url]
+cd Ragproject
+```
+
+2. **Create virtual environment**
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+3. **Install dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-### Start Server
+4. **Set up environment variables**
 ```bash
-python start_server.py
+# Copy the sample environment file
+cp .env.sample .env
+
+# Edit .env and add your API keys
+# At minimum, you need to set:
+# GEMINI_API_KEY=your_actual_api_key_here
 ```
 
-### Start Qt Application
-```bash
-python qt_app.py
+## 🔑 API Keys Setup
+
+### Gemini (Required)
+1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Create a new API key
+3. Add to `.env`: `GEMINI_API_KEY=your_key_here`
+
+### OpenAI (Optional)
+1. Visit [OpenAI Platform](https://platform.openai.com/api-keys)
+2. Create an API key
+3. Add to `.env`: `OPENAI_API_KEY=your_key_here`
+
+### Claude (Optional)
+1. Go to [Anthropic Console](https://console.anthropic.com/)
+2. Generate an API key
+3. Add to `.env`: `ANTHROPIC_API_KEY=your_key_here`
+
+## 🎯 Quick Start
+
+### Cross-Platform Launch (Recommended)
+
+**Windows:**
+```cmd
+start_system.bat
 ```
 
-## 📚 Documentation
+**Linux/Mac:**
+```bash
+chmod +x start_system.sh
+./start_system.sh
+```
 
-- [System Pipeline Architecture](docs/PIPELINE.md) - Complete system overview
-- [API Documentation](docs/API_DOCUMENTATION.md) - REST API reference
-- [Full README](docs/README.md) - Detailed documentation
+**Or directly with Python:**
+```bash
+python main.py
+```
+
+### Advanced Options
+
+**Run server only:**
+```bash
+python main.py --server
+```
+
+**Run UI only (server must be running):**
+```bash
+python main.py --ui
+```
+
+**Specify custom port:**
+```bash
+python main.py --port 8000
+```
 
 ## 📁 Project Structure
 
 ```
-├── config/     # Configuration files
-├── docs/       # Documentation
-├── rag/        # Core RAG modules
-├── ui/         # Qt GUI components
-├── tests/      # Test files
-├── server.py   # FastAPI server
-└── qt_app.py   # Qt application
+Ragproject/
+├── main.py                # Main entry point
+├── run_server.py         # Server launcher
+├── qt_app.py            # Qt UI application
+├── rag/                 # Core RAG system
+│   ├── core/           # Core components
+│   ├── pipeline/       # Pipeline steps
+│   └── chunkers/       # Document chunking
+├── server/             # FastAPI server
+│   ├── routers/       # API endpoints
+│   └── dependencies.py # Dependency injection
+├── ui/                 # Qt UI components
+│   ├── chat_widget.py # Main chat interface
+│   └── options/       # Settings tabs
+├── config/            # Configuration files
+│   └── config.yaml   # Server configuration
+└── chroma_db/        # Vector database storage
 ```
 
-## 🔧 Configuration
+## ⚙️ Configuration
 
-Edit `config/config.yaml` to customize:
-- Chunking strategies
-- Vector store (memory/persistent)
-- LLM provider and model
-- Reranking options
+### Retrieval Settings
+- `retrieve_k`: Number of documents to retrieve from vector store (default: 20)
+- `rerank_k`: Number of documents after reranking (default: 5)
+- `max_context_chars`: Maximum context size in characters (default: 12000)
 
-## 🧪 Testing
+### Chunking Strategies
+- **Adaptive**: Smart chunking based on document structure
+- **Semantic**: Meaning-based chunking using embeddings
+- **Fixed**: Fixed-size chunks with overlap
+- **Sentence**: Sentence-based chunking
 
+## 🛠️ Development
+
+### Running Tests
 ```bash
-# Check server status
-python tests/check_server.py
+pytest tests/
+```
 
-# Test RAG pipeline
-python tests/test_rag_retrieval.py
+### Code Style
+```bash
+# Format code
+black .
 
-# Test persistence
-python tests/test_persistence_reranking.py
+# Check linting
+pylint rag/
 ```
 
 ## TODO
@@ -78,4 +171,40 @@ deleteByDoc 최적화: collection.get()과 collection.delete(ids=...)의 2단계
 
 ## 📝 License
 
-MIT License
+[Your License]
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## ⚠️ Important Security Notes
+
+- **NEVER** commit your `.env` file with actual API keys
+- Always use `.env.sample` as a template
+- Keep your API keys secure and rotate them regularly
+- Review `.gitignore` before committing
+
+## 🐛 Troubleshooting
+
+### Server won't start
+- Check if port 7001 is already in use
+- Verify all dependencies are installed
+- Ensure `.env` file exists with valid API keys
+
+### Document ingestion fails
+- Check file permissions
+- Verify supported file formats (.txt, .md, .pdf)
+- Check available disk space for vector database
+
+### UI not responding
+- Restart both server and Qt application
+- Check server logs for errors
+- Verify network connectivity to localhost:7001
+
+## 📧 Contact
+
+[Your Contact Information]

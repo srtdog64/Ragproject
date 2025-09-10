@@ -1,17 +1,15 @@
 @echo off
+REM ========================================
+REM RAG System Launcher for Windows
+REM ========================================
+
 echo ========================================
-echo RAG System Launcher
+echo     RAG System Launcher
 echo ========================================
 echo.
 
-REM Check if Python is installed
-python --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo ERROR: Python is not installed or not in PATH
-    echo Please install Python 3.8 or higher
-    pause
-    exit /b 1
-)
+REM Navigate to script directory
+cd /d %~dp0
 
 REM Check if virtual environment exists
 if not exist "venv" (
@@ -23,37 +21,13 @@ REM Activate virtual environment
 echo Activating virtual environment...
 call venv\Scripts\activate
 
-REM Install/upgrade requirements
-echo.
+REM Check dependencies (silent)
 echo Checking dependencies...
-pip install -r requirements.txt -q
+pip install -q -r requirements.txt 2>nul
 
-REM Start server and Qt app
+REM Run the cross-platform main script
 echo.
-echo ========================================
 echo Starting RAG System...
-echo ========================================
-echo.
+python main.py %*
 
-REM Start new modular server
-echo Starting modular server...
-start "RAG Server" cmd /k "venv\Scripts\activate && python run_server.py"
-
-REM Wait for server to start
-echo Waiting for server to initialize...
-timeout /t 5 /nobreak >nul
-
-REM Start Qt application
-echo Starting Qt interface...
-start "RAG Qt App" cmd /k "venv\Scripts\activate && python qt_app.py"
-
-echo.
-echo ========================================
-echo RAG System started successfully!
-echo ========================================
-echo.
-echo Server running at: http://localhost:7001
-echo.
-echo To stop the system, close both windows.
-echo.
 pause
