@@ -75,3 +75,4 @@ qt_app_config.local.yaml
 *.pem
 *.cert
 secrets/
+rag/chunkers/config.json
