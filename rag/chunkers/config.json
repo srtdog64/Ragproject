@@ -1,0 +1,12 @@
+{
+  "strategy": "adaptive",
+  "params": {
+    "maxTokens": 512,
+    "windowSize": 1200,
+    "overlap": 200,
+    "semanticThreshold": 0.82,
+    "language": "ko",
+    "sentenceMinLen": 10,
+    "paragraphMinLen": 50
+  }
+}
