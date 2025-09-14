@@ -6,9 +6,7 @@ Provides RESTful endpoints for chunking strategy management
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
-import sys
-sys.path.append('E:/Ragproject/rag')
-from chunkers.registry import registry
+from .registry import registry
 from rag.chunkers.base import ChunkingParams
 from rag.core.types import Document
 
