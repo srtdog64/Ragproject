@@ -178,13 +178,10 @@ class DocumentsWidget(QWidget):
         loadSampleBtn.setStyleSheet("""
             QPushButton {
                 padding: 8px 16px;
-                background-color: #FF9800;
+                background-color: #D9DE19;
                 color: black;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #F57C00;
             }
         """)
         
@@ -411,17 +408,11 @@ class DocumentsWidget(QWidget):
         self.stop_watch_btn = QPushButton("Stop Watching")
         self.stop_watch_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF9800;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #F57C00;
-            }
-            QPushButton:disabled {
-                background-color: #ccc;
             }
         """)
         self.stop_watch_btn.clicked.connect(self.stopWatching)
@@ -769,17 +760,11 @@ class DocumentsWidget(QWidget):
         self.stop_watch_btn = QPushButton("Stop Watching")
         self.stop_watch_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF9800;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #F57C00;
-            }
-            QPushButton:disabled {
-                background-color: #ccc;
             }
         """)
         self.stop_watch_btn.clicked.connect(self.stopWatching)
@@ -1210,17 +1195,11 @@ class DocumentsWidget(QWidget):
         self.stop_watch_btn = QPushButton("Stop Watching")
         self.stop_watch_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF9800;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #F57C00;
-            }
-            QPushButton:disabled {
-                background-color: #ccc;
             }
         """)
         self.stop_watch_btn.clicked.connect(self.stopWatching)

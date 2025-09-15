@@ -301,14 +301,11 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #ff6b35;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #E64A19;
             }
         """)
         apply_btn.clicked.connect(self.applyReranker)
@@ -436,14 +433,11 @@ class OptionsWidget(QWidget):
         apply_vars_btn = QPushButton("Apply Variables")
         apply_vars_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF9800;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #F57C00;
             }
         """)
         apply_vars_btn.clicked.connect(self.applySystemVariables)
@@ -582,14 +576,11 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #ff6b35;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #E64A19;
             }
         """)
         apply_btn.clicked.connect(self.applyReranker)
@@ -891,14 +882,11 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #ff6b35;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #E64A19;
             }
         """)
         apply_btn.clicked.connect(self.applyReranker)
@@ -1026,14 +1014,11 @@ class OptionsWidget(QWidget):
         apply_vars_btn = QPushButton("Apply Variables")
         apply_vars_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF9800;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #F57C00;
             }
         """)
         apply_vars_btn.clicked.connect(self.applySystemVariables)
@@ -1172,14 +1157,11 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #ff6b35;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #E64A19;
             }
         """)
         apply_btn.clicked.connect(self.applyReranker)
@@ -1505,14 +1487,11 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #ff6b35;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #E64A19;
             }
         """)
         apply_btn.clicked.connect(self.applyReranker)
@@ -1640,14 +1619,11 @@ class OptionsWidget(QWidget):
         apply_vars_btn = QPushButton("Apply Variables")
         apply_vars_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF9800;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #F57C00;
             }
         """)
         apply_vars_btn.clicked.connect(self.applySystemVariables)
@@ -1786,14 +1762,11 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #ff6b35;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #E64A19;
             }
         """)
         apply_btn.clicked.connect(self.applyReranker)
@@ -2038,14 +2011,11 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #ff6b35;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #E64A19;
             }
         """)
         apply_btn.clicked.connect(self.applyReranker)
@@ -2173,14 +2143,11 @@ class OptionsWidget(QWidget):
         apply_vars_btn = QPushButton("Apply Variables")
         apply_vars_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF9800;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #F57C00;
             }
         """)
         apply_vars_btn.clicked.connect(self.applySystemVariables)
@@ -2319,14 +2286,11 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #ff6b35;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #E64A19;
             }
         """)
         apply_btn.clicked.connect(self.applyReranker)
@@ -2567,14 +2531,11 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #ff6b35;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #E64A19;
             }
         """)
         apply_btn.clicked.connect(self.applyReranker)
@@ -2702,14 +2663,11 @@ class OptionsWidget(QWidget):
         apply_vars_btn = QPushButton("Apply Variables")
         apply_vars_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF9800;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #F57C00;
             }
         """)
         apply_vars_btn.clicked.connect(self.applySystemVariables)
@@ -2848,14 +2806,11 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #ff6b35;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #E64A19;
             }
         """)
         apply_btn.clicked.connect(self.applyReranker)
@@ -3814,14 +3769,11 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #ff6b35;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #E64A19;
             }
         """)
         apply_btn.clicked.connect(self.applyReranker)

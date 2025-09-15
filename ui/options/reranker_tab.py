@@ -138,14 +138,11 @@ class RerankerTab(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #ff6b35;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #E64A19;
             }
         """)
         apply_btn.clicked.connect(self.applyReranker)

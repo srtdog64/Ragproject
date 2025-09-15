@@ -247,7 +247,7 @@ class ChatWidget(QWidget):
         """Update context info label based on value"""
         if value <= 5:
             info = "(Minimal)"
-            color = "#ff9800"  # Orange
+            color = "#D9DE19"  # Orange
         elif value <= 20:
             info = "(Standard)"
             color = "#397B06"  # Green
@@ -325,16 +325,12 @@ class ChatWidget(QWidget):
             self.sendBtn.setToolTip("Strict Mode: Only use RAG context (Coming soon)")
             self.sendBtn.setStyleSheet("""
                 QPushButton {
-                    background-color: #ff6b35;
+                    background-color: #D9DE19;
                     color: black;
                     font-weight: bold;
                     border-radius: 4px;
                     padding: 8px 12px;
                     font-size: 13px;
-                }
-                QPushButton:hover {
-                    background-color: #ff6b35;
-                    color: black;
                 }
             """)
         else:
