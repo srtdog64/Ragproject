@@ -397,8 +397,41 @@ class MainWindow(QMainWindow):
             QRadioButton {
                 color: #000000;
             }
+            QRadioButton:hover {
+                cursor: pointer !important;
+            }
             QCheckBox {
                 color: #000000;
+            }
+            QCheckBox:hover {
+                cursor: pointer !important;
+            }
+            QTabBar::tab {
+                cursor: pointer !important;
+            }
+            QTabBar::tab:hover {
+                cursor: pointer !important;
+            }
+            QListWidget::item:hover {
+                cursor: pointer;
+            }
+            QTreeWidget::item:hover {
+                cursor: pointer;
+            }
+            QTableWidget::item:hover {
+                cursor: pointer;
+            }
+            QHeaderView::section:hover {
+                cursor: pointer;
+            }
+            QMenuBar::item:hover {
+                cursor: pointer;
+            }
+            QMenu::item:hover {
+                cursor: pointer;
+            }
+            QScrollBar::handle:hover {
+                cursor: pointer;
             }
             QPushButton {
                 color: #000000;
@@ -408,7 +441,7 @@ class MainWindow(QMainWindow):
                 border-radius: 4px;
             }
             QPushButton:hover {
-                background-color: #e9ecef;
+                cursor: pointer !important;
             }
             QPushButton:pressed {
                 background-color: #dee2e6;
@@ -420,6 +453,9 @@ class MainWindow(QMainWindow):
                 padding: 2px;
                 border-radius: 3px;
             }
+            QSpinBox:hover {
+                cursor: pointer;
+            }
             QDoubleSpinBox {
                 color: #000000;
                 background-color: #ffffff;
@@ -427,12 +463,18 @@ class MainWindow(QMainWindow):
                 padding: 2px;
                 border-radius: 3px;
             }
+            QDoubleSpinBox:hover {
+                cursor: pointer;
+            }
             QComboBox {
                 color: #000000;
                 background-color: #ffffff;
                 border: 1px solid #ddd;
                 padding: 2px;
                 border-radius: 3px;
+            }
+            QComboBox:hover {
+                cursor: pointer;
             }
             QComboBox QAbstractItemView {
                 color: #000000;
@@ -445,17 +487,26 @@ class MainWindow(QMainWindow):
                 padding: 2px;
                 border-radius: 3px;
             }
+            QLineEdit:hover {
+                cursor: text;
+            }
             QTextEdit {
                 color: #000000;
                 background-color: #ffffff;
                 border: 1px solid #ddd;
                 border-radius: 3px;
             }
+            QTextEdit:hover {
+                cursor: text;
+            }
             QPlainTextEdit {
                 color: #000000;
                 background-color: #ffffff;
                 border: 1px solid #ddd;
                 border-radius: 3px;
+            }
+            QPlainTextEdit:hover {
+                cursor: text;
             }
             QListWidget {
                 color: #000000;
@@ -484,10 +535,43 @@ class MainWindow(QMainWindow):
             QTabWidget QWidget {
                 color: #000000;
             }
+            QSlider::handle:horizontal:hover {
+                cursor: pointer;
+            }
             QSlider::handle:horizontal {
                 background-color: #5EAF08;
             }
         """)
+        
+        # 직접 커서 설정 - Qt 스타일시트는 한계가 있음
+        self.setupCursors()
+    
+    def setupCursors(self):
+        """모든 버튼과 UI 요소에 포인터 커서 설정"""
+        # 재귀적으로 모든 자식 위젯 찾기
+        def setCursorRecursive(widget):
+            # 버튼류
+            if isinstance(widget, (QPushButton, QRadioButton, QCheckBox)):
+                widget.setCursor(Qt.PointingHandCursor)
+            # 입력 필드류
+            elif isinstance(widget, (QLineEdit, QTextEdit, QPlainTextEdit)):
+                widget.setCursor(Qt.IBeamCursor)
+            # 드롭다운, 스핀박스
+            elif isinstance(widget, (QComboBox, QSpinBox, QDoubleSpinBox)):
+                widget.setCursor(Qt.PointingHandCursor)
+            # 탭바
+            elif isinstance(widget, QTabBar):
+                widget.setCursor(Qt.PointingHandCursor)
+            
+            # 자식 위젯들도 재귀적으로 처리
+            for child in widget.findChildren(QWidget):
+                setCursorRecursive(child)
+        
+        # 전체 애플리케이션에 적용
+        setCursorRecursive(self)
+        
+        # 탭 변경 시에도 다시 적용되도록 타이머 설정
+        QTimer.singleShot(1000, lambda: setCursorRecursive(self))
     
     def createTabs(self):
         """Create and configure tabs"""
