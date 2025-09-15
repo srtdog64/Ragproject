@@ -130,7 +130,7 @@ class EmbedderTab(QWidget):
                     left: 10px;
                     padding: 0 5px 0 5px;
                     background-color: #E5E7E7;
-                    border: 1px solid #dee2e6;
+                    border: 1px solid black;
                     border-radius: 3px;
                 }
             """)
@@ -143,6 +143,27 @@ class EmbedderTab(QWidget):
                 display_text = f"{model_desc} ✓ CURRENT" if is_current else model_desc
                 
                 radio = QRadioButton(display_text)
+                radio.setStyleSheet("""
+                    QRadioButton {
+                        color: #000000;
+                        padding: 3px;
+                        spacing: 8px;
+                    }
+                    QRadioButton::indicator {
+                        width: 16px;
+                        height: 16px;
+                        border-radius: 8px;
+                        border: 2px solid #666;
+                        background-color: #ffffff;
+                    }
+                    QRadioButton::indicator:checked {
+                        border: 2px solid #000000;
+                        background-color: #000000;
+                    }
+                    QRadioButton::indicator:hover {
+                        border: 2px solid #000000;
+                    }
+                """)
                 radio.setProperty("embedder_type", embedder_type["type"])
                 radio.setProperty("model_key", model_key)
                 radio.setProperty("original_desc", model_desc)  # Store original description
@@ -150,7 +171,7 @@ class EmbedderTab(QWidget):
                 # Check if this is the current model
                 if is_current:
                     radio.setChecked(True)
-                    radio.setStyleSheet("font-weight: bold;")
+                    radio.setStyleSheet(radio.styleSheet() + "QRadioButton { font-weight: bold; }")
                 
                 # Store reference to radio button
                 self.radio_buttons.append(radio)
@@ -186,7 +207,7 @@ class EmbedderTab(QWidget):
                 left: 10px;
                 padding: 0 5px 0 5px;
                     background-color: #E5E7E7;
-                    border: 1px solid #dee2e6;
+                    border: 1px solid black;
                 border-radius: 3px;
             }
         """)
@@ -292,7 +313,30 @@ class EmbedderTab(QWidget):
         # Update the current display label
         self.currentEmbedderLabel.setText(f"{embedder_type}: {model_key}")
         
-        # Update all radio buttons to refresh the CURRENT star
+        # Base radio button style
+        base_style = """
+            QRadioButton {
+                color: #000000;
+                padding: 3px;
+                spacing: 8px;
+            }
+            QRadioButton::indicator {
+                width: 16px;
+                height: 16px;
+                border-radius: 8px;
+                border: 2px solid #666;
+                background-color: #ffffff;
+            }
+            QRadioButton::indicator:checked {
+                border: 2px solid #000000;
+                background-color: #000000;
+            }
+            QRadioButton::indicator:hover {
+                border: 2px solid #000000;
+            }
+        """
+        
+        # Update all radio buttons to refresh the CURRENT star and styles
         for radio in self.radio_buttons:
             stored_type = radio.property("embedder_type")
             stored_model = radio.property("model_key")
@@ -305,11 +349,11 @@ class EmbedderTab(QWidget):
             display_text = f"{original_desc} ✓ CURRENT" if is_current else original_desc
             radio.setText(display_text)
             
-            # Update style - just bold for current, normal for others
+            # Update style - bold for current, normal for others
             if is_current:
-                radio.setStyleSheet("font-weight: bold;")
+                radio.setStyleSheet(base_style + "QRadioButton { font-weight: bold; }")
             else:
-                radio.setStyleSheet("font-weight: normal;")
+                radio.setStyleSheet(base_style + "QRadioButton { font-weight: normal; }")
     
     def applyEmbedder(self):
         """Apply selected embedder"""
