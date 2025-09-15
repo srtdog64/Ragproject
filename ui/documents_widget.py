@@ -142,14 +142,14 @@ class DocumentsWidget(QWidget):
         loadFileBtn.setStyleSheet("""
             QPushButton {
                 padding: 8px 16px;
-                background-color: #BEB4B4;
+                background-color: #5EAF08;
                 color: black;
                 border-radius: 4px;
                 font-weight: bold;
                 hover: cursor;
             }
             QPushButton:hover {
-                background-color: #1976D2;
+                background-color: #5EAF08;
             }
         """)
         
@@ -160,14 +160,14 @@ class DocumentsWidget(QWidget):
         loadDirBtn.setStyleSheet("""
             QPushButton {
                 padding: 8px 16px;
-                background-color: #BEB4B4;
+                background-color: #5EAF08;
                 color: black;
                 border-radius: 4px;
                 font-weight: bold;
                 hover: cursor;
             }
             QPushButton:hover {
-                background-color: #1976D2;
+                background-color: #5EAF08;
             }
         """)
         
@@ -395,7 +395,7 @@ class DocumentsWidget(QWidget):
         self.start_watch_btn = QPushButton("▶️ Start Watching")
         self.start_watch_btn.setStyleSheet("""
             QPushButton {
-                background-color: #BEB4B4;
+                background-color: #5EAF08;
                 color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
@@ -403,7 +403,7 @@ class DocumentsWidget(QWidget):
                 hover: cursor;
             }
             QPushButton:hover {
-                background-color: #1976D2;
+                background-color: #5EAF08;
             }
         """)
         self.start_watch_btn.clicked.connect(self.startWatching)
@@ -753,7 +753,7 @@ class DocumentsWidget(QWidget):
         self.start_watch_btn = QPushButton("▶️ Start Watching")
         self.start_watch_btn.setStyleSheet("""
             QPushButton {
-                background-color: #BEB4B4;
+                background-color: #5EAF08;
                 color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
@@ -761,7 +761,7 @@ class DocumentsWidget(QWidget):
                 hover: cursor;
             }
             QPushButton:hover {
-                background-color: #1976D2;
+                background-color: #5EAF08;
             }
         """)
         self.start_watch_btn.clicked.connect(self.startWatching)
@@ -1194,7 +1194,7 @@ class DocumentsWidget(QWidget):
         self.start_watch_btn = QPushButton("▶️ Start Watching")
         self.start_watch_btn.setStyleSheet("""
             QPushButton {
-                background-color: #BEB4B4;
+                background-color: #5EAF08;
                 color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
@@ -1202,7 +1202,7 @@ class DocumentsWidget(QWidget):
                 hover: cursor;
             }
             QPushButton:hover {
-                background-color: #1976D2;
+                background-color: #5EAF08;
             }
         """)
         self.start_watch_btn.clicked.connect(self.startWatching)

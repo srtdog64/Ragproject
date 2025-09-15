@@ -358,7 +358,7 @@ class MainWindow(QMainWindow):
             QTabBar::tab:selected {
                 color: #000000;
                 background-color: white;
-                border-bottom: 3px solid #1976d2;
+                border-bottom: 3px solid #5EAF08;
                 border-top: 1px solid #ddd;
                 border-left: 1px solid #ddd;
                 border-right: 1px solid #ddd;
@@ -485,7 +485,7 @@ class MainWindow(QMainWindow):
                 color: #000000;
             }
             QSlider::handle:horizontal {
-                background-color: #1976d2;
+                background-color: #5EAF08;
             }
         """)
     

@@ -257,7 +257,7 @@ class OptionsWidget(QWidget):
         
         current_type = self.config.get("reranker.type", "simple", "server")
         self.currentRerankerLabel = QLabel(current_type)
-        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #BEB4B4;")
+        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #5EAF08;")
         current_layout.addWidget(self.currentRerankerLabel)
         current_layout.addStretch()
         layout.addLayout(current_layout)
@@ -538,7 +538,7 @@ class OptionsWidget(QWidget):
         
         current_type = self.config.get("reranker.type", "simple", "server")
         self.currentRerankerLabel = QLabel(current_type)
-        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #BEB4B4;")
+        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #5EAF08;")
         current_layout.addWidget(self.currentRerankerLabel)
         current_layout.addStretch()
         layout.addLayout(current_layout)
@@ -749,7 +749,7 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Model Change")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #BEB4B4;
+                background-color: #5EAF08;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
@@ -757,7 +757,7 @@ class OptionsWidget(QWidget):
                 hover: cursor;
             }
             QPushButton:hover {
-                background-color: #1976D2;
+                background-color: #5EAF08;
             }
         """)
         apply_btn.clicked.connect(self.applyEmbeddingModel)
@@ -847,7 +847,7 @@ class OptionsWidget(QWidget):
         
         current_type = self.config.get("reranker.type", "simple", "server")
         self.currentRerankerLabel = QLabel(current_type)
-        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #BEB4B4;")
+        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #5EAF08;")
         current_layout.addWidget(self.currentRerankerLabel)
         current_layout.addStretch()
         layout.addLayout(current_layout)
@@ -1128,7 +1128,7 @@ class OptionsWidget(QWidget):
         
         current_type = self.config.get("reranker.type", "simple", "server")
         self.currentRerankerLabel = QLabel(current_type)
-        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #BEB4B4;")
+        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #5EAF08;")
         current_layout.addWidget(self.currentRerankerLabel)
         current_layout.addStretch()
         layout.addLayout(current_layout)
@@ -1461,7 +1461,7 @@ class OptionsWidget(QWidget):
         
         current_type = self.config.get("reranker.type", "simple", "server")
         self.currentRerankerLabel = QLabel(current_type)
-        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #BEB4B4;")
+        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #5EAF08;")
         current_layout.addWidget(self.currentRerankerLabel)
         current_layout.addStretch()
         layout.addLayout(current_layout)
@@ -1742,7 +1742,7 @@ class OptionsWidget(QWidget):
         
         current_type = self.config.get("reranker.type", "simple", "server")
         self.currentRerankerLabel = QLabel(current_type)
-        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #BEB4B4;")
+        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #5EAF08;")
         current_layout.addWidget(self.currentRerankerLabel)
         current_layout.addStretch()
         layout.addLayout(current_layout)
@@ -1994,7 +1994,7 @@ class OptionsWidget(QWidget):
         
         current_type = self.config.get("reranker.type", "simple", "server")
         self.currentRerankerLabel = QLabel(current_type)
-        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #BEB4B4;")
+        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #5EAF08;")
         current_layout.addWidget(self.currentRerankerLabel)
         current_layout.addStretch()
         layout.addLayout(current_layout)
@@ -2275,7 +2275,7 @@ class OptionsWidget(QWidget):
         
         current_type = self.config.get("reranker.type", "simple", "server")
         self.currentRerankerLabel = QLabel(current_type)
-        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #BEB4B4;")
+        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #5EAF08;")
         current_layout.addWidget(self.currentRerankerLabel)
         current_layout.addStretch()
         layout.addLayout(current_layout)
@@ -2523,7 +2523,7 @@ class OptionsWidget(QWidget):
         
         current_type = self.config.get("reranker.type", "simple", "server")
         self.currentRerankerLabel = QLabel(current_type)
-        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #BEB4B4;")
+        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #5EAF08;")
         current_layout.addWidget(self.currentRerankerLabel)
         current_layout.addStretch()
         layout.addLayout(current_layout)
@@ -2804,7 +2804,7 @@ class OptionsWidget(QWidget):
         
         current_type = self.config.get("reranker.type", "simple", "server")
         self.currentRerankerLabel = QLabel(current_type)
-        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #BEB4B4;")
+        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #5EAF08;")
         current_layout.addWidget(self.currentRerankerLabel)
         current_layout.addStretch()
         layout.addLayout(current_layout)
@@ -3046,7 +3046,7 @@ class OptionsWidget(QWidget):
         
         # Current strategy display
         self.currentStrategyLabel = QLabel(f"Current Strategy: {self.currentStrategy}")
-        self.currentStrategyLabel.setStyleSheet("font-weight: bold; color: #1976d2;")
+        self.currentStrategyLabel.setStyleSheet("font-weight: bold; color: #5EAF08;")
         layout.addWidget(self.currentStrategyLabel)
         
         # Server sync indicator
@@ -3583,7 +3583,7 @@ class OptionsWidget(QWidget):
         current_layout = QVBoxLayout()
         
         self.current_reranker_label = QLabel("Loading...")
-        self.current_reranker_label.setStyleSheet("font-weight: bold; color: #1976d2;")
+        self.current_reranker_label.setStyleSheet("font-weight: bold; color: #5EAF08;")
         current_layout.addWidget(self.current_reranker_label)
         
         current_group.setLayout(current_layout)
@@ -3770,7 +3770,7 @@ class OptionsWidget(QWidget):
         
         current_type = self.config.get("reranker.type", "simple", "server")
         self.currentRerankerLabel = QLabel(current_type)
-        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #BEB4B4;")
+        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #5EAF08;")
         current_layout.addWidget(self.currentRerankerLabel)
         current_layout.addStretch()
         layout.addLayout(current_layout)

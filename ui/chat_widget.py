@@ -80,7 +80,7 @@ class ChatWidget(QWidget):
         model_label.setStyleSheet("color: #000000;")
         topToolbar.addWidget(model_label)
         self.modelLabel = QLabel(self.config.get_current_model())
-        self.modelLabel.setStyleSheet("font-weight: bold; color: #1976d2;")
+        self.modelLabel.setStyleSheet("font-weight: bold; color: #5EAF08;")
         topToolbar.addWidget(self.modelLabel)
         
         separator_label = QLabel("  |  ")
@@ -133,14 +133,14 @@ class ChatWidget(QWidget):
         exportBtn.setToolTip("Export chat to Markdown file")
         exportBtn.setStyleSheet("""
             QPushButton {
-                background-color: #BEB4B4;
+                background-color: #5EAF08;
                 color: black;
                 padding: 5px 10px;
                 border-radius: 4px;
                 hover: cursor;
             }
             QPushButton:hover {
-                background-color: #1976D2;
+                background-color: #5EAF08;
                 color: black;
             }
         """)
@@ -187,7 +187,7 @@ class ChatWidget(QWidget):
         self.sendBtn.setMinimumWidth(70)   # Reduced from 80
         self.sendBtn.setStyleSheet("""
             QPushButton {
-                background-color: #1976d2;
+                background-color: #5EAF08;
                 color: black;
                 font-weight: bold;
                 border-radius: 4px;
@@ -252,7 +252,7 @@ class ChatWidget(QWidget):
             color = "#4caf50"  # Green
         elif value <= 50:
             info = "(Extended)"
-            color = "#BEB4B4"  # Blue
+            color = "#5EAF08"  # Blue
         else:
             info = "(Maximum)"
             color = "#9c27b0"  # Purple
@@ -342,7 +342,7 @@ class ChatWidget(QWidget):
             self.sendBtn.setToolTip("Normal Mode: RAG + General Knowledge")
             self.sendBtn.setStyleSheet("""
                 QPushButton {
-                    background-color: #1976d2;
+                    background-color: #5EAF08;
                     color: black;
                     font-weight: bold;
                     border-radius: 4px;

@@ -94,7 +94,7 @@ class RerankerTab(QWidget):
         
         current_type = self.config.get("reranker.type", "simple", "server")
         self.currentRerankerLabel = QLabel(current_type)
-        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #BEB4B4;")
+        self.currentRerankerLabel.setStyleSheet("font-weight: bold; color: #5EAF08;")
         current_layout.addWidget(self.currentRerankerLabel)
         current_layout.addStretch()
         layout.addLayout(current_layout)
