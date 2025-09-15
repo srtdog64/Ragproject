@@ -129,9 +129,6 @@ class OptionsWidget(QWidget):
                 font-weight: bold;
                 font-size: 14px;
             }
-            QPushButton:hover {
-                background-color: #5EAF08;
-            }
         """)
         saveAllBtn.clicked.connect(self.saveAllSettings)
         layout.addWidget(saveAllBtn)
@@ -147,9 +144,6 @@ class OptionsWidget(QWidget):
                 border-radius: 5px;
                 font-weight: bold;
                 hover: cursor;
-            }
-            QPushButton:hover {
-                background-color: #5EAF08;
             }
         """)
         reloadBtn.clicked.connect(self.reloadConfig)

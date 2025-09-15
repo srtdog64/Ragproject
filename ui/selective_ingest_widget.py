@@ -93,9 +93,6 @@ class SelectiveIngestWidget(QWidget):
                 border-radius: 4px;
                 font-size: 14px;
             }
-            QPushButton:hover {
-                background-color: #5EAF08;
-            }
             QPushButton:disabled {
                 background-color: #cccccc;
             }

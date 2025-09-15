@@ -148,9 +148,6 @@ class DocumentsWidget(QWidget):
                 font-weight: bold;
                 hover: cursor;
             }
-            QPushButton:hover {
-                background-color: #5EAF08;
-            }
         """)
         
         loadDirBtn = QPushButton("Load Directory")
@@ -165,9 +162,6 @@ class DocumentsWidget(QWidget):
                 border-radius: 4px;
                 font-weight: bold;
                 hover: cursor;
-            }
-            QPushButton:hover {
-                background-color: #5EAF08;
             }
         """)
         
@@ -199,9 +193,6 @@ class DocumentsWidget(QWidget):
                 font-weight: bold;
                 padding: 8px 16px;
                 border-radius: 4px;
-            }
-            QPushButton:hover {
-                background-color: #d32f2f;
             }
         """)
         clearBtn.clicked.connect(self.clearDocuments)
@@ -344,9 +335,6 @@ class DocumentsWidget(QWidget):
                 border-radius: 4px;
                 font-weight: bold;
             }
-            QPushButton:hover {
-                background-color: #5EAF08;
-            }
         """)
         
         remove_folder_btn = QPushButton("Remove Folder")
@@ -358,9 +346,6 @@ class DocumentsWidget(QWidget):
                 padding: 6px 12px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #da190b;
             }
         """)
         
@@ -398,9 +383,6 @@ class DocumentsWidget(QWidget):
                 border-radius: 4px;
                 font-weight: bold;
                 hover: cursor;
-            }
-            QPushButton:hover {
-                background-color: #5EAF08;
             }
         """)
         self.start_watch_btn.clicked.connect(self.startWatching)
@@ -696,9 +678,6 @@ class DocumentsWidget(QWidget):
                 border-radius: 4px;
                 font-weight: bold;
             }
-            QPushButton:hover {
-                background-color: #5EAF08;
-            }
         """)
         
         remove_folder_btn = QPushButton("Remove Folder")
@@ -710,9 +689,6 @@ class DocumentsWidget(QWidget):
                 padding: 6px 12px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #da190b;
             }
         """)
         
@@ -750,9 +726,6 @@ class DocumentsWidget(QWidget):
                 border-radius: 4px;
                 font-weight: bold;
                 hover: cursor;
-            }
-            QPushButton:hover {
-                background-color: #5EAF08;
             }
         """)
         self.start_watch_btn.clicked.connect(self.startWatching)
@@ -1131,9 +1104,6 @@ class DocumentsWidget(QWidget):
                 border-radius: 4px;
                 font-weight: bold;
             }
-            QPushButton:hover {
-                background-color: #5EAF08;
-            }
         """)
         
         remove_folder_btn = QPushButton("Remove Folder")
@@ -1145,9 +1115,6 @@ class DocumentsWidget(QWidget):
                 padding: 6px 12px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #da190b;
             }
         """)
         
@@ -1185,9 +1152,6 @@ class DocumentsWidget(QWidget):
                 border-radius: 4px;
                 font-weight: bold;
                 hover: cursor;
-            }
-            QPushButton:hover {
-                background-color: #5EAF08;
             }
         """)
         self.start_watch_btn.clicked.connect(self.startWatching)

@@ -74,9 +74,6 @@ class ChatWidget(QWidget):
                 padding: 5px 10px;
                 border-radius: 3px;
             }
-            QPushButton:hover {
-                background-color: #ff5252;
-            }
         """)
         
         export_btn = QPushButton("Export Chat")
@@ -88,9 +85,6 @@ class ChatWidget(QWidget):
                 border: none;
                 padding: 5px 10px;
                 border-radius: 3px;
-            }
-            QPushButton:hover {
-                background-color: #45b7af;
             }
         """)
         

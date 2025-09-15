@@ -128,9 +128,6 @@ class ChatExportDialog(QDialog):
                 border-radius: 4px;
                 font-weight: bold;
             }
-            QPushButton:hover {
-                background-color: #5EAF08;
-            }
         """)
         export_btn.clicked.connect(self.export_chat)
         button_layout.addWidget(export_btn)

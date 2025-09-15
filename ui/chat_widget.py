@@ -46,7 +46,6 @@ class ChatWidget(QWidget):
                 cursor: pointer;
             }
             QPushButton:hover {
-                background-color: #5EAF08;
                 color: white;
             }
             QPushButton:disabled {
@@ -141,7 +140,6 @@ class ChatWidget(QWidget):
                 hover: cursor;
             }
             QPushButton:hover {
-                background-color: #5EAF08;
                 color: black;
             }
         """)
@@ -196,7 +194,6 @@ class ChatWidget(QWidget):
                 font-size: 13px;
             }
             QPushButton:hover {
-                background-color: #1565c0;
                 color: black;
             }
         """)
@@ -347,7 +344,6 @@ class ChatWidget(QWidget):
                     font-size: 13px;
                 }
                 QPushButton:hover {
-                    background-color: #1565c0;
                     color: black;
                 }
             """)

@@ -40,9 +40,6 @@ class ChatInput(QWidget):
                 font-weight: bold;
                 font-size: 14px;
             }
-            QPushButton:hover {
-                background-color: #5EAF08;
-            }
             QPushButton:pressed {
                 background-color: #3d8b40;
             }

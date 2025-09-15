@@ -155,9 +155,6 @@ class OptionsWidget(QWidget):
                 font-weight: bold;
                 font-size: 14px;
             }
-            QPushButton:hover {
-                background-color: #5EAF08;
-            }
         """)
         saveAllBtn.clicked.connect(self.saveAllSettings)
         layout.addWidget(saveAllBtn)
@@ -747,9 +744,6 @@ class OptionsWidget(QWidget):
                 font-weight: bold;
                 hover: cursor;
             }
-            QPushButton:hover {
-                background-color: #5EAF08;
-            }
         """)
         apply_btn.clicked.connect(self.applyEmbeddingModel)
         layout.addWidget(apply_btn)
@@ -1326,9 +1320,6 @@ class OptionsWidget(QWidget):
                 border-radius: 4px;
                 font-weight: bold;
             }
-            QPushButton:hover {
-                background-color: #5EAF08;
-            }
         """)
         self.start_watch_btn.clicked.connect(self.startWatching)
         
@@ -1340,9 +1331,6 @@ class OptionsWidget(QWidget):
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #da190b;
             }
             QPushButton:disabled {
                 background-color: #ccc;
@@ -2977,9 +2965,6 @@ class OptionsWidget(QWidget):
                 padding: 8px;
                 border-radius: 4px;
             }
-            QPushButton:hover {
-                background-color: #357ae8;
-            }
         """)
         applyModelBtn.clicked.connect(self.onModelApply)
         layout.addWidget(applyModelBtn)
@@ -3630,9 +3615,6 @@ class OptionsWidget(QWidget):
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #7b1fa2;
             }
         """)
         apply_btn.clicked.connect(self.applyRerankerSettings)

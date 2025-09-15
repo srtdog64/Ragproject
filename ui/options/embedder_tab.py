@@ -185,9 +185,6 @@ class EmbedderTab(QWidget):
                 border-radius: 4px;
                 font-weight: bold;
             }
-            QPushButton:hover {
-                background-color: #5EAF08;
-            }
         """)
         apply_btn.clicked.connect(self.applyEmbedder)
         main_layout.addWidget(apply_btn)
@@ -215,9 +212,6 @@ class EmbedderTab(QWidget):
                 font-weight: bold;
                 font-size: 14px;
             }
-            QPushButton:hover {
-                background-color: #5EAF08;
-            }
         """)
         save_btn.clicked.connect(self.saveAllSettings)
         button_layout.addWidget(save_btn)
@@ -231,9 +225,6 @@ class EmbedderTab(QWidget):
                 border-radius: 5px;
                 font-weight: bold;
                 font-size: 14px;
-            }
-            QPushButton:hover {
-                background-color: #da190b;
             }
         """)
         reset_btn.clicked.connect(self.resetToDefaults)

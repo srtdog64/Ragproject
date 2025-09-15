@@ -117,9 +117,6 @@ class ChatMessage(QWidget):
                     font-size: 12px;
                     font-weight: bold;
                 }
-                QPushButton:hover {
-                    background-color: #FF5252;
-                }
             """)
             retry_btn.clicked.connect(self._onRetryClicked)
             retry_btn.setMaximumWidth(80)

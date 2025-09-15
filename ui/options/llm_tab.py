@@ -141,9 +141,6 @@ class LLMTab(QWidget):
                 font-weight: bold;
                 hover: cursor;
             }
-            QPushButton:hover {
-                background-color: #5EAF08;
-            }
         """)
         apply_btn.clicked.connect(self.applySettings)
         layout.addWidget(apply_btn)
