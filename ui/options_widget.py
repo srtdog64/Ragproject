@@ -41,9 +41,33 @@ class OptionsWidget(QWidget):
         """Initialize the user interface"""
         layout = QVBoxLayout()
         
+        # Apply global styling for all text elements
+        self.setStyleSheet("""
+            QLabel {
+                color: #000000;
+            }
+            QGroupBox {
+                color: #000000;
+                font-weight: bold;
+            }
+            QRadioButton {
+                color: #000000;
+            }
+            QCheckBox {
+                color: #000000;
+            }
+            QTabWidget::tab-bar {
+                color: #000000;
+            }
+            QTabBar::tab {
+                color: #000000;
+            }
+        """)
+        
         # Title
         title = QLabel("System Configuration")
         title.setStyleSheet("""
+            color: #000000;
             font-size: 18px;
             font-weight: bold;
             padding: 10px;

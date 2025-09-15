@@ -27,7 +27,7 @@ class ChunkingTab(QWidget):
         
         # Info
         info = QLabel("""
-        <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
+        <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px; color: #000000;'>
         <b>Chunking Strategy:</b><br>
         Choose how documents are split into chunks for indexing.
         Different strategies work better for different document types.
@@ -78,7 +78,9 @@ class ChunkingTab(QWidget):
         
         # Current strategy
         current_layout = QHBoxLayout()
-        current_layout.addWidget(QLabel("Current Strategy:"))
+        current_label = QLabel("Current Strategy:")
+        current_label.setStyleSheet("color: #000000;")
+        current_layout.addWidget(current_label)
         
         current_strategy = self.config.get("chunker.default_strategy", "adaptive", "server")
         self.currentStrategyLabel = QLabel(current_strategy.capitalize())
@@ -89,6 +91,7 @@ class ChunkingTab(QWidget):
         
         # Strategy selection with ComboBox for backward compatibility
         strategy_group = QGroupBox("Select Strategy")
+        strategy_group.setStyleSheet("QGroupBox { color: #000000; font-weight: bold; }")
         strategy_layout = QVBoxLayout()
         
         # Add ComboBox at the top
@@ -114,6 +117,7 @@ class ChunkingTab(QWidget):
             
             # Icon and name
             radio = QRadioButton(f"{strategy['name']}")
+            radio.setStyleSheet("color: #000000;")
             radio.setToolTip(strategy['description'])
             radio.toggled.connect(lambda checked, s=strategy: self.onRadioToggled(s) if checked else None)
             self.strategy_radios[strategy['id']] = radio
@@ -138,44 +142,56 @@ class ChunkingTab(QWidget):
         
         # Parameters
         params_group = QGroupBox("Chunking Parameters")
+        params_group.setStyleSheet("QGroupBox { color: #000000; font-weight: bold; }")
         params_layout = QFormLayout()
         
         # Max tokens
         self.maxTokensSpin = QSpinBox()
         self.maxTokensSpin.setRange(100, 2000)
         self.maxTokensSpin.setValue(self.config.get("chunker.default_params.maxTokens", 512, "server"))
-        params_layout.addRow("Max Tokens:", self.maxTokensSpin)
+        max_tokens_label = QLabel("Max Tokens:")
+        max_tokens_label.setStyleSheet("color: #000000;")
+        params_layout.addRow(max_tokens_label, self.maxTokensSpin)
         
         # Overlap
         self.overlapSpin = QSpinBox()
         self.overlapSpin.setRange(0, 500)
         self.overlapSpin.setValue(self.config.get("chunker.default_params.overlap", 200, "server"))
-        params_layout.addRow("Overlap:", self.overlapSpin)
+        overlap_label = QLabel("Overlap:")
+        overlap_label.setStyleSheet("color: #000000;")
+        params_layout.addRow(overlap_label, self.overlapSpin)
         
         # Window size (for adaptive)
         self.windowSizeSpin = QSpinBox()
         self.windowSizeSpin.setRange(500, 5000)
         self.windowSizeSpin.setValue(self.config.get("chunker.default_params.windowSize", 1200, "server"))
-        params_layout.addRow("Window Size:", self.windowSizeSpin)
+        window_size_label = QLabel("Window Size:")
+        window_size_label.setStyleSheet("color: #000000;")
+        params_layout.addRow(window_size_label, self.windowSizeSpin)
         
         # Semantic threshold
         self.semanticSlider = QSlider(Qt.Horizontal)
         self.semanticSlider.setRange(50, 95)
         self.semanticSlider.setValue(int(self.config.get("chunker.default_params.semanticThreshold", 0.82, "server") * 100))
         self.semanticLabel = QLabel(f"{self.semanticSlider.value() / 100:.2f}")
+        self.semanticLabel.setStyleSheet("color: #000000;")
         self.semanticSlider.valueChanged.connect(lambda v: self.semanticLabel.setText(f"{v / 100:.2f}"))
         
         semantic_layout = QHBoxLayout()
         semantic_layout.addWidget(self.semanticSlider)
         semantic_layout.addWidget(self.semanticLabel)
-        params_layout.addRow("Semantic Threshold:", semantic_layout)
+        semantic_threshold_label = QLabel("Semantic Threshold:")
+        semantic_threshold_label.setStyleSheet("color: #000000;")
+        params_layout.addRow(semantic_threshold_label, semantic_layout)
         
         # topKs (for RAG retrieval)
         self.contextChunksSpin = QSpinBox()
         self.contextChunksSpin.setRange(1, 50)
         self.contextChunksSpin.setValue(self.config.get("policy.defaulttopK", 20, "server"))
         self.contextChunksSpin.setToolTip("Number of topKs to retrieve for each question")
-        params_layout.addRow("topKs:", self.contextChunksSpin)
+        topks_label = QLabel("topKs:")
+        topks_label.setStyleSheet("color: #000000;")
+        params_layout.addRow(topks_label, self.contextChunksSpin)
         
         params_group.setLayout(params_layout)
         layout.addWidget(params_group)

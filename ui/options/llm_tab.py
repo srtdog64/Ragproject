@@ -24,7 +24,7 @@ class LLMTab(QWidget):
         
         # Info
         info = QLabel("""
-        <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
+        <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px; color: #000000;'>
         <b>Language Model Configuration:</b><br>
         Select and configure your preferred Large Language Model.
         Each provider requires API keys set in the Server tab.
@@ -38,7 +38,9 @@ class LLMTab(QWidget):
         
         # Current model display
         current_layout = QHBoxLayout()
-        current_layout.addWidget(QLabel("Current Model:"))
+        current_label = QLabel("Current Model:")
+        current_label.setStyleSheet("color: #000000;")
+        current_layout.addWidget(current_label)
         
         provider = self.config.get_current_provider()
         model = self.config.get_current_model()
@@ -50,6 +52,7 @@ class LLMTab(QWidget):
         
         # Provider selection
         provider_group = QGroupBox("Select Provider")
+        provider_group.setStyleSheet("QGroupBox { color: #000000; font-weight: bold; }")
         provider_layout = QVBoxLayout()
         
         self.provider_radios = {}
@@ -57,6 +60,7 @@ class LLMTab(QWidget):
         
         for provider in providers:
             radio = QRadioButton(provider.capitalize())
+            radio.setStyleSheet("color: #000000;")
             self.provider_radios[provider] = radio
             radio.toggled.connect(lambda checked, p=provider: self.onProviderChanged(p) if checked else None)
             provider_layout.addWidget(radio)
@@ -71,6 +75,7 @@ class LLMTab(QWidget):
         
         # Model selection
         model_group = QGroupBox("Select Model")
+        model_group.setStyleSheet("QGroupBox { color: #000000; font-weight: bold; }")
         model_layout = QVBoxLayout()
         model_layout.addWidget(self.model_combo)
         model_group.setLayout(model_layout)
@@ -81,6 +86,7 @@ class LLMTab(QWidget):
         
         # Temperature control
         temp_group = QGroupBox("Temperature (Creativity)")
+        temp_group.setStyleSheet("QGroupBox { color: #000000; font-weight: bold; }")
         temp_layout = QVBoxLayout()
         
         self.temp_slider = QSlider(Qt.Horizontal)
@@ -89,6 +95,7 @@ class LLMTab(QWidget):
         self.temp_slider.valueChanged.connect(self.onTempChanged)
         
         self.temp_label = QLabel(f"Temperature: {self.temp_slider.value() / 100:.2f}")
+        self.temp_label.setStyleSheet("color: #000000;")
         
         temp_info = QLabel("""
         <small style='color: #666;'>
@@ -104,6 +111,7 @@ class LLMTab(QWidget):
         
         # Max tokens
         tokens_group = QGroupBox("Max Tokens")
+        tokens_group.setStyleSheet("QGroupBox { color: #000000; font-weight: bold; }")
         tokens_layout = QVBoxLayout()
         
         self.tokens_spin = QSpinBox()
