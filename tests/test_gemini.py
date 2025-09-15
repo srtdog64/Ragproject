@@ -37,12 +37,12 @@ async def test_gemini():
             result = await llm.generate(prompt, system)
             
             if result.isOk():
-                print(f"✅ Success: {result.getValue()[:200]}")
+                print(f"Success: {result.getValue()[:200]}")
             else:
-                print(f"❌ Error: {result.getError()}")
+                print(f"Error: {result.getError()}")
                 
         except Exception as e:
-            print(f"❌ Exception: {e}")
+            print(f"Exception: {e}")
     
     print("\n" + "=" * 60)
     print("Test completed!")

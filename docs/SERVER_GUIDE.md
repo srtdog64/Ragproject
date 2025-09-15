@@ -1,6 +1,6 @@
 # 서버 시작 가이드
 
-## 🚀 서버 시작 옵션
+## 서버 시작 옵션
 
 ### 1. 개발 모드 (Auto-reload 포함)
 ```bash
@@ -35,7 +35,7 @@ uvicorn server:app --host 127.0.0.1 --port 7001
 uvicorn server:app --host 0.0.0.0 --port 7001 --workers 4
 ```
 
-## ⚠️ 문제 해결
+## 문제 해결
 
 ### Reload 관련 에러 발생 시
 
@@ -63,15 +63,15 @@ uvicorn server:app --host 0.0.0.0 --port 7001 --workers 4
    python start_server.py
    ```
 
-## 📁 서버 스크립트 비교
+## 서버 스크립트 비교
 
 | 스크립트 | Auto-reload | 용도 | 포트 |
 |---------|------------|------|------|
-| start_server.py | ✅ (tests 제외) | 개발 | config.yaml |
-| run_server.py | ✅ (tests 제외) | 개발 | 7001 |
-| start_server_prod.py | ❌ | 프로덕션 | config.yaml |
+| start_server.py | (tests 제외) | 개발 | config.yaml |
+| run_server.py | (tests 제외) | 개발 | 7001 |
+| start_server_prod.py | | 프로덕션 | config.yaml |
 
-## 🔍 서버 상태 확인
+## 서버 상태 확인
 
 서버가 정상 작동 중인지 확인:
 
@@ -83,23 +83,23 @@ curl http://localhost:7001/health
 http://localhost:7001/docs
 ```
 
-## 📝 권장 사항
+## 권장 사항
 
 - **개발 중**: `start_server.py` 사용 (config 기반, reload 포함)
 - **테스트 중**: `start_server_prod.py` 사용 (안정성)
 - **배포 시**: Docker 또는 systemd 서비스로 실행
 
-## 🎯 임베더 매니저 확인
+## 임베더 매니저 확인
 
 서버 시작 시 다음 메시지가 표시되면 정상:
 ```
-✅ Embedder manager initialized successfully
+Embedder manager initialized successfully
 ```
 
 실패 시:
 ```
-⚠️ Warning: Failed to load embedder manager: ...
-✅ Using legacy embedder factory
+Warning: Failed to load embedder manager: ...
+Using legacy embedder factory
 ```
 
 이 경우 `config/embeddings.yml` 파일을 확인하세요.

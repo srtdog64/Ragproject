@@ -81,10 +81,10 @@ class ChatDisplay(QTextBrowser):
         
         if role == "user":
             role_format.setForeground(QColor("#0066cc"))
-            cursor.insertText("👤 You", role_format)
+            cursor.insertText("You", role_format)
         else:
             role_format.setForeground(QColor("#000000"))  # Black for assistant
-            cursor.insertText("🤖 Assistant", role_format)
+            cursor.insertText("Assistant", role_format)
         
         cursor.insertBlock()
         
@@ -1017,7 +1017,7 @@ class ChatDisplay(QTextBrowser):
                         else:
                             global_pos = self.mapToGlobal(self.rect().center())
                         
-                        QToolTip.showText(global_pos, "✅ Code copied to clipboard!")
+                        QToolTip.showText(global_pos, "Code copied to clipboard!")
                     except Exception as e:
                         print(f"[ChatDisplay] Tooltip error: {e}")  # Debug log
                     
@@ -1073,7 +1073,7 @@ class ChatDisplay(QTextBrowser):
             clipboard.setText(all_code)
             
             QToolTip.showText(self.mapToGlobal(self.rect().center()), 
-                             f"✅ {len(self.code_blocks)} code blocks copied!", 
+                             f"{len(self.code_blocks)} code blocks copied!", 
                              self, rect=self.rect(), msecShowTime=2000)
     
     def clear_chat(self):

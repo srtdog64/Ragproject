@@ -127,7 +127,7 @@ class ServerTab(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #9C27B0;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -142,7 +142,7 @@ class ServerTab(QWidget):
         # Warning
         warning = QLabel("""
         <div style='background-color: #fff3e0; padding: 10px; border-radius: 5px; margin-top: 10px;'>
-        <b>⚠️ Note:</b> API keys are stored as environment variables.
+        <b>Note:</b> API keys are stored as environment variables.
         Server restart may be required for some changes to take effect.
         </div>
         """)

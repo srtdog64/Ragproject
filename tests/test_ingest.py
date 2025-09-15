@@ -21,12 +21,12 @@ def test_ingest():
     try:
         response = requests.get(f"{base_url}/health")
         if response.status_code == 200:
-            print("✅ Server is running")
+            print("Server is running")
         else:
-            print(f"❌ Server returned status: {response.status_code}")
+            print(f"Server returned status: {response.status_code}")
             return
     except Exception as e:
-        print(f"❌ Cannot connect to server: {e}")
+        print(f"Cannot connect to server: {e}")
         return
     
     # 2. Test with simple document
@@ -58,7 +58,7 @@ def test_ingest():
         
         if response.status_code == 200:
             data = response.json()
-            print("   ✅ Success!")
+            print("   Success!")
             print(f"   Response: {json.dumps(data, indent=2)}")
             
             # Check what was ingested
@@ -68,13 +68,13 @@ def test_ingest():
                 print(f"   Documents processed: {data['documentCount']}")
                 
         else:
-            print(f"   ❌ Failed with status {response.status_code}")
+            print(f"   Failed with status {response.status_code}")
             print(f"   Response: {response.text}")
             
     except requests.exceptions.Timeout:
-        print("   ❌ Request timed out")
+        print("   Request timed out")
     except Exception as e:
-        print(f"   ❌ Error: {e}")
+        print(f"   Error: {e}")
     
     # 4. Test retrieval to verify ingestion
     print("\n4. Testing retrieval...")
@@ -92,17 +92,17 @@ def test_ingest():
             contexts = data.get('ctxIds', [])
             
             if contexts:
-                print(f"   ✅ Found {len(contexts)} contexts")
+                print(f"   Found {len(contexts)} contexts")
                 print("   Document was successfully ingested and retrieved!")
             else:
-                print("   ⚠️ No contexts found")
+                print("   No contexts found")
                 print("   Document may not have been properly indexed")
                 
         else:
-            print(f"   ❌ Retrieval failed: {response.status_code}")
+            print(f"   Retrieval failed: {response.status_code}")
             
     except Exception as e:
-        print(f"   ❌ Retrieval error: {e}")
+        print(f"   Retrieval error: {e}")
     
     print("\n" + "="*60)
     print("Test Complete")

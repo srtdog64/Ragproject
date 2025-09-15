@@ -48,9 +48,9 @@ def test_rag_system():
     
     if response.status_code == 200:
         data = response.json()
-        print(f"✅ Ingested: {data['documentCount']} docs, {data['ingestedChunks']} chunks")
+        print(f"Ingested: {data['documentCount']} docs, {data['ingestedChunks']} chunks")
     else:
-        print(f"❌ Ingestion failed: {response.status_code}")
+        print(f"Ingestion failed: {response.status_code}")
         return
     
     # 2. Test queries
@@ -80,9 +80,9 @@ def test_rag_system():
             print(f"   Answer: {answer}")
             
             if not ctx_ids:
-                print("   ⚠️ NO CONTEXTS RETRIEVED!")
+                print("   NO CONTEXTS RETRIEVED!")
         else:
-            print(f"   ❌ Request failed: {response.status_code}")
+            print(f"   Request failed: {response.status_code}")
     
     print("\n" + "="*60)
     print("Check server logs for detailed information:")

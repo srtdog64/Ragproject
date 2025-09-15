@@ -21,11 +21,11 @@ def test_persistence_and_reranking():
     try:
         response = requests.get(f"{base_url}/health")
         if response.status_code != 200:
-            print("❌ Server not running. Start with: python start_server.py")
+            print("Server not running. Start with: python start_server.py")
             return
-        print("✅ Server is online")
+        print("Server is online")
     except:
-        print("❌ Cannot connect to server")
+        print("Cannot connect to server")
         return
     
     # 2. Check if ChromaDB already has data
@@ -40,7 +40,7 @@ def test_persistence_and_reranking():
         data = response.json()
         ctx_ids = data.get('ctxIds', [])
         if ctx_ids:
-            print(f"✅ Found {len(ctx_ids)} persisted documents in ChromaDB!")
+            print(f"Found {len(ctx_ids)} persisted documents in ChromaDB!")
             print("   ChromaDB persistence is working!")
     
     # 3. Ingest documents for reranking test
@@ -80,7 +80,7 @@ def test_persistence_and_reranking():
     
     if response.status_code == 200:
         data = response.json()
-        print(f"✅ Ingested {data['documentCount']} docs into {data['ingestedChunks']} chunks")
+        print(f"Ingested {data['documentCount']} docs into {data['ingestedChunks']} chunks")
     
     # 4. Test reranking with query
     print("\n4. Testing reranking...")
@@ -102,7 +102,7 @@ def test_persistence_and_reranking():
         print(f"   Answer: {answer}")
         
         if ctx_ids:
-            print("\n   ✅ Reranker should have prioritized Python-related documents!")
+            print("\n   Reranker should have prioritized Python-related documents!")
             print("   Check server logs for reranking scores")
     
     # 5. Instructions for full test

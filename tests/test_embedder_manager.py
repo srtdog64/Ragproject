@@ -76,7 +76,7 @@ def test_embedder_manager():
     result = manager.ensureDim(768, embedder)
     print(f"Dimension check (768 == {embedder.getDim()}): {'OK' if result.ok else result.error}")
     
-    print("\n✅ All tests completed!")
+    print("\nAll tests completed!")
 
 if __name__ == "__main__":
     test_embedder_manager()

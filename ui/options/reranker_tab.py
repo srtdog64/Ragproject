@@ -22,7 +22,7 @@ class RerankerTab(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>🎯 Reranking Models:</b><br>
+        <b>Reranking Models:</b><br>
         Choose the reranking strategy to improve search result relevance.
         Different rerankers work better for different use cases.
         </div>
@@ -100,7 +100,7 @@ class RerankerTab(QWidget):
         layout.addLayout(current_layout)
         
         # Reranker selection
-        models_group = QGroupBox("🤖 Select Reranker")
+        models_group = QGroupBox("Select Reranker")
         models_layout = QVBoxLayout()
         
         self.reranker_radios = {}
@@ -139,7 +139,7 @@ class RerankerTab(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF5722;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;

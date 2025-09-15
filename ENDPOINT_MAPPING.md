@@ -42,11 +42,11 @@ These endpoints are directly accessible without /api prefix to maintain backward
 ## Client-Server Compatibility
 
 ### Qt Client (qt_app.py) calls:
-- `/ask` ✅ (compatible)
-- `/ingest` ✅ (compatible)
-- `/api/rag/stats` ✅ (compatible)
-- `/api/chunkers/strategy` ✅ (compatible)
-- `/config/reload` ❌ (needs update to `/api/config/reload`)
+- `/ask` (compatible)
+- `/ingest` (compatible)
+- `/api/rag/stats` (compatible)
+- `/api/chunkers/strategy` (compatible)
+- `/config/reload` (needs update to `/api/config/reload`)
 
 ### Changes Made:
 1. Removed `/api` prefix from `ask` and `ingest` routers for backward compatibility

@@ -138,7 +138,7 @@ class AsyncProgressDialog(QDialog):
         self.polling_timer.stop()
         
         result = status.get("result", {})
-        self.statusLabel.setText("✅ Task completed successfully!")
+        self.statusLabel.setText("Task completed successfully!")
         self.progressBar.setValue(100)
         
         # Log results
@@ -160,7 +160,7 @@ class AsyncProgressDialog(QDialog):
         self.polling_timer.stop()
         
         error = status.get("error", "Unknown error")
-        self.statusLabel.setText(f"❌ Task failed: {error}")
+        self.statusLabel.setText(f"Task failed: {error}")
         
         self.log(f"Task failed: {error}")
         
@@ -175,7 +175,7 @@ class AsyncProgressDialog(QDialog):
         """Handle task cancellation"""
         self.polling_timer.stop()
         
-        self.statusLabel.setText("⚠️ Task cancelled")
+        self.statusLabel.setText("Task cancelled")
         self.log("Task was cancelled")
         
         # Enable hide button, disable cancel
@@ -314,7 +314,7 @@ class IngestProgressWidget(QWidget):
         total_chunks = result.get("total_chunks", 0)
         processed_docs = result.get("processed_documents", 0)
         
-        self.infoLabel.setText(f"✅ Ingested {processed_docs} documents ({total_chunks} chunks)")
+        self.infoLabel.setText(f"Ingested {processed_docs} documents ({total_chunks} chunks)")
         self.progressBar.setValue(100)
         
         # Hide progress bar after delay
@@ -325,7 +325,7 @@ class IngestProgressWidget(QWidget):
     
     def on_task_failed(self, error: str):
         """Handle task failure"""
-        self.infoLabel.setText(f"❌ Ingestion failed: {error}")
+        self.infoLabel.setText(f"Ingestion failed: {error}")
         self.progressBar.setVisible(False)
         
         # Emit failure signal

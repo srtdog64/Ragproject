@@ -25,7 +25,7 @@ class LLMTab(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>🤖 Language Model Configuration:</b><br>
+        <b>Language Model Configuration:</b><br>
         Select and configure your preferred Large Language Model.
         Each provider requires API keys set in the Server tab.
         </div>
@@ -127,7 +127,7 @@ class LLMTab(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #2196F3;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;

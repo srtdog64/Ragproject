@@ -25,7 +25,7 @@ class ChatWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         
         # Title
-        title = QLabel("💬 RAG Chat Interface")
+        title = QLabel("RAG Chat Interface")
         title.setStyleSheet("""
             QLabel {
                 font-size: 18px;
@@ -69,7 +69,7 @@ class ChatWidget(QWidget):
         clear_btn.setStyleSheet("""
             QPushButton {
                 background-color: #ff6b6b;
-                color: white;
+                color: black;
                 border: none;
                 padding: 5px 10px;
                 border-radius: 3px;
@@ -79,12 +79,12 @@ class ChatWidget(QWidget):
             }
         """)
         
-        export_btn = QPushButton("💾 Export Chat")
+        export_btn = QPushButton("Export Chat")
         export_btn.clicked.connect(self.exportChat)
         export_btn.setStyleSheet("""
             QPushButton {
                 background-color: #4ecdc4;
-                color: white;
+                color: black;
                 border: none;
                 padding: 5px 10px;
                 border-radius: 3px;
@@ -158,7 +158,7 @@ class ChatWidget(QWidget):
         """Handle error from RAG system"""
         # Add error message to history (will be shown with retry button)
         self.history.addMessage(
-            f"❌ Error: {error_msg}",
+            f"Error: {error_msg}",
             is_user=False,
             show_retry=True,
             original_question=self.current_question
@@ -218,7 +218,7 @@ class ChatWidget(QWidget):
         """Handle failed retry"""
         # Update the last message to show it still failed
         self.history.updateLastMessage(
-            f"❌ Retry failed: {error_msg}",
+            f"Retry failed: {error_msg}",
             success=False
         )
         

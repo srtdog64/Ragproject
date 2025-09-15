@@ -12,10 +12,10 @@ def check_server_status():
     try:
         response = requests.get("http://localhost:7001/health")
         if response.status_code == 200:
-            print("✅ Server is online")
+            print("Server is online")
             return True
     except:
-        print("❌ Server is offline")
+        print("Server is offline")
     return False
 
 def get_current_strategy():
@@ -25,10 +25,10 @@ def get_current_strategy():
         if response.status_code == 200:
             data = response.json()
             strategy = data.get('strategy', 'unknown')
-            print(f"📦 Current server strategy: {strategy}")
+            print(f"Current server strategy: {strategy}")
             return strategy
     except Exception as e:
-        print(f"❌ Failed to get strategy: {e}")
+        print(f"Failed to get strategy: {e}")
     return None
 
 def set_strategy(strategy):
@@ -40,10 +40,10 @@ def set_strategy(strategy):
             headers={"Content-Type": "application/json"}
         )
         if response.status_code == 200:
-            print(f"✅ Strategy set to: {strategy}")
+            print(f"Strategy set to: {strategy}")
             return True
     except Exception as e:
-        print(f"❌ Failed to set strategy: {e}")
+        print(f"Failed to set strategy: {e}")
     return False
 
 def main():
@@ -76,13 +76,13 @@ def main():
             server_strategy = get_current_strategy()
             
             if server_strategy == strategy:
-                print(f"✅ Server correctly shows: {server_strategy}")
+                print(f"Server correctly shows: {server_strategy}")
             else:
-                print(f"❌ Mismatch! Expected {strategy}, got {server_strategy}")
+                print(f"Mismatch! Expected {strategy}, got {server_strategy}")
             
             print("3. Now start Qt App and check if status bar shows:")
-            print(f"   Expected: 📦 Strategy: {strategy}")
-            print("   NOT: 📦 Strategy: Loading...")
+            print(f"   Expected: Strategy: {strategy}")
+            print("   NOT: Strategy: Loading...")
             
             input("\nPress Enter after checking Qt App...")
     

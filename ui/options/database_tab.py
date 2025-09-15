@@ -139,17 +139,17 @@ class DatabaseTab(QWidget):
         if store_type == "memory":
             self.db_path_edit.setEnabled(False)
             self.browse_btn.setEnabled(False)
-            self.info_label.setText("⚠️ Memory store: Data will be lost when server restarts!")
+            self.info_label.setText("Memory store: Data will be lost when server restarts!")
             self.info_label.setStyleSheet("color: orange; font-size: 10pt;")
         elif store_type == "chroma":
             self.db_path_edit.setEnabled(True)
             self.browse_btn.setEnabled(True)
-            self.info_label.setText("✅ ChromaDB: Persistent vector storage with full-text search")
+            self.info_label.setText("ChromaDB: Persistent vector storage with full-text search")
             self.info_label.setStyleSheet("color: green; font-size: 10pt;")
         elif store_type == "faiss":
             self.db_path_edit.setEnabled(True)
             self.browse_btn.setEnabled(True)
-            self.info_label.setText("ℹ️ FAISS: High-performance similarity search (not yet implemented)")
+            self.info_label.setText("FAISS: High-performance similarity search (not yet implemented)")
             self.info_label.setStyleSheet("color: blue; font-size: 10pt;")
     
     def browse_folder(self):

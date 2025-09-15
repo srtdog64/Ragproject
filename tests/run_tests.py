@@ -71,16 +71,16 @@ def main():
         print("Test Summary")
         print('='*60)
         for test_name, passed in results.items():
-            status = "✅ PASSED" if passed else "❌ FAILED"
+            status = "PASSED" if passed else "FAILED"
             print(f"{test_name}: {status}")
     
     elif choice in tests:
         file, desc = tests[choice]
         success = run_test(file)
         if success:
-            print(f"\n✅ {desc} completed successfully!")
+            print(f"\n{desc} completed successfully!")
         else:
-            print(f"\n❌ {desc} failed!")
+            print(f"\n{desc} failed!")
     else:
         print("Invalid selection")
 

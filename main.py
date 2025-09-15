@@ -39,7 +39,7 @@ class RAGSystemLauncher:
         # Check for .env file
         env_file = self.project_root / ".env"
         if not env_file.exists():
-            logger.warning("⚠️  .env file not found!")
+            logger.warning(" .env file not found!")
             
             sample_file = self.project_root / ".env.sample"
             if sample_file.exists():
@@ -86,7 +86,7 @@ class RAGSystemLauncher:
     
     def start_server(self, port: int = 7001):
         """Start the FastAPI server - Cross-platform version"""
-        logger.info("🚀 Starting RAG server...")
+        logger.info("Starting RAG server...")
         
         server_script = self.project_root / "run_server.py"
         if not server_script.exists():
@@ -131,7 +131,7 @@ class RAGSystemLauncher:
                 
                 # Check if process is still running
                 if self.server_process.poll() is not None:
-                    logger.error("❌ Server process terminated unexpectedly")
+                    logger.error("Server process terminated unexpectedly")
                     return False
                 
                 # Try to connect to server
@@ -140,7 +140,7 @@ class RAGSystemLauncher:
                     response = requests.get(f"http://localhost:{port}/health", timeout=1)
                     if response.status_code == 200:
                         server_ready = True
-                        logger.info(f"✅ Server started successfully on http://localhost:{port}")
+                        logger.info(f"Server started successfully on http://localhost:{port}")
                         break
                 except:
                     logger.debug(f"Attempt {attempt + 1}/{max_attempts}: Server not ready yet...")
@@ -193,10 +193,10 @@ class RAGSystemLauncher:
             # Check if UI started successfully
             time.sleep(2)
             if self.ui_process.poll() is None:
-                logger.info("✅ Qt UI started successfully")
+                logger.info("Qt UI started successfully")
                 return True
             else:
-                logger.error("❌ UI process terminated unexpectedly")
+                logger.error("UI process terminated unexpectedly")
                 return False
                 
         except Exception as e:
@@ -242,7 +242,7 @@ class RAGSystemLauncher:
                     except:
                         self.server_process.kill()
         
-        logger.info("✅ All processes stopped")
+        logger.info("All processes stopped")
     
     def run_server_only(self):
         """Run only the server"""

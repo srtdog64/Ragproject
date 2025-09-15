@@ -1,6 +1,6 @@
 # 빠른 시작 가이드 (Quick Start Guide)
 
-## 🚀 5분 만에 RAG 시스템 실행하기
+## 5분 만에 RAG 시스템 실행하기
 
 ### Windows 사용자
 1. **E:\Ragproject** 폴더로 이동
@@ -24,7 +24,7 @@ python qt_app_styled.py
 
 ---
 
-## 📝 첫 번째 RAG 테스트
+## 첫 번째 RAG 테스트
 
 ### 1단계: 샘플 문서 로드
 1. Qt UI 실행 후 **Documents** 탭 클릭
@@ -51,24 +51,24 @@ python qt_app_styled.py
 ## 🎨 UI 기능
 
 ### Chat 탭
-- 💬 실시간 대화 인터페이스
-- ⚙️ Top K 조정 (1-20)
-- 📊 응답 시간 표시
+- 실시간 대화 인터페이스
+- Top K 조정 (1-20)
+- 응답 시간 표시
 - 🔗 컨텍스트 ID 표시
 
 ### Documents 탭
 - ➕ 문서 추가/편집/삭제
-- 📁 JSON 가져오기/내보내기
-- 📋 테이블 뷰로 관리
+- JSON 가져오기/내보내기
+- 테이블 뷰로 관리
 
 ### Logs 탭
-- 📝 시스템 로그
-- ⚠️ 오류 추적
+- 시스템 로그
+- 오류 추적
 - 🕐 타임스탬프
 
 ---
 
-## ⚙️ 환경 설정
+## 환경 설정
 
 ### 포트 변경
 `run_server.py` 수정:
@@ -82,7 +82,7 @@ uvicorn.run("server:app", port=8000)  # 7001 → 8000
 
 ---
 
-## 🔧 문제 해결
+## 문제 해결
 
 ### "Server not running" 오류
 ```bash
@@ -103,7 +103,7 @@ python check_system.py
 
 ---
 
-## 📚 다음 단계
+## 다음 단계
 
 1. **실제 LLM 연결**
    - OpenAI API 키 설정

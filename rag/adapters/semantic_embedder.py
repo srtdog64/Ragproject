@@ -44,7 +44,7 @@ class SemanticEmbedder:
             self._model = SentenceTransformer(self.model_name)
             self._dim = self._model.get_sentence_embedding_dimension()
             
-            logger.info(f"✅ Model '{self.model_name}' loaded successfully")
+            logger.info(f"Model '{self.model_name}' loaded successfully")
             logger.info(f"   Embedding dimension: {self._dim}")
             
         except ImportError:

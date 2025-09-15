@@ -345,13 +345,13 @@ class MainWindow(QMainWindow):
         self.chatWidget = ChatWidget(self.config)
         self.chatWidget.ingestRequested.connect(self.ingestDocuments)
         self.chatWidget.questionAsked.connect(self.askQuestion)
-        self.tabs.addTab(self.chatWidget, "💬 Chat")
+        self.tabs.addTab(self.chatWidget, "Chat")
         
         # Documents tab
         self.docWidget = DocumentsWidget(self.config)
         self.docWidget.documentsChanged.connect(self.onDocumentsChanged)
         self.docWidget.selectiveIngestRequested.connect(self.ingestSelectedDocuments)
-        self.tabs.addTab(self.docWidget, "📚 Documents")
+        self.tabs.addTab(self.docWidget, "Documents")
         
         # Options tab
         self.optionsWidget = OptionsWidget(self.config)
@@ -364,11 +364,11 @@ class MainWindow(QMainWindow):
         self.optionsWidget.strategyCombo.currentTextChanged.connect(
             self.optionsWidget.onStrategyComboChanged
         )
-        self.tabs.addTab(self.optionsWidget, "⚙️ Options")
+        self.tabs.addTab(self.optionsWidget, "Options")
         
         # Logs tab
         self.logsWidget = LogsWidget(self.config)
-        self.tabs.addTab(self.logsWidget, "📜 Logs")
+        self.tabs.addTab(self.logsWidget, "Logs")
     
     def createMenus(self):
         """Create application menus"""
@@ -377,23 +377,23 @@ class MainWindow(QMainWindow):
         # File menu
         fileMenu = menubar.addMenu("&File")
         
-        loadFileAction = QAction("📄 Load File...", self)
+        loadFileAction = QAction("Load File...", self)
         loadFileAction.setShortcut("Ctrl+O")
         loadFileAction.triggered.connect(self.docWidget.loadFile)
         fileMenu.addAction(loadFileAction)
         
-        loadDirAction = QAction("📁 Load Directory...", self)
+        loadDirAction = QAction("Load Directory...", self)
         loadDirAction.setShortcut("Ctrl+D")
         loadDirAction.triggered.connect(self.docWidget.loadDirectory)
         fileMenu.addAction(loadDirAction)
         
         fileMenu.addSeparator()
         
-        exportDocsAction = QAction("💾 Export Documents...", self)
+        exportDocsAction = QAction("Export Documents...", self)
         exportDocsAction.triggered.connect(self.docWidget.exportDocuments)
         fileMenu.addAction(exportDocsAction)
         
-        exportLogsAction = QAction("📝 Export Logs...", self)
+        exportLogsAction = QAction("Export Logs...", self)
         exportLogsAction.triggered.connect(self.logsWidget.exportLogs)
         fileMenu.addAction(exportLogsAction)
         
@@ -407,21 +407,21 @@ class MainWindow(QMainWindow):
         # Server menu
         serverMenu = menubar.addMenu("&Server")
         
-        checkStatusAction = QAction("🔍 Check Status", self)
+        checkStatusAction = QAction("Check Status", self)
         checkStatusAction.setShortcut("F5")
         checkStatusAction.triggered.connect(self.checkServer)
         serverMenu.addAction(checkStatusAction)
         
         serverMenu.addSeparator()
         
-        ingestAction = QAction("📥 Ingest Documents", self)
+        ingestAction = QAction("Ingest Documents", self)
         ingestAction.setShortcut("Ctrl+I")
         ingestAction.triggered.connect(self.ingestDocuments)
         serverMenu.addAction(ingestAction)
         
         serverMenu.addSeparator()
         
-        reloadConfigAction = QAction("🔄 Reload Configuration", self)
+        reloadConfigAction = QAction("Reload Configuration", self)
         reloadConfigAction.triggered.connect(self.reloadConfig)
         serverMenu.addAction(reloadConfigAction)
         
@@ -442,13 +442,13 @@ class MainWindow(QMainWindow):
         # Help menu
         helpMenu = menubar.addMenu("&Help")
         
-        configInfoAction = QAction("📋 Configuration Info", self)
+        configInfoAction = QAction("Configuration Info", self)
         configInfoAction.triggered.connect(self.showConfigInfo)
         helpMenu.addAction(configInfoAction)
         
         helpMenu.addSeparator()
         
-        aboutAction = QAction("ℹ️ About", self)
+        aboutAction = QAction("About", self)
         aboutAction.triggered.connect(self.showAbout)
         helpMenu.addAction(aboutAction)
         
@@ -462,25 +462,25 @@ class MainWindow(QMainWindow):
         self.setStatusBar(self.statusBar)
         
         # Server status
-        self.serverStatusLabel = QLabel("🔴 Server: Checking...")
+        self.serverStatusLabel = QLabel("Server: Checking...")
         self.serverStatusLabel.setStyleSheet("padding: 5px;")
         self.statusBar.addPermanentWidget(self.serverStatusLabel)
         
         # Model status  
         provider = self.config.get_current_provider()
         model = self.config.get_current_model()
-        self.modelStatusLabel = QLabel(f"🧠 {provider}: {model}")
+        self.modelStatusLabel = QLabel(f"{provider}: {model}")
         self.modelStatusLabel.setStyleSheet("padding: 5px;")
         self.statusBar.addPermanentWidget(self.modelStatusLabel)
         
         # Strategy status - fetch from server or use default
         strategy = self.fetchCurrentStrategy()
-        self.strategyStatusLabel = QLabel(f"📦 Strategy: {strategy}")
+        self.strategyStatusLabel = QLabel(f"Strategy: {strategy}")
         self.strategyStatusLabel.setStyleSheet("padding: 5px;")
         self.statusBar.addPermanentWidget(self.strategyStatusLabel)
         
         # Vector count from database
-        self.vectorCountLabel = QLabel("🗃️ Vectors: --")
+        self.vectorCountLabel = QLabel("Vectors: --")
         self.vectorCountLabel.setStyleSheet("padding: 5px;")
         self.vectorCountLabel.setToolTip("Total vectors stored in the database")
         self.statusBar.addPermanentWidget(self.vectorCountLabel)
@@ -630,7 +630,7 @@ class MainWindow(QMainWindow):
         
         # Show error message
         self.chatWidget.addMessage("Assistant", 
-            "⚠️ Request timed out. The server might be busy or unresponsive. Please try again.")
+            "Request timed out. The server might be busy or unresponsive. Please try again.")
         
         self.logsWidget.error("Request timed out after 30 seconds")
     
@@ -650,7 +650,7 @@ class MainWindow(QMainWindow):
     
     def onModelChanged(self, provider: str, model: str):
         """Handle model change"""
-        self.modelStatusLabel.setText(f"🧠 {provider}: {model}")
+        self.modelStatusLabel.setText(f"{provider}: {model}")
         self.chatWidget.updateModelLabel(provider, model)
         self.logsWidget.success(f"Model changed to {provider}: {model}")
     
@@ -676,7 +676,7 @@ class MainWindow(QMainWindow):
         
         QMessageBox.information(
             self, "Ingestion Complete",
-            f"✅ Successfully processed {processed_docs} documents\n"
+            f"Successfully processed {processed_docs} documents\n"
             f"Generated {total_chunks} chunks"
         )
         
@@ -746,7 +746,7 @@ class MainWindow(QMainWindow):
             status = result.get("status", "unknown")
             if status == "ok":
                 self.serverOnline = True
-                self.serverStatusLabel.setText("🟢 Server: Online")
+                self.serverStatusLabel.setText("Server: Online")
                 self.serverStatusLabel.setStyleSheet("color: green; padding: 5px;")
                 self.logsWidget.success("Server is online")
                 
@@ -758,12 +758,12 @@ class MainWindow(QMainWindow):
                 # Also fetch current strategy when server is confirmed online
                 try:
                     strategy = self.fetchCurrentStrategy()
-                    self.strategyStatusLabel.setText(f"📦 Strategy: {strategy}")
+                    self.strategyStatusLabel.setText(f"Strategy: {strategy}")
                 except:
                     pass  # Don't fail if strategy fetch fails
             else:
                 self.serverOnline = False
-                self.serverStatusLabel.setText("🔴 Server: Offline")
+                self.serverStatusLabel.setText("Server: Offline")
                 self.serverStatusLabel.setStyleSheet("color: red; padding: 5px;")
                 self.logsWidget.error("Server is offline")
             
@@ -782,7 +782,7 @@ class MainWindow(QMainWindow):
             
             QMessageBox.information(
                 self, "Ingestion Complete",
-                f"✅ Successfully ingested {docs} documents into {chunks} chunks\n"
+                f"Successfully ingested {docs} documents into {chunks} chunks\n"
                 f"Task ID: {task_id[:8]}..."
             )
             self.logsWidget.success(f"Ingested {docs} documents into {chunks} chunks")
@@ -806,7 +806,7 @@ class MainWindow(QMainWindow):
         
         elif task == "set_strategy":
             strategy = result.get("strategy", "unknown")
-            self.strategyStatusLabel.setText(f"📦 Strategy: {strategy}")
+            self.strategyStatusLabel.setText(f"Strategy: {strategy}")
             QMessageBox.information(self, "Success", f"Strategy changed to: {strategy}")
             self.logsWidget.success(f"Changed strategy to: {strategy}")
         
@@ -816,7 +816,7 @@ class MainWindow(QMainWindow):
         
         elif task == "get_vector_count":
             if "error" in result:
-                self.vectorCountLabel.setText("🗃️ Vectors: --")
+                self.vectorCountLabel.setText("Vectors: --")
                 self.vectorCountLabel.setToolTip(f"Error: {result.get('error')}")
                 self.vectorCountLabel.setStyleSheet("padding: 5px; color: #6e7781;")
             else:
@@ -825,14 +825,14 @@ class MainWindow(QMainWindow):
                 store_type = result.get('store_type', 'unknown')
                 
                 if vector_count > 0:
-                    self.vectorCountLabel.setText(f"🗃️ Vectors: {vector_count:,}")
+                    self.vectorCountLabel.setText(f"Vectors: {vector_count:,}")
                     self.vectorCountLabel.setToolTip(
                         f"Total vectors in '{namespace}' namespace\n"
                         f"Store type: {store_type}"
                     )
                     self.vectorCountLabel.setStyleSheet("padding: 5px; color: #1a7f37;")
                 else:
-                    self.vectorCountLabel.setText("🗃️ Vectors: 0")
+                    self.vectorCountLabel.setText("Vectors: 0")
                     self.vectorCountLabel.setToolTip(
                         f"No vectors in '{namespace}' namespace yet.\n"
                         f"Store: {store_type}\n"
@@ -848,7 +848,7 @@ class MainWindow(QMainWindow):
         # Update model status
         provider = self.config.get_current_provider()
         model = self.config.get_current_model()
-        self.modelStatusLabel.setText(f"🧠 {provider}: {model}")
+        self.modelStatusLabel.setText(f"{provider}: {model}")
     
     def handleError(self, error: str):
         """Handle worker thread errors"""
@@ -861,7 +861,7 @@ class MainWindow(QMainWindow):
         QMessageBox.critical(self, "Error", error)
         self.logsWidget.error(error)
         self.serverOnline = False
-        self.serverStatusLabel.setText("🔴 Server: Error")
+        self.serverStatusLabel.setText("Server: Error")
         self.serverStatusLabel.setStyleSheet("color: red; padding: 5px;")
     
     def updateIngestionProgress(self, current: int, total: int, message: str):
@@ -892,7 +892,7 @@ class MainWindow(QMainWindow):
         </ul>
         
         <h4>System Status</h4>
-        <p><b>Server:</b> {'🟢 Online' if self.serverOnline else '🔴 Offline'}</p>
+        <p><b>Server:</b> {'Online' if self.serverOnline else 'Offline'}</p>
         <p><b>Documents:</b> {len(self.docWidget.getDocuments())}</p>
         <p><b>Log Entries:</b> {len(self.logsWidget.logBuffer)}</p>
         """
@@ -912,12 +912,12 @@ class MainWindow(QMainWindow):
             
             <p>A Retrieval-Augmented Generation system with:</p>
             <ul>
-            <li>🧠 Multiple LLM provider support (Gemini, OpenAI, Claude)</li>
-            <li>📦 Real-time chunking strategy selection</li>
-            <li>🎛️ Configurable parameters</li>
-            <li>📚 Multi-format document support (PDF, MD, TXT)</li>
-            <li>📊 Advanced logging and monitoring</li>
-            <li>⚙️ Modular UI architecture</li>
+            <li>Multiple LLM provider support (Gemini, OpenAI, Claude)</li>
+            <li>Real-time chunking strategy selection</li>
+            <li>Configurable parameters</li>
+            <li>Multi-format document support (PDF, MD, TXT)</li>
+            <li>Advanced logging and monitoring</li>
+            <li>Modular UI architecture</li>
             </ul>
             
             <p><b>Components:</b></p>

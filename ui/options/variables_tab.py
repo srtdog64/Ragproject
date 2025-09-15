@@ -133,7 +133,7 @@ class VariablesTab(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #607D8B;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;

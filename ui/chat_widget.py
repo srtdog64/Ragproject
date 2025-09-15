@@ -10,6 +10,7 @@ from PySide6.QtGui import QKeySequence, QAction
 from .toggle_switch import ToggleSwitch
 from .chat.chat_display import ChatDisplay
 from .chat.chat_exporter import ChatExportDialog, ChatExporter
+from .icon_manager import get_icon, Icons
 
 
 class ChatWidget(QWidget):
@@ -32,19 +33,20 @@ class ChatWidget(QWidget):
         topToolbar = QHBoxLayout()
         
         # Ingest button with progress bar
-        self.ingestBtn = QPushButton("📥 Ingest Documents")
+        self.ingestBtn = QPushButton("Ingest Documents")
         self.ingestBtn.clicked.connect(lambda: self.ingestRequested.emit())
         self.ingestBtn.setToolTip("Index documents to vector store")
         self.ingestBtn.setStyleSheet("""
             QPushButton {
                 background-color: #4caf50;
-                color: white;
+                color: black;
                 font-weight: bold;
                 padding: 8px 16px;
                 border-radius: 4px;
             }
             QPushButton:hover {
                 background-color: #45a049;
+                color: black;
             }
             QPushButton:disabled {
                 background-color: #cccccc;
@@ -121,18 +123,20 @@ class ChatWidget(QWidget):
         topToolbar.addWidget(clearBtn)
         
         # Export button
-        exportBtn = QPushButton("💾 Export")
+        exportBtn = QPushButton("Export")
+        exportBtn.setIcon(get_icon(Icons.SAVE))
         exportBtn.clicked.connect(self.exportChat)
         exportBtn.setToolTip("Export chat to Markdown file")
         exportBtn.setStyleSheet("""
             QPushButton {
                 background-color: #2196F3;
-                color: white;
+                color: black;
                 padding: 5px 10px;
                 border-radius: 4px;
             }
             QPushButton:hover {
                 background-color: #1976D2;
+                color: black;
             }
         """)
         topToolbar.addWidget(exportBtn)
@@ -162,13 +166,14 @@ class ChatWidget(QWidget):
         buttonLayout.setSpacing(2)
         
         # Send button
-        self.sendBtn = QPushButton("🚀 Send")
+        self.sendBtn = QPushButton("Send")
+        self.sendBtn.setIcon(get_icon(Icons.SEND))
         self.sendBtn.setMinimumHeight(35)  # Reduced from 40
         self.sendBtn.setMinimumWidth(70)   # Reduced from 80
         self.sendBtn.setStyleSheet("""
             QPushButton {
                 background-color: #1976d2;
-                color: white;
+                color: black;
                 font-weight: bold;
                 border-radius: 4px;
                 padding: 8px 12px;
@@ -176,6 +181,7 @@ class ChatWidget(QWidget):
             }
             QPushButton:hover {
                 background-color: #1565c0;
+                color: black;
             }
         """)
         buttonLayout.addWidget(self.sendBtn)
@@ -279,11 +285,12 @@ class ChatWidget(QWidget):
         
         if not enabled:
             # Change button to show processing
-            self.sendBtn.setText("⏳ Generating...")
+            self.sendBtn.setText("Generating...")
+            self.sendBtn.setIcon(get_icon(Icons.CLOCK))
             self.sendBtn.setStyleSheet("""
                 QPushButton {
                     background-color: #ffc107;
-                    color: white;
+                    color: black;
                     font-weight: bold;
                     border-radius: 4px;
                     padding: 8px 12px;
@@ -297,12 +304,13 @@ class ChatWidget(QWidget):
     def onModeChanged(self, checked):
         """Handle mode change - UI only for now"""
         if checked:
-            self.sendBtn.setText("🔒 Send")
+            self.sendBtn.setText("Send")
+            self.sendBtn.setIcon(get_icon("lock"))
             self.sendBtn.setToolTip("Strict Mode: Only use RAG context (Coming soon)")
             self.sendBtn.setStyleSheet("""
                 QPushButton {
                     background-color: #ff6b35;
-                    color: white;
+                    color: black;
                     font-weight: bold;
                     border-radius: 4px;
                     padding: 8px 12px;
@@ -310,15 +318,17 @@ class ChatWidget(QWidget):
                 }
                 QPushButton:hover {
                     background-color: #ff5722;
+                    color: black;
                 }
             """)
         else:
-            self.sendBtn.setText("🚀 Send")
+            self.sendBtn.setText("Send")
+            self.sendBtn.setIcon(get_icon(Icons.SEND))
             self.sendBtn.setToolTip("Normal Mode: RAG + General Knowledge")
             self.sendBtn.setStyleSheet("""
                 QPushButton {
                     background-color: #1976d2;
-                    color: white;
+                    color: black;
                     font-weight: bold;
                     border-radius: 4px;
                     padding: 8px 12px;
@@ -326,6 +336,7 @@ class ChatWidget(QWidget):
                 }
                 QPushButton:hover {
                     background-color: #1565c0;
+                    color: black;
                 }
             """)
     

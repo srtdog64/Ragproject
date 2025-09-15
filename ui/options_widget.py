@@ -14,6 +14,7 @@ from .options import (
     VariablesTab
 )
 from .options.database_tab import DatabaseTab
+from .icon_manager import get_icon, Icons
 
 
 class OptionsWidget(QWidget):
@@ -41,7 +42,7 @@ class OptionsWidget(QWidget):
         layout = QVBoxLayout()
         
         # Title
-        title = QLabel("⚙️ System Configuration")
+        title = QLabel("System Configuration")
         title.setStyleSheet("""
             font-size: 18px;
             font-weight: bold;
@@ -57,40 +58,48 @@ class OptionsWidget(QWidget):
         # Create and add tabs
         self.llm_tab = LLMTab(self.config, self)
         self.llm_tab.modelChanged.connect(self.modelChanged)  # Connect modelChanged signal
-        self.tabs.addTab(self.llm_tab, "🤖 LLM Models")
+        tab_index = self.tabs.addTab(self.llm_tab, "LLM Models")
+        self.tabs.setTabIcon(tab_index, get_icon(Icons.CPU))
         
         self.embedder_tab = EmbedderTab(self.config, self)
-        self.tabs.addTab(self.embedder_tab, "🧠 Embedding")
+        tab_index = self.tabs.addTab(self.embedder_tab, "Embedding")
+        self.tabs.setTabIcon(tab_index, get_icon(Icons.ACTIVITY))
         
         self.reranker_tab = RerankerTab(self.config, self)
-        self.tabs.addTab(self.reranker_tab, "🎯 Reranker")
+        tab_index = self.tabs.addTab(self.reranker_tab, "Reranker")
+        self.tabs.setTabIcon(tab_index, get_icon(Icons.TARGET))
         
         self.chunking_tab = ChunkingTab(self.config, self)
         self.chunking_tab.strategyChanged.connect(self.strategyChanged)
         self.chunking_tab.paramsChanged.connect(self.paramsChanged)  # Connect params signal
         self.chunking_tab.contextChunksChanged.connect(self.contextChunksChanged)  # Connect topKs signal
-        self.tabs.addTab(self.chunking_tab, "✂️ Chunking")
+        tab_index = self.tabs.addTab(self.chunking_tab, "Chunking")
+        self.tabs.setTabIcon(tab_index, get_icon(Icons.SCISSORS))
         
         # Set strategyCombo reference for backward compatibility
         self.strategyCombo = self.chunking_tab.strategyCombo
         
         self.server_tab = ServerTab(self.config, self)
-        self.tabs.addTab(self.server_tab, "🌐 Server")
+        tab_index = self.tabs.addTab(self.server_tab, "Server")
+        self.tabs.setTabIcon(tab_index, get_icon(Icons.GLOBE))
         
         self.variables_tab = VariablesTab(self.config, self)
-        self.tabs.addTab(self.variables_tab, "🔧 Variables")
+        tab_index = self.tabs.addTab(self.variables_tab, "Variables")
+        self.tabs.setTabIcon(tab_index, get_icon(Icons.TOOL))
         
         self.database_tab = DatabaseTab(self.config)
-        self.tabs.addTab(self.database_tab, "💾 Database")
+        tab_index = self.tabs.addTab(self.database_tab, "Database")
+        self.tabs.setTabIcon(tab_index, get_icon(Icons.SAVE))
         
         layout.addWidget(self.tabs)
         
         # Save all settings button
-        saveAllBtn = QPushButton("💾 Save All Settings")
+        saveAllBtn = QPushButton("Save All Settings")
+        saveAllBtn.setIcon(get_icon(Icons.SAVE))
         saveAllBtn.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
-                color: white;
+                color: black;
                 padding: 10px;
                 border-radius: 5px;
                 font-weight: bold;
@@ -104,11 +113,12 @@ class OptionsWidget(QWidget):
         layout.addWidget(saveAllBtn)
         
         # Reload config button
-        reloadBtn = QPushButton("🔄 Reload Configuration")
+        reloadBtn = QPushButton("Reload Configuration")
+        reloadBtn.setIcon(get_icon(Icons.REFRESH_CW))
         reloadBtn.setStyleSheet("""
             QPushButton {
                 background-color: #2196F3;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 5px;
                 font-weight: bold;
@@ -183,31 +193,38 @@ class OptionsWidget(QWidget):
         # Recreate tabs
         self.llm_tab = LLMTab(self.config, self)
         self.llm_tab.modelChanged.connect(self.modelChanged)  # Connect modelChanged signal
-        self.tabs.addTab(self.llm_tab, "🤖 LLM Models")
+        tab_index = self.tabs.addTab(self.llm_tab, "LLM Models")
+        self.tabs.setTabIcon(tab_index, get_icon(Icons.CPU))
         
         self.embedder_tab = EmbedderTab(self.config, self)
-        self.tabs.addTab(self.embedder_tab, "🧠 Embedding")
+        tab_index = self.tabs.addTab(self.embedder_tab, "Embedding")
+        self.tabs.setTabIcon(tab_index, get_icon(Icons.ACTIVITY))
         
         self.reranker_tab = RerankerTab(self.config, self)
-        self.tabs.addTab(self.reranker_tab, "🎯 Reranker")
+        tab_index = self.tabs.addTab(self.reranker_tab, "Reranker")
+        self.tabs.setTabIcon(tab_index, get_icon(Icons.TARGET))
         
         self.chunking_tab = ChunkingTab(self.config, self)
         self.chunking_tab.strategyChanged.connect(self.strategyChanged)
         self.chunking_tab.paramsChanged.connect(self.paramsChanged)  # Connect params signal
         self.chunking_tab.contextChunksChanged.connect(self.contextChunksChanged)  # Connect topKs signal
-        self.tabs.addTab(self.chunking_tab, "✂️ Chunking")
+        tab_index = self.tabs.addTab(self.chunking_tab, "Chunking")
+        self.tabs.setTabIcon(tab_index, get_icon(Icons.SCISSORS))
         
         # Set strategyCombo reference for backward compatibility
         self.strategyCombo = self.chunking_tab.strategyCombo
         
         self.server_tab = ServerTab(self.config, self)
-        self.tabs.addTab(self.server_tab, "🌐 Server")
+        tab_index = self.tabs.addTab(self.server_tab, "Server")
+        self.tabs.setTabIcon(tab_index, get_icon(Icons.GLOBE))
         
         self.variables_tab = VariablesTab(self.config, self)
-        self.tabs.addTab(self.variables_tab, "🔧 Variables")
+        tab_index = self.tabs.addTab(self.variables_tab, "Variables")
+        self.tabs.setTabIcon(tab_index, get_icon(Icons.TOOL))
         
         self.database_tab = DatabaseTab(self.config)
-        self.tabs.addTab(self.database_tab, "💾 Database")
+        tab_index = self.tabs.addTab(self.database_tab, "Database")
+        self.tabs.setTabIcon(tab_index, get_icon(Icons.SAVE))
     
     def onStrategyComboChanged(self, text):
         """Forward to chunking tab's method"""

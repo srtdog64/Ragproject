@@ -33,7 +33,7 @@ class ChatInput(QWidget):
         self.send_btn.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
-                color: white;
+                color: black;
                 border: none;
                 padding: 10px 20px;
                 border-radius: 5px;

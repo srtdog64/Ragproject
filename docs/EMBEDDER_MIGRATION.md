@@ -129,8 +129,8 @@ python health_check.py
 
 ## Article 원칙 준수
 
-- ✅ **Error Handling**: IO 경계에서만 예외 처리
-- ✅ **Method Length**: 모든 메서드 25줄 이하
-- ✅ **Guard Clauses**: 조기 반환 패턴 적용
-- ✅ **Result Type**: 예측 가능한 실패 모델링
-- ✅ **No Debug Code**: 프로덕션 빌드에 디버그 코드 없음
+- **Error Handling**: IO 경계에서만 예외 처리
+- **Method Length**: 모든 메서드 25줄 이하
+- **Guard Clauses**: 조기 반환 패턴 적용
+- **Result Type**: 예측 가능한 실패 모델링
+- **No Debug Code**: 프로덕션 빌드에 디버그 코드 없음

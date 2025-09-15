@@ -58,13 +58,13 @@ def test_chroma_connection():
                     except Exception as e:
                         print(f"    - {coll.name}: Error getting count: {e}")
                 
-                print(f"  ✅ Successfully connected to ChromaDB at {resolved}")
+                print(f"  Successfully connected to ChromaDB at {resolved}")
                 return True
                 
             except Exception as e:
-                print(f"  ❌ Failed to connect: {e}")
+                print(f"  Failed to connect: {e}")
     
-    print("\n❌ Could not connect to ChromaDB at any path")
+    print("\nCould not connect to ChromaDB at any path")
     return False
 
 def test_api_endpoint():

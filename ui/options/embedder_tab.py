@@ -21,7 +21,7 @@ class EmbedderTab(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>🧠 Embedding Model Configuration:</b><br>
+        <b>Embedding Model Configuration:</b><br>
         Select the embedding model for semantic search.
         Different models offer different trade-offs between speed and quality.
         </div>
@@ -180,7 +180,7 @@ class EmbedderTab(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
-                color: white;
+                color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -195,7 +195,7 @@ class EmbedderTab(QWidget):
         # Warning about changing embedder
         warning = QLabel("""
         <div style='background-color: #fff3e0; padding: 10px; border-radius: 5px; margin-top: 10px;'>
-        <b>⚠️ Warning:</b> Changing the embedder requires re-ingesting all documents
+        <b>Warning:</b> Changing the embedder requires re-ingesting all documents
         as embeddings are model-specific.
         </div>
         """)
@@ -205,11 +205,11 @@ class EmbedderTab(QWidget):
         # Bottom buttons
         button_layout = QHBoxLayout()
         
-        save_btn = QPushButton("💾 Save All Settings")
+        save_btn = QPushButton("Save All Settings")
         save_btn.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
-                color: white;
+                color: black;
                 padding: 10px 20px;
                 border-radius: 5px;
                 font-weight: bold;
@@ -222,11 +222,11 @@ class EmbedderTab(QWidget):
         save_btn.clicked.connect(self.saveAllSettings)
         button_layout.addWidget(save_btn)
         
-        reset_btn = QPushButton("🔄 Reset to Defaults")
+        reset_btn = QPushButton("Reset to Defaults")
         reset_btn.setStyleSheet("""
             QPushButton {
                 background-color: #f44336;
-                color: white;
+                color: black;
                 padding: 10px 20px;
                 border-radius: 5px;
                 font-weight: bold;

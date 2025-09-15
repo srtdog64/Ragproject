@@ -1,6 +1,6 @@
 # RAG System Pipeline Architecture
 
-## 📋 Overview
+## Overview
 이 문서는 RAG (Retrieval-Augmented Generation) 시스템의 전체 파이프라인 구조와 처리 흐름을 설명합니다.
 
 ## 🏗️ System Architecture
@@ -30,7 +30,7 @@
         └──────────────┘              └──────────────┘
 ```
 
-## 📥 Ingestion Pipeline (문서 처리)
+## Ingestion Pipeline (문서 처리)
 
 ### 1️⃣ Document Input
 ```python
@@ -63,7 +63,7 @@ Document {
   - `ChromaVectorStore`: 영속성 (./chroma_db에 저장)
   - `FAISS`: (구현 예정)
 
-## 🔍 Retrieval Pipeline (검색 및 답변)
+## Retrieval Pipeline (검색 및 답변)
 
 ### 1️⃣ Query Expansion
 질문을 확장하여 검색 성능 향상
@@ -107,7 +107,7 @@ LLM을 사용해 답변 생성
 ### 7️⃣ Parsing (파싱)
 LLM 응답을 파싱하여 최종 답변 추출
 
-## ⚙️ Configuration Files
+## Configuration Files
 
 ### `/config/config.yaml`
 메인 설정 파일
@@ -140,7 +140,7 @@ embedders:
     model: paraphrase-multilingual-MiniLM-L12-v2
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 E:\Ragproject\
@@ -174,7 +174,7 @@ E:\Ragproject\
 └── start_server.py        # 서버 시작 스크립트
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. 서버 시작
 ```bash
@@ -192,7 +192,7 @@ python qt_app.py
 3. **Chat 탭**: 질문하기
 4. **Options 탭**: 전략 및 파라미터 조정
 
-## 📊 Data Flow Example
+## Data Flow Example
 
 ```
 User Question: "RAG란 무엇인가?"
@@ -212,7 +212,7 @@ User Question: "RAG란 무엇인가?"
 Answer: "RAG는 검색 증강 생성..."
 ```
 
-## 🔧 Key Components
+## Key Components
 
 ### Chunkers (`/rag/chunkers/`)
 - `ChunkerRegistry`: 전략 관리
@@ -243,7 +243,7 @@ Answer: "RAG는 검색 증강 생성..."
 4. **Vector Store**: 영속성 필요시 ChromaDB 사용
 5. **Reranking**: 정확도 향상을 위해 활성화 권장
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### 서버가 시작되지 않을 때
 ```bash
@@ -260,7 +260,7 @@ python tests/check_vector_store.py
 python tests/test_rag_retrieval.py
 ```
 
-## 📝 Notes
+## Notes
 
 - 기본 포트: 7001
 - API 문서: http://localhost:7001/docs

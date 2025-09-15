@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import List, Dict, Optional
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt, Signal
+from ..icon_manager import get_icon, Icons
 
 
 class ChatExportDialog(QDialog):
@@ -27,7 +28,7 @@ class ChatExportDialog(QDialog):
         layout = QVBoxLayout()
         
         # Title
-        title = QLabel("📄 Export Chat to Markdown")
+        title = QLabel("Export Chat to Markdown")
         title.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 10px;")
         layout.addWidget(title)
         
@@ -122,7 +123,7 @@ class ChatExportDialog(QDialog):
         export_btn.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
-                color: white;
+                color: black;
                 padding: 6px 20px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -252,11 +253,11 @@ class ChatExporter:
                 
                 # Format sender
                 if sender == 'You':
-                    lines.append(f"### 👤 You")
+                    lines.append(f"### You")
                 elif sender == 'Assistant':
-                    lines.append(f"### 🤖 Assistant")
+                    lines.append(f"### Assistant")
                 else:
-                    lines.append(f"### ℹ️ {sender}")
+                    lines.append(f"### {sender}")
                 
                 # Add timestamp if included
                 if options.get('include_metadata', True) and timestamp:

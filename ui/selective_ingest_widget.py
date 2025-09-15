@@ -6,6 +6,7 @@ from typing import List, Dict, Set
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QFont, QColor
+from .icon_manager import get_icon, Icons
 
 
 class SelectiveIngestWidget(QWidget):
@@ -23,7 +24,7 @@ class SelectiveIngestWidget(QWidget):
         layout = QVBoxLayout()
         
         # Title
-        titleLabel = QLabel("🎯 Selective Document Ingestion")
+        titleLabel = QLabel("Selective Document Ingestion")
         titleLabel.setStyleSheet("font-size: 14px; font-weight: bold; margin: 10px 0;")
         layout.addWidget(titleLabel)
         
@@ -81,11 +82,12 @@ class SelectiveIngestWidget(QWidget):
         layout.addLayout(batchLayout)
         
         # Ingest button
-        self.ingestBtn = QPushButton("📥 Ingest Selected Documents")
+        self.ingestBtn = QPushButton("Ingest Selected Documents")
+        self.ingestBtn.setIcon(get_icon(Icons.SAVE))
         self.ingestBtn.setStyleSheet("""
             QPushButton {
                 background-color: #4caf50;
-                color: white;
+                color: black;
                 font-weight: bold;
                 padding: 10px;
                 border-radius: 4px;

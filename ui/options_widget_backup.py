@@ -107,7 +107,7 @@ class OptionsWidget(QWidget):
         layout = QVBoxLayout()
         
         # Title
-        titleLabel = QLabel("⚙️ System Configuration")
+        titleLabel = QLabel("System Configuration")
         titleLabel.setStyleSheet("font-size: 18px; font-weight: bold; margin: 10px 0;")
         layout.addWidget(titleLabel)
         
@@ -116,19 +116,19 @@ class OptionsWidget(QWidget):
         
         # Tab 1: LLM Models
         llmTab = self.createLLMTab()
-        self.tabs.addTab(llmTab, "🤖 LLM Models")
+        self.tabs.addTab(llmTab, "LLM Models")
         
         # Tab 2: Embedding Models
         embeddingTab = self.createEmbeddingTab()
-        self.tabs.addTab(embeddingTab, "🧠 Embedding Models")
+        self.tabs.addTab(embeddingTab, "Embedding Models")
         
         # Tab 3: Reranking
         rerankTab = self.createRerankTab()
-        self.tabs.addTab(rerankTab, "🎯 Reranking")
+        self.tabs.addTab(rerankTab, "Reranking")
         
         # Tab 4: Reranker Settings
         rerankerTab = self.createRerankerTab()
-        self.tabs.addTab(rerankerTab, "🎯 Reranker")
+        self.tabs.addTab(rerankerTab, "Reranker")
         
         # Tab 5: Chunking Strategy
         chunkingTab = self.createChunkingTab()
@@ -140,16 +140,16 @@ class OptionsWidget(QWidget):
         
         # Tab 6: System Variables
         variablesTab = self.createVariablesTab()
-        self.tabs.addTab(variablesTab, "🔧 Variables")
+        self.tabs.addTab(variablesTab, "Variables")
         
         layout.addWidget(self.tabs)
         
         # Save all settings button
-        saveAllBtn = QPushButton("💾 Save All Settings")
+        saveAllBtn = QPushButton("Save All Settings")
         saveAllBtn.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
-                color: white;
+                color: black;
                 padding: 10px;
                 border-radius: 5px;
                 font-weight: bold;
@@ -185,7 +185,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>🎯 Reranking Models:</b><br>
+        <b>Reranking Models:</b><br>
         Choose the reranking strategy to improve search result relevance.
         Different rerankers work better for different use cases.
         </div>
@@ -263,7 +263,7 @@ class OptionsWidget(QWidget):
         layout.addLayout(current_layout)
         
         # Reranker selection
-        models_group = QGroupBox("🤖 Select Reranker")
+        models_group = QGroupBox("Select Reranker")
         models_layout = QVBoxLayout()
         
         self.reranker_radios = {}
@@ -302,7 +302,7 @@ class OptionsWidget(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF5722;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -377,7 +377,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #fff3e0; padding: 10px; border-radius: 5px;'>
-        <b>🔧 System Variables:</b><br>
+        <b>System Variables:</b><br>
         Configure system-wide parameters used across server and client components.
         These values control timeouts, limits, and processing parameters.
         </div>
@@ -437,7 +437,7 @@ class OptionsWidget(QWidget):
         apply_vars_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF9800;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -466,7 +466,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>🎯 Reranking Models:</b><br>
+        <b>Reranking Models:</b><br>
         Choose the reranking strategy to improve search result relevance.
         Different rerankers work better for different use cases.
         </div>
@@ -544,7 +544,7 @@ class OptionsWidget(QWidget):
         layout.addLayout(current_layout)
         
         # Reranker selection
-        models_group = QGroupBox("🤖 Select Reranker")
+        models_group = QGroupBox("Select Reranker")
         models_layout = QVBoxLayout()
         
         self.reranker_radios = {}
@@ -583,7 +583,7 @@ class OptionsWidget(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF5722;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -701,7 +701,7 @@ class OptionsWidget(QWidget):
         # Info about namespaces
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>🎯 Smart Namespace Management:</b><br>
+        <b>Smart Namespace Management:</b><br>
         Each embedding model maintains its own vector space. You can switch between models
         without losing your indexed documents! Each model's data is stored separately.
         </div>
@@ -710,14 +710,14 @@ class OptionsWidget(QWidget):
         layout.addWidget(info)
         
         # Current namespaces
-        namespaces_group = QGroupBox("📚 Available Vector Spaces")
+        namespaces_group = QGroupBox("Available Vector Spaces")
         namespaces_layout = QVBoxLayout()
         
         self.namespaces_list = QListWidget()
         self.namespaces_list.setMaximumHeight(150)
         namespaces_layout.addWidget(self.namespaces_list)
         
-        refresh_btn = QPushButton("🔄 Refresh Namespaces")
+        refresh_btn = QPushButton("Refresh Namespaces")
         refresh_btn.clicked.connect(self.refreshNamespaces)
         namespaces_layout.addWidget(refresh_btn)
         
@@ -725,7 +725,7 @@ class OptionsWidget(QWidget):
         layout.addWidget(namespaces_group)
         
         # Model selection
-        models_group = QGroupBox("🤖 Select Embedding Model")
+        models_group = QGroupBox("Select Embedding Model")
         models_layout = QVBoxLayout()
         
         self.model_radios = {}
@@ -750,7 +750,7 @@ class OptionsWidget(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #2196F3;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -774,7 +774,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>🎯 Reranking Models:</b><br>
+        <b>Reranking Models:</b><br>
         Choose the reranking strategy to improve search result relevance.
         Different rerankers work better for different use cases.
         </div>
@@ -852,7 +852,7 @@ class OptionsWidget(QWidget):
         layout.addLayout(current_layout)
         
         # Reranker selection
-        models_group = QGroupBox("🤖 Select Reranker")
+        models_group = QGroupBox("Select Reranker")
         models_layout = QVBoxLayout()
         
         self.reranker_radios = {}
@@ -891,7 +891,7 @@ class OptionsWidget(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF5722;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -966,7 +966,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #fff3e0; padding: 10px; border-radius: 5px;'>
-        <b>🔧 System Variables:</b><br>
+        <b>System Variables:</b><br>
         Configure system-wide parameters used across server and client components.
         These values control timeouts, limits, and processing parameters.
         </div>
@@ -1026,7 +1026,7 @@ class OptionsWidget(QWidget):
         apply_vars_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF9800;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -1055,7 +1055,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>🎯 Reranking Models:</b><br>
+        <b>Reranking Models:</b><br>
         Choose the reranking strategy to improve search result relevance.
         Different rerankers work better for different use cases.
         </div>
@@ -1133,7 +1133,7 @@ class OptionsWidget(QWidget):
         layout.addLayout(current_layout)
         
         # Reranker selection
-        models_group = QGroupBox("🤖 Select Reranker")
+        models_group = QGroupBox("Select Reranker")
         models_layout = QVBoxLayout()
         
         self.reranker_radios = {}
@@ -1172,7 +1172,7 @@ class OptionsWidget(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF5722;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -1338,7 +1338,7 @@ class OptionsWidget(QWidget):
         self.start_watch_btn.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
-                color: white;
+                color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -1353,7 +1353,7 @@ class OptionsWidget(QWidget):
         self.stop_watch_btn.setStyleSheet("""
             QPushButton {
                 background-color: #f44336;
-                color: white;
+                color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -1388,7 +1388,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>🎯 Reranking Models:</b><br>
+        <b>Reranking Models:</b><br>
         Choose the reranking strategy to improve search result relevance.
         Different rerankers work better for different use cases.
         </div>
@@ -1466,7 +1466,7 @@ class OptionsWidget(QWidget):
         layout.addLayout(current_layout)
         
         # Reranker selection
-        models_group = QGroupBox("🤖 Select Reranker")
+        models_group = QGroupBox("Select Reranker")
         models_layout = QVBoxLayout()
         
         self.reranker_radios = {}
@@ -1505,7 +1505,7 @@ class OptionsWidget(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF5722;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -1580,7 +1580,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #fff3e0; padding: 10px; border-radius: 5px;'>
-        <b>🔧 System Variables:</b><br>
+        <b>System Variables:</b><br>
         Configure system-wide parameters used across server and client components.
         These values control timeouts, limits, and processing parameters.
         </div>
@@ -1640,7 +1640,7 @@ class OptionsWidget(QWidget):
         apply_vars_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF9800;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -1669,7 +1669,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>🎯 Reranking Models:</b><br>
+        <b>Reranking Models:</b><br>
         Choose the reranking strategy to improve search result relevance.
         Different rerankers work better for different use cases.
         </div>
@@ -1747,7 +1747,7 @@ class OptionsWidget(QWidget):
         layout.addLayout(current_layout)
         
         # Reranker selection
-        models_group = QGroupBox("🤖 Select Reranker")
+        models_group = QGroupBox("Select Reranker")
         models_layout = QVBoxLayout()
         
         self.reranker_radios = {}
@@ -1786,7 +1786,7 @@ class OptionsWidget(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF5722;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -1921,7 +1921,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>🎯 Reranking Models:</b><br>
+        <b>Reranking Models:</b><br>
         Choose the reranking strategy to improve search result relevance.
         Different rerankers work better for different use cases.
         </div>
@@ -1999,7 +1999,7 @@ class OptionsWidget(QWidget):
         layout.addLayout(current_layout)
         
         # Reranker selection
-        models_group = QGroupBox("🤖 Select Reranker")
+        models_group = QGroupBox("Select Reranker")
         models_layout = QVBoxLayout()
         
         self.reranker_radios = {}
@@ -2038,7 +2038,7 @@ class OptionsWidget(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF5722;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -2113,7 +2113,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #fff3e0; padding: 10px; border-radius: 5px;'>
-        <b>🔧 System Variables:</b><br>
+        <b>System Variables:</b><br>
         Configure system-wide parameters used across server and client components.
         These values control timeouts, limits, and processing parameters.
         </div>
@@ -2173,7 +2173,7 @@ class OptionsWidget(QWidget):
         apply_vars_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF9800;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -2202,7 +2202,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>🎯 Reranking Models:</b><br>
+        <b>Reranking Models:</b><br>
         Choose the reranking strategy to improve search result relevance.
         Different rerankers work better for different use cases.
         </div>
@@ -2280,7 +2280,7 @@ class OptionsWidget(QWidget):
         layout.addLayout(current_layout)
         
         # Reranker selection
-        models_group = QGroupBox("🤖 Select Reranker")
+        models_group = QGroupBox("Select Reranker")
         models_layout = QVBoxLayout()
         
         self.reranker_radios = {}
@@ -2319,7 +2319,7 @@ class OptionsWidget(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF5722;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -2450,7 +2450,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>🎯 Reranking Models:</b><br>
+        <b>Reranking Models:</b><br>
         Choose the reranking strategy to improve search result relevance.
         Different rerankers work better for different use cases.
         </div>
@@ -2528,7 +2528,7 @@ class OptionsWidget(QWidget):
         layout.addLayout(current_layout)
         
         # Reranker selection
-        models_group = QGroupBox("🤖 Select Reranker")
+        models_group = QGroupBox("Select Reranker")
         models_layout = QVBoxLayout()
         
         self.reranker_radios = {}
@@ -2567,7 +2567,7 @@ class OptionsWidget(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF5722;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -2642,7 +2642,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #fff3e0; padding: 10px; border-radius: 5px;'>
-        <b>🔧 System Variables:</b><br>
+        <b>System Variables:</b><br>
         Configure system-wide parameters used across server and client components.
         These values control timeouts, limits, and processing parameters.
         </div>
@@ -2702,7 +2702,7 @@ class OptionsWidget(QWidget):
         apply_vars_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF9800;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -2731,7 +2731,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>🎯 Reranking Models:</b><br>
+        <b>Reranking Models:</b><br>
         Choose the reranking strategy to improve search result relevance.
         Different rerankers work better for different use cases.
         </div>
@@ -2809,7 +2809,7 @@ class OptionsWidget(QWidget):
         layout.addLayout(current_layout)
         
         # Reranker selection
-        models_group = QGroupBox("🤖 Select Reranker")
+        models_group = QGroupBox("Select Reranker")
         models_layout = QVBoxLayout()
         
         self.reranker_radios = {}
@@ -2848,7 +2848,7 @@ class OptionsWidget(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF5722;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -2960,7 +2960,7 @@ class OptionsWidget(QWidget):
     
     def createModelSection(self) -> QGroupBox:
         """Create LLM model configuration section"""
-        group = QGroupBox("🧠 LLM Model Configuration")
+        group = QGroupBox("LLM Model Configuration")
         layout = QVBoxLayout()
         
         # Current model display
@@ -3016,7 +3016,7 @@ class OptionsWidget(QWidget):
         applyModelBtn.setStyleSheet("""
             QPushButton {
                 background-color: #4285f4;
-                color: white;
+                color: black;
                 font-weight: bold;
                 padding: 8px;
                 border-radius: 4px;
@@ -3040,7 +3040,7 @@ class OptionsWidget(QWidget):
     
     def createStrategySection(self) -> QGroupBox:
         """Create chunking strategy section (static)"""
-        group = QGroupBox("📦 Chunking Strategy")
+        group = QGroupBox("Chunking Strategy")
         layout = QVBoxLayout()
         
         # Current strategy display
@@ -3049,7 +3049,7 @@ class OptionsWidget(QWidget):
         layout.addWidget(self.currentStrategyLabel)
         
         # Server sync indicator
-        self.syncStatusLabel = QLabel("✅ Synced with server")
+        self.syncStatusLabel = QLabel("Synced with server")
         self.syncStatusLabel.setStyleSheet("color: green; font-size: 11px;")
         layout.addWidget(self.syncStatusLabel)
         
@@ -3095,7 +3095,7 @@ class OptionsWidget(QWidget):
     
     def createParametersSection(self) -> QGroupBox:
         """Create chunking parameters section"""
-        group = QGroupBox("🎛️ Chunking Parameters")
+        group = QGroupBox("Chunking Parameters")
         layout = QFormLayout()
         
         self.paramInputs = {}
@@ -3201,13 +3201,13 @@ class OptionsWidget(QWidget):
         layout.addWidget(infoLabel)
         
         # Save config button
-        saveConfigBtn = QPushButton("💾 Save Current Settings to Config")
+        saveConfigBtn = QPushButton("Save Current Settings to Config")
         saveConfigBtn.clicked.connect(self.onSaveConfig)
         layout.addWidget(saveConfigBtn)
         
         # Strategy guide
         guideText = """
-        <b>🎯 Strategy Selection Guide:</b><br>
+        <b>Strategy Selection Guide:</b><br>
         • <b>sentence</b>: Q&A, chat logs, short content<br>
         • <b>paragraph</b>: Structured documents, manuals<br>
         • <b>sliding_window</b>: Long narratives, novels<br>
@@ -3259,7 +3259,7 @@ class OptionsWidget(QWidget):
         }
         
         desc = descriptions.get(provider, {}).get(model, "Model information not available")
-        self.modelDescLabel.setText(f"ℹ️ {desc}")
+        self.modelDescLabel.setText(f"{desc}")
     
     def onProviderChanged(self):
         """Handle provider change"""
@@ -3290,7 +3290,7 @@ class OptionsWidget(QWidget):
         self.currentStrategy = strategy
         self.strategyCombo.setCurrentText(strategy)
         self.currentStrategyLabel.setText(f"Current Strategy: {strategy}")
-        self.syncStatusLabel.setText("✅ Synced with server")
+        self.syncStatusLabel.setText("Synced with server")
         self.syncStatusLabel.setStyleSheet("color: green; font-size: 11px;")
     
     def onStrategyApply(self):
@@ -3314,7 +3314,7 @@ class OptionsWidget(QWidget):
                     self.config.set("chunker.default_strategy", strategy, 'server')
                     
                     # Update sync status
-                    self.syncStatusLabel.setText("✅ Applied to server")
+                    self.syncStatusLabel.setText("Applied to server")
                     self.syncStatusLabel.setStyleSheet("color: green; font-size: 11px;")
                     
                     # Emit signal
@@ -3331,7 +3331,7 @@ class OptionsWidget(QWidget):
                 self.currentStrategy = strategy
                 self.currentStrategyLabel.setText(f"Current Strategy: {strategy}")
                 
-                self.syncStatusLabel.setText("⚠️ Server not synced")
+                self.syncStatusLabel.setText("Server not synced")
                 self.syncStatusLabel.setStyleSheet("color: orange; font-size: 11px;")
                 
                 QMessageBox.warning(self, "Warning", 
@@ -3381,7 +3381,7 @@ class OptionsWidget(QWidget):
         current = self.strategyCombo.currentText()
         for strategy in self.strategies:
             if strategy['name'] == current:
-                self.strategyDescLabel.setText(f"📝 {strategy['description']}")
+                self.strategyDescLabel.setText(f"{strategy['description']}")
                 break
     
     def onSaveConfig(self):
@@ -3500,7 +3500,7 @@ class OptionsWidget(QWidget):
         """Start the folder watcher"""
         if self.folder_watcher and self.watched_folders:
             self.folder_watcher.start()
-            self.watcher_status.setText("Status: ✅ Watching...")
+            self.watcher_status.setText("Status: Watching...")
             self.start_watch_btn.setEnabled(False)
             self.stop_watch_btn.setEnabled(True)
         else:
@@ -3569,7 +3569,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e8f4fd; padding: 10px; border-radius: 5px;'>
-        <b>🎯 Reranking Configuration:</b><br>
+        <b>Reranking Configuration:</b><br>
         Rerankers improve search quality by re-scoring retrieved documents.<br>
         Choose the best reranking method for your use case.
         </div>
@@ -3670,7 +3670,7 @@ class OptionsWidget(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #9c27b0;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -3697,7 +3697,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>🎯 Reranking Models:</b><br>
+        <b>Reranking Models:</b><br>
         Choose the reranking strategy to improve search result relevance.
         Different rerankers work better for different use cases.
         </div>
@@ -3775,7 +3775,7 @@ class OptionsWidget(QWidget):
         layout.addLayout(current_layout)
         
         # Reranker selection
-        models_group = QGroupBox("🤖 Select Reranker")
+        models_group = QGroupBox("Select Reranker")
         models_layout = QVBoxLayout()
         
         self.reranker_radios = {}
@@ -3814,7 +3814,7 @@ class OptionsWidget(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF5722;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;

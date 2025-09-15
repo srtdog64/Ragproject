@@ -40,7 +40,7 @@ def test_chunking():
     strategies = registry.list_strategies()
     for strategy_info in strategies:
         strategy_name = strategy_info['name']
-        print(f"\n📦 Testing {strategy_name}: {strategy_info['description']}")
+        print(f"\nTesting {strategy_name}: {strategy_info['description']}")
         
         # Set strategy
         registry.set_strategy(strategy_name)
@@ -48,7 +48,7 @@ def test_chunking():
         # Chunk using wrapper (compatible with old interface)
         try:
             chunks = wrapper.chunk(test_doc)
-            print(f"   ✅ Generated {len(chunks)} chunks")
+            print(f"   Generated {len(chunks)} chunks")
             
             # Show first chunk preview
             if chunks:
@@ -56,10 +56,10 @@ def test_chunking():
                 preview = first_chunk.text[:100] + "..." if len(first_chunk.text) > 100 else first_chunk.text
                 print(f"   Preview: {preview}")
         except Exception as e:
-            print(f"   ❌ Error: {e}")
+            print(f"   Error: {e}")
     
     print("\n" + "=" * 60)
-    print("✅ All tests completed!")
+    print("All tests completed!")
     print("=" * 60)
     
     # Reset to default

@@ -6,32 +6,32 @@ All main service endpoints now use `/api` prefix for consistency and better orga
 
 ## Endpoint Structure
 
-### 🏥 Health Endpoints
+### Health Endpoints
 - `GET /health` - Basic health check (no prefix for simplicity)
 - `GET /api/health/detailed` - Detailed health information
 
-### 📝 Core Service Endpoints (/api prefix)
+### Core Service Endpoints (/api prefix)
 - `POST /api/ask` - Process questions through RAG pipeline
 - `POST /api/ingest` - Ingest documents into the system
 - `GET /api/ask/status` - Get ask service status
 - `GET /api/ingest/status` - Get ingest service status
 
-### 📊 RAG Management (/api/rag prefix)
+### RAG Management (/api/rag prefix)
 - `GET /api/rag/stats` - Get vector store statistics
 - `GET /api/rag/collections` - List collections
 
-### 📁 Namespace Management (/api prefix)
+### Namespace Management (/api prefix)
 - `GET /api/namespaces` - List all namespaces
 - `POST /api/switch_namespace` - Switch to different namespace
 - `DELETE /api/namespaces/{name}` - Delete a namespace
 
-### ⚙️ Configuration Management (/api/config prefix)
+### Configuration Management (/api/config prefix)
 - `GET /api/config/reload` - Reload configuration
 - `GET /api/config/current` - Get current configuration
 - `POST /api/config/update` - Update configuration
 - `GET /api/config/section/{section}` - Get specific config section
 
-### 🔧 Chunker Management (/api/chunkers prefix)
+### Chunker Management (/api/chunkers prefix)
 - `GET /api/chunkers/strategies` - List available strategies
 - `GET /api/chunkers/strategy` - Get current strategy
 - `POST /api/chunkers/strategy` - Set strategy
@@ -53,11 +53,11 @@ The Qt client (qt_app.py) and UI components have been updated to use the `/api` 
 /config/reload          → /api/config/reload
 
 # After (consistent)
-/api/ask                ✅
-/api/ingest             ✅
-/api/config/reload      ✅
-/api/rag/stats          ✅ (unchanged)
-/api/chunkers/strategy  ✅ (unchanged)
+/api/ask                
+/api/ingest             
+/api/config/reload      
+/api/rag/stats          (unchanged)
+/api/chunkers/strategy  (unchanged)
 ```
 
 ## Testing

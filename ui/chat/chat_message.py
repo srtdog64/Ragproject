@@ -106,11 +106,11 @@ class ChatMessage(QWidget):
             retry_container = QHBoxLayout()
             retry_container.setContentsMargins(0, 5, 0, 0)
             
-            retry_btn = QPushButton("🔄 Retry")
+            retry_btn = QPushButton("Retry")
             retry_btn.setStyleSheet("""
                 QPushButton {
                     background-color: #FF6B6B;
-                    color: white;
+                    color: black;
                     border: none;
                     border-radius: 4px;
                     padding: 5px 10px;

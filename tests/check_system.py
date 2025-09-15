@@ -14,9 +14,9 @@ def check_python_version():
     """Check Python version is 3.8+"""
     version = sys.version_info
     if version.major < 3 or (version.major == 3 and version.minor < 8):
-        print("❌ Python 3.8+ required")
+        print("Python 3.8+ required")
         return False
-    print(f"✅ Python {version.major}.{version.minor}.{version.micro}")
+    print(f"Python {version.major}.{version.minor}.{version.micro}")
     return True
 
 def check_package_installed(package_name):
@@ -45,9 +45,9 @@ def check_dependencies():
     all_installed = True
     for package in required:
         if check_package_installed(package):
-            print(f"✅ {package}")
+            print(f"{package}")
         else:
-            print(f"❌ {package} not installed")
+            print(f"{package} not installed")
             all_installed = False
     
     return all_installed
@@ -71,9 +71,9 @@ def check_directory_structure():
     all_exists = True
     for dir_path in required_dirs:
         if Path(dir_path).exists():
-            print(f"✅ {dir_path}/")
+            print(f"{dir_path}/")
         else:
-            print(f"❌ {dir_path}/ missing")
+            print(f"{dir_path}/ missing")
             all_exists = False
     
     return all_exists
@@ -91,9 +91,9 @@ def check_files():
     all_exists = True
     for file_path in critical_files:
         if Path(file_path).exists():
-            print(f"✅ {file_path}")
+            print(f"{file_path}")
         else:
-            print(f"❌ {file_path} missing")
+            print(f"{file_path} missing")
             all_exists = False
     
     return all_exists
@@ -104,13 +104,13 @@ def check_server_connectivity():
         import requests
         response = requests.get("http://localhost:7001/health", timeout=2)
         if response.status_code == 200:
-            print("✅ Server is running on port 7001")
+            print("Server is running on port 7001")
             return True
         else:
-            print("⚠️ Server responded but with error")
+            print("Server responded but with error")
             return False
     except:
-        print("⚠️ Server not running (start with: python run_server.py)")
+        print("Server not running (start with: python run_server.py)")
         return False
 
 def main():
@@ -137,14 +137,14 @@ def main():
     
     print("\n" + "=" * 60)
     if all(checks):
-        print("✅ All system checks passed!")
+        print("All system checks passed!")
         if not server_running:
             print("\nTo start the system:")
             print("1. Run: python run_server.py")
             print("2. Then: python qt_app_styled.py")
             print("\nOr use: start_rag.bat (Windows)")
     else:
-        print("❌ Some checks failed. Please fix the issues above.")
+        print("Some checks failed. Please fix the issues above.")
         print("\nTo reinstall dependencies:")
         print("pip install -r requirements.txt")
     

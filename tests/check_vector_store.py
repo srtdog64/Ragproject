@@ -20,11 +20,11 @@ def check_vector_store():
     try:
         response = requests.get(f"{base_url}/health")
         if response.status_code != 200:
-            print("❌ Server not running. Start with: python start_server.py")
+            print("Server not running. Start with: python start_server.py")
             return
-        print("✅ Server is running")
+        print("Server is running")
     except:
-        print("❌ Cannot connect to server")
+        print("Cannot connect to server")
         return
     
     # 2. Ingest test document
@@ -44,9 +44,9 @@ def check_vector_store():
     
     if response.status_code == 200:
         data = response.json()
-        print(f"✅ Ingested: {data['ingestedChunks']} chunks")
+        print(f"Ingested: {data['ingestedChunks']} chunks")
     else:
-        print(f"❌ Ingestion failed: {response.status_code}")
+        print(f"Ingestion failed: {response.status_code}")
         return
     
     # 3. Test immediate retrieval
@@ -61,9 +61,9 @@ def check_vector_store():
         data = response.json()
         ctx_ids = data.get('ctxIds', [])
         if ctx_ids:
-            print(f"✅ Retrieved {len(ctx_ids)} contexts immediately")
+            print(f"Retrieved {len(ctx_ids)} contexts immediately")
         else:
-            print("❌ No contexts retrieved immediately (PROBLEM!)")
+            print("No contexts retrieved immediately (PROBLEM!)")
     
     # 4. Instructions for persistence test
     print("\n" + "="*60)
@@ -96,10 +96,10 @@ def check_after_restart():
         data = response.json()
         ctx_ids = data.get('ctxIds', [])
         if ctx_ids:
-            print("✅ PERSISTENCE WORKING! Retrieved contexts after restart")
+            print("PERSISTENCE WORKING! Retrieved contexts after restart")
             print("   This means a persistent store is being used")
         else:
-            print("❌ NO PERSISTENCE! Data was lost after restart")
+            print("NO PERSISTENCE! Data was lost after restart")
             print("   This confirms InMemoryVectorStore is being used")
             print("\nTo fix this, we need to implement:")
             print("1. ChromaDB integration (already in requirements.txt)")

@@ -306,33 +306,33 @@ def initialize_components():
         logger.info("="*60)
         
         _container = buildContainer()
-        logger.info("[INIT] ✅ Container built successfully")
+        logger.info("[INIT] Container built successfully")
         logger.info(f"[INIT] Container type: {type(_container)}")
         
         _ingester, _pipelineBuilder = buildPipeline(_container)
-        logger.info("[INIT] ✅ Pipeline built successfully")
+        logger.info("[INIT] Pipeline built successfully")
         logger.info(f"[INIT] Ingester type: {type(_ingester)}")
         logger.info(f"[INIT] PipelineBuilder type: {type(_pipelineBuilder)}")
         
         # Test store connection
         store = _container.resolve("store")
-        logger.info(f"[INIT] ✅ Store initialized: {type(store).__name__}")
+        logger.info(f"[INIT] Store initialized: {type(store).__name__}")
         
         # Try to get initial count
         try:
             initial_count = store.count()
-            logger.info(f"[INIT] ✅ Initial vector count: {initial_count}")
+            logger.info(f"[INIT] Initial vector count: {initial_count}")
         except Exception as e:
-            logger.warning(f"[INIT] ⚠️ Could not get initial count: {e}")
+            logger.warning(f"[INIT] Could not get initial count: {e}")
         
         logger.info("="*60)
-        logger.info("[INIT] ✅ ALL COMPONENTS INITIALIZED SUCCESSFULLY")
+        logger.info("[INIT] ALL COMPONENTS INITIALIZED SUCCESSFULLY")
         logger.info("="*60)
         return True
         
     except Exception as e:
         logger.error("="*60)
-        logger.error("[INIT] ❌ FAILED TO INITIALIZE COMPONENTS")
+        logger.error("[INIT] FAILED TO INITIALIZE COMPONENTS")
         logger.error(f"[INIT] Error: {e}")
         logger.error("[INIT] Full traceback:")
         logger.error(traceback.format_exc())
@@ -422,9 +422,9 @@ async def startup_event():
     success = initialize_components()
     
     if success:
-        logger.info("[STARTUP] ✅ All components initialized successfully")
+        logger.info("[STARTUP] All components initialized successfully")
     else:
-        logger.error("[STARTUP] ⚠️ Some components failed to initialize")
+        logger.error("[STARTUP] Some components failed to initialize")
         logger.error("[STARTUP] Server will run with limited functionality")
     
     logger.info("="*60)
@@ -436,11 +436,11 @@ logger.info("[APP] Including routers...")
 try:
     logger.info("[APP] Including chunkers_router...")
     app.include_router(chunkers_router)
-    logger.info("[APP] ✅ chunkers_router included successfully")
+    logger.info("[APP] chunkers_router included successfully")
     
     logger.info("[APP] Including rag_router...")
     app.include_router(rag_router)  # RAG endpoints
-    logger.info("[APP] ✅ rag_router included successfully")
+    logger.info("[APP] rag_router included successfully")
     
     # Debug: List all routes
     logger.info("[APP] Registered routes:")
@@ -448,7 +448,7 @@ try:
         if hasattr(route, 'path'):
             logger.info(f"[APP]   - {route.path}")
 except Exception as e:
-    logger.error(f"[APP] ❌ Failed to include routers: {e}")
+    logger.error(f"[APP] Failed to include routers: {e}")
     logger.error(traceback.format_exc())
 
 # CORS configuration from config file

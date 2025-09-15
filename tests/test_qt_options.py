@@ -19,10 +19,10 @@ def check_server():
     try:
         response = requests.get("http://localhost:7001/health")
         if response.status_code == 200:
-            print("✅ Server is running")
+            print("Server is running")
             return True
     except:
-        print("❌ Server is not running")
+        print("Server is not running")
         print("Please start the server: python start_server.py")
         return False
 
@@ -32,10 +32,10 @@ def check_current_strategy():
         response = requests.get("http://localhost:7001/api/chunkers/strategy")
         if response.status_code == 200:
             data = response.json()
-            print(f"📦 Current server strategy: {data.get('strategy', 'unknown')}")
+            print(f"Current server strategy: {data.get('strategy', 'unknown')}")
             return data.get('strategy')
     except Exception as e:
-        print(f"❌ Failed to get strategy: {e}")
+        print(f"Failed to get strategy: {e}")
     return None
 
 def main():
@@ -64,9 +64,9 @@ def main():
     print(f"Combo selection: {widget.strategyCombo.currentText()}")
     
     if server_strategy and widget.currentStrategy == server_strategy:
-        print("✅ Widget correctly synced with server!")
+        print("Widget correctly synced with server!")
     else:
-        print("❌ Widget not synced with server")
+        print("Widget not synced with server")
     
     # Create main window for display
     window = QMainWindow()
@@ -79,7 +79,7 @@ def main():
     print("Test the following:")
     print("1. Check if current strategy matches server")
     print("2. Try changing strategy and see if it syncs")
-    print("3. Use the 🔄 refresh button to sync from server")
+    print("3. Use the refresh button to sync from server")
     print("="*60)
     
     sys.exit(app.exec())

@@ -24,7 +24,7 @@ class ChatHistory(QScrollArea):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setStyleSheet("""
             QScrollArea {
-                background-color: white;
+                background-color: gray;
                 border: 1px solid #ddd;
                 border-radius: 5px;
             }
@@ -47,7 +47,7 @@ class ChatHistory(QScrollArea):
         """Show welcome message when chat is empty"""
         welcome = QLabel("""
         <div style='text-align: center; color: #666; padding: 20px;'>
-            <h2>🤖 Welcome to RAG Chat!</h2>
+            <h2>Welcome to RAG Chat!</h2>
             <p>Ask questions about your ingested documents.</p>
             <p style='font-size: 12px; color: #999;'>
                 Tip: Make sure to ingest documents first from the Documents tab.

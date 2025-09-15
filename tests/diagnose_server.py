@@ -18,42 +18,42 @@ def test_imports():
     # Test core imports
     try:
         import uvicorn
-        print("✅ uvicorn")
+        print("uvicorn")
     except ImportError as e:
-        errors.append(f"❌ uvicorn: {e}")
+        errors.append(f"uvicorn: {e}")
         
     try:
         import chromadb
-        print("✅ chromadb")
+        print("chromadb")
     except ImportError as e:
-        errors.append(f"❌ chromadb: {e}")
+        errors.append(f"chromadb: {e}")
         print("   Install with: pip install chromadb")
     
     try:
         import sentence_transformers
-        print("✅ sentence_transformers")
+        print("sentence_transformers")
     except ImportError as e:
-        errors.append(f"❌ sentence_transformers: {e}")
+        errors.append(f"sentence_transformers: {e}")
         print("   Install with: pip install sentence-transformers")
     
     # Test our modules
     try:
         from stores.chroma_store import ChromaVectorStore
-        print("✅ ChromaVectorStore")
+        print("ChromaVectorStore")
     except ImportError as e:
-        errors.append(f"❌ ChromaVectorStore: {e}")
+        errors.append(f"ChromaVectorStore: {e}")
     
     try:
         from rerankers.factory import RerankerFactory
-        print("✅ RerankerFactory")
+        print("RerankerFactory")
     except ImportError as e:
-        errors.append(f"❌ RerankerFactory: {e}")
+        errors.append(f"RerankerFactory: {e}")
     
     try:
         from rerankers.cross_encoder_reranker import SimpleScoreReranker
-        print("✅ SimpleScoreReranker")
+        print("SimpleScoreReranker")
     except ImportError as e:
-        errors.append(f"❌ SimpleScoreReranker: {e}")
+        errors.append(f"SimpleScoreReranker: {e}")
     
     return errors
 
@@ -62,10 +62,10 @@ def test_server_import():
     print("\nTesting server.py import...")
     try:
         import server
-        print("✅ server.py imported successfully")
+        print("server.py imported successfully")
         return True
     except Exception as e:
-        print(f"❌ Failed to import server.py: {e}")
+        print(f"Failed to import server.py: {e}")
         import traceback
         traceback.print_exc()
         return False

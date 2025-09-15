@@ -2,7 +2,7 @@
 
 A production-ready RAG system with Qt-based UI for document indexing and intelligent question answering.
 
-## 🚀 Features
+## Features
 
 - **Multi-Provider LLM Support**: Gemini, OpenAI, Claude
 - **Advanced Document Processing**: Multiple chunking strategies (adaptive, semantic, fixed, sentence-based)
@@ -11,13 +11,13 @@ A production-ready RAG system with Qt-based UI for document indexing and intelli
 - **Asynchronous Processing**: Background document ingestion
 - **Configurable Pipeline**: Modular architecture with dependency injection
 
-## 📋 Prerequisites
+## Prerequisites
 
 - Python 3.8+
 - Qt/PySide6
 - ChromaDB for vector storage
 
-## 🔧 Installation
+## Installation
 
 1. **Clone the repository**
 ```bash
@@ -46,7 +46,7 @@ cp .env.sample .env
 # GEMINI_API_KEY=your_actual_api_key_here
 ```
 
-## 🔑 API Keys Setup
+## API Keys Setup
 
 ### Gemini (Required)
 1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
@@ -63,7 +63,7 @@ cp .env.sample .env
 2. Generate an API key
 3. Add to `.env`: `ANTHROPIC_API_KEY=your_key_here`
 
-## 🎯 Quick Start
+## Quick Start
 
 ### Cross-Platform Launch (Recommended)
 
@@ -100,7 +100,7 @@ python main.py --ui
 python main.py --port 8000
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 Ragproject/
@@ -122,7 +122,7 @@ Ragproject/
 └── chroma_db/        # Vector database storage
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 ### Retrieval Settings
 - `retrieve_k`: Number of documents to retrieve from vector store (default: 20)
@@ -135,7 +135,7 @@ Ragproject/
 - **Fixed**: Fixed-size chunks with overlap
 - **Sentence**: Sentence-based chunking
 
-## 🛠️ Development
+## Development
 
 ### Running Tests
 ```bash
@@ -171,11 +171,11 @@ deleteByDoc 최적화: collection.get()과 collection.delete(ids=...)의 2단계
 
 RAG 기능 끄고 켜기 추가해서, RAG 없이 단순 채팅용 LLM으로도 쓸수있게
 
-## 📝 License
+## License
 
 [Your License]
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -183,14 +183,14 @@ RAG 기능 끄고 켜기 추가해서, RAG 없이 단순 채팅용 LLM으로도 
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## ⚠️ Important Security Notes
+## Important Security Notes
 
 - **NEVER** commit your `.env` file with actual API keys
 - Always use `.env.sample` as a template
 - Keep your API keys secure and rotate them regularly
 - Review `.gitignore` before committing
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Server won't start
 - Check if port 7001 is already in use
@@ -207,6 +207,6 @@ RAG 기능 끄고 켜기 추가해서, RAG 없이 단순 채팅용 LLM으로도 
 - Check server logs for errors
 - Verify network connectivity to localhost:7001
 
-## 📧 Contact
+## Contact
 
 [Your Contact Information]

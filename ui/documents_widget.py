@@ -69,6 +69,9 @@ except ImportError:
             self.setLayout(layout)
             self.ingestRequested = Signal(list)
 
+# Import icon manager
+from .icon_manager import get_icon, Icons
+
 
 class DocumentsWidget(QWidget):
     """Document management widget with basic and advanced features"""
@@ -97,7 +100,7 @@ class DocumentsWidget(QWidget):
         layout = QVBoxLayout()
         
         # Title
-        titleLabel = QLabel("📚 Document Management Center")
+        titleLabel = QLabel("Document Management Center")
         titleLabel.setStyleSheet("font-size: 18px; font-weight: bold; margin: 10px 0;")
         layout.addWidget(titleLabel)
         
@@ -106,17 +109,20 @@ class DocumentsWidget(QWidget):
         
         # Tab 1: Basic document management
         self.basicTab = self.createBasicTab()
-        self.tabWidget.addTab(self.basicTab, "📋 Document List")
+        self.tabWidget.addTab(self.basicTab, "Document List")
+        self.tabWidget.setTabIcon(0, get_icon(Icons.FILE))
         
         # Tab 2: Advanced selective ingestion
         self.advancedTab = SelectiveIngestWidget()
         self.advancedTab.ingestRequested.connect(self.selectiveIngestRequested.emit)
-        self.tabWidget.addTab(self.advancedTab, "🎯 Selective Ingest")
+        self.tabWidget.addTab(self.advancedTab, "Selective Ingest")
+        self.tabWidget.setTabIcon(1, get_icon(Icons.TARGET))
         
         # Tab 3: Folder Watching (if available)
         if self.folder_watcher:
             self.watchTab = self.createWatchTab()
-            self.tabWidget.addTab(self.watchTab, "📁 Auto-Ingest")
+            self.tabWidget.addTab(self.watchTab, "Auto-Ingest")
+            self.tabWidget.setTabIcon(2, get_icon(Icons.FOLDER))
         
         layout.addWidget(self.tabWidget)
         self.setLayout(layout)
@@ -129,14 +135,15 @@ class DocumentsWidget(QWidget):
         # File operations toolbar
         fileToolbar = QHBoxLayout()
         
-        loadFileBtn = QPushButton("📄 Load File(s)")
+        loadFileBtn = QPushButton("Load File(s)")
+        loadFileBtn.setIcon(get_icon(Icons.FILE))
         loadFileBtn.setToolTip("Load one or more files (Ctrl+Click for multiple selection)")
         loadFileBtn.clicked.connect(self.loadFile)
         loadFileBtn.setStyleSheet("""
             QPushButton {
                 padding: 8px 16px;
                 background-color: #2196F3;
-                color: white;
+                color: black;
                 border-radius: 4px;
                 font-weight: bold;
             }
@@ -145,14 +152,15 @@ class DocumentsWidget(QWidget):
             }
         """)
         
-        loadDirBtn = QPushButton("📁 Load Directory")
+        loadDirBtn = QPushButton("Load Directory")
+        loadDirBtn.setIcon(get_icon(Icons.FOLDER))
         loadDirBtn.setToolTip("Load all supported files from a directory")
         loadDirBtn.clicked.connect(self.loadDirectory)
         loadDirBtn.setStyleSheet("""
             QPushButton {
                 padding: 8px 16px;
                 background-color: #2196F3;
-                color: white;
+                color: black;
                 border-radius: 4px;
                 font-weight: bold;
             }
@@ -161,14 +169,15 @@ class DocumentsWidget(QWidget):
             }
         """)
         
-        loadSampleBtn = QPushButton("📋 Load Samples")
+        loadSampleBtn = QPushButton("Load Samples")
+        loadSampleBtn.setIcon(get_icon(Icons.FILE))
         loadSampleBtn.setToolTip("Load sample documents")
         loadSampleBtn.clicked.connect(self.loadSampleDocs)
         loadSampleBtn.setStyleSheet("""
             QPushButton {
                 padding: 8px 16px;
                 background-color: #FF9800;
-                color: white;
+                color: black;
                 border-radius: 4px;
                 font-weight: bold;
             }
@@ -182,11 +191,12 @@ class DocumentsWidget(QWidget):
         fileToolbar.addWidget(loadSampleBtn)
         fileToolbar.addStretch()
         
-        clearBtn = QPushButton("🗑️ Clear All")
+        clearBtn = QPushButton("Clear All")
+        clearBtn.setIcon(get_icon(Icons.TRASH))
         clearBtn.setStyleSheet("""
             QPushButton {
                 background-color: #f44336;
-                color: white;
+                color: black;
                 font-weight: bold;
                 padding: 8px 16px;
                 border-radius: 4px;
@@ -215,11 +225,13 @@ class DocumentsWidget(QWidget):
         # Export/Import buttons
         exportLayout = QHBoxLayout()
         
-        exportBtn = QPushButton("💾 Export Documents")
+        exportBtn = QPushButton("Export Documents")
+        exportBtn.setIcon(get_icon(Icons.SAVE))
         exportBtn.clicked.connect(self.exportDocuments)
         exportLayout.addWidget(exportBtn)
         
-        importBtn = QPushButton("📂 Import Documents")
+        importBtn = QPushButton("Import Documents")
+        importBtn.setIcon(get_icon(Icons.FOLDER))
         importBtn.clicked.connect(self.importDocuments)
         exportLayout.addWidget(importBtn)
         
@@ -328,7 +340,7 @@ class DocumentsWidget(QWidget):
         add_folder_btn.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
-                color: white;
+                color: black;
                 padding: 6px 12px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -343,7 +355,7 @@ class DocumentsWidget(QWidget):
         remove_folder_btn.setStyleSheet("""
             QPushButton {
                 background-color: #f44336;
-                color: white;
+                color: black;
                 padding: 6px 12px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -382,7 +394,7 @@ class DocumentsWidget(QWidget):
         self.start_watch_btn.setStyleSheet("""
             QPushButton {
                 background-color: #2196F3;
-                color: white;
+                color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -397,7 +409,7 @@ class DocumentsWidget(QWidget):
         self.stop_watch_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF9800;
-                color: white;
+                color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -466,7 +478,7 @@ class DocumentsWidget(QWidget):
                 self.folders_list.addItem(folder)
                 self.config.set("documents.watched_folders", self.watched_folders, "client")
                 self.foldersUpdated.emit(self.watched_folders)
-                self.activity_log.append(f"✅ Added folder: {Path(folder).name}")
+                self.activity_log.append(f"Added folder: {Path(folder).name}")
     
     def removeWatchFolder(self):
         """Remove selected folder from watch list"""
@@ -478,13 +490,13 @@ class DocumentsWidget(QWidget):
                 self.folders_list.takeItem(self.folders_list.row(current))
                 self.config.set("documents.watched_folders", self.watched_folders, "client")
                 self.foldersUpdated.emit(self.watched_folders)
-                self.activity_log.append(f"❌ Removed folder: {Path(folder).name}")
+                self.activity_log.append(f"Removed folder: {Path(folder).name}")
     
     def startWatching(self):
         """Start the folder watcher"""
         if self.folder_watcher and self.watched_folders:
             self.folder_watcher.start()
-            self.watcher_status.setText("Status: ✅ Watching...")
+            self.watcher_status.setText("Status: Watching...")
             self.start_watch_btn.setEnabled(False)
             self.stop_watch_btn.setEnabled(True)
             self.activity_log.append("▶️ Started folder watching")
@@ -685,7 +697,7 @@ class DocumentsWidget(QWidget):
         add_folder_btn.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
-                color: white;
+                color: black;
                 padding: 6px 12px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -700,7 +712,7 @@ class DocumentsWidget(QWidget):
         remove_folder_btn.setStyleSheet("""
             QPushButton {
                 background-color: #f44336;
-                color: white;
+                color: black;
                 padding: 6px 12px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -739,7 +751,7 @@ class DocumentsWidget(QWidget):
         self.start_watch_btn.setStyleSheet("""
             QPushButton {
                 background-color: #2196F3;
-                color: white;
+                color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -754,7 +766,7 @@ class DocumentsWidget(QWidget):
         self.stop_watch_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF9800;
-                color: white;
+                color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -823,7 +835,7 @@ class DocumentsWidget(QWidget):
                 self.folders_list.addItem(folder)
                 self.config.set("documents.watched_folders", self.watched_folders, "client")
                 self.foldersUpdated.emit(self.watched_folders)
-                self.activity_log.append(f"✅ Added folder: {Path(folder).name}")
+                self.activity_log.append(f"Added folder: {Path(folder).name}")
     
     def removeWatchFolder(self):
         """Remove selected folder from watch list"""
@@ -835,13 +847,13 @@ class DocumentsWidget(QWidget):
                 self.folders_list.takeItem(self.folders_list.row(current))
                 self.config.set("documents.watched_folders", self.watched_folders, "client")
                 self.foldersUpdated.emit(self.watched_folders)
-                self.activity_log.append(f"❌ Removed folder: {Path(folder).name}")
+                self.activity_log.append(f"Removed folder: {Path(folder).name}")
     
     def startWatching(self):
         """Start the folder watcher"""
         if self.folder_watcher and self.watched_folders:
             self.folder_watcher.start()
-            self.watcher_status.setText("Status: ✅ Watching...")
+            self.watcher_status.setText("Status: Watching...")
             self.start_watch_btn.setEnabled(False)
             self.stop_watch_btn.setEnabled(True)
             self.activity_log.append("▶️ Started folder watching")
@@ -956,7 +968,7 @@ class DocumentsWidget(QWidget):
         menu = QMenu(self)
         
         # Add "Open in Explorer/Finder" action
-        open_folder_action = QAction("📁 Open Folder", self)
+        open_folder_action = QAction("Open Folder", self)
         open_folder_action.triggered.connect(lambda: self.openFolder(source_path))
         menu.addAction(open_folder_action)
         
@@ -975,7 +987,7 @@ class DocumentsWidget(QWidget):
                 file_path = source_path
             
             if file_path and os.path.exists(file_path):
-                open_file_action = QAction("📄 Open File", self)
+                open_file_action = QAction("Open File", self)
                 open_file_action.triggered.connect(lambda: self.openFile(file_path))
                 menu.addAction(open_file_action)
         
@@ -983,7 +995,7 @@ class DocumentsWidget(QWidget):
         
         # Add "Copy Path" action
         if source_path:
-            copy_path_action = QAction("📋 Copy Path", self)
+            copy_path_action = QAction("Copy Path", self)
             copy_path_action.triggered.connect(lambda: self.copyToClipboard(source_path))
             menu.addAction(copy_path_action)
         
@@ -1125,7 +1137,7 @@ class DocumentsWidget(QWidget):
         add_folder_btn.setStyleSheet("""
             QPushButton {
                 background-color: #4CAF50;
-                color: white;
+                color: black;
                 padding: 6px 12px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -1140,7 +1152,7 @@ class DocumentsWidget(QWidget):
         remove_folder_btn.setStyleSheet("""
             QPushButton {
                 background-color: #f44336;
-                color: white;
+                color: black;
                 padding: 6px 12px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -1179,7 +1191,7 @@ class DocumentsWidget(QWidget):
         self.start_watch_btn.setStyleSheet("""
             QPushButton {
                 background-color: #2196F3;
-                color: white;
+                color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -1194,7 +1206,7 @@ class DocumentsWidget(QWidget):
         self.stop_watch_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF9800;
-                color: white;
+                color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-weight: bold;
@@ -1263,7 +1275,7 @@ class DocumentsWidget(QWidget):
                 self.folders_list.addItem(folder)
                 self.config.set("documents.watched_folders", self.watched_folders, "client")
                 self.foldersUpdated.emit(self.watched_folders)
-                self.activity_log.append(f"✅ Added folder: {Path(folder).name}")
+                self.activity_log.append(f"Added folder: {Path(folder).name}")
     
     def removeWatchFolder(self):
         """Remove selected folder from watch list"""
@@ -1275,13 +1287,13 @@ class DocumentsWidget(QWidget):
                 self.folders_list.takeItem(self.folders_list.row(current))
                 self.config.set("documents.watched_folders", self.watched_folders, "client")
                 self.foldersUpdated.emit(self.watched_folders)
-                self.activity_log.append(f"❌ Removed folder: {Path(folder).name}")
+                self.activity_log.append(f"Removed folder: {Path(folder).name}")
     
     def startWatching(self):
         """Start the folder watcher"""
         if self.folder_watcher and self.watched_folders:
             self.folder_watcher.start()
-            self.watcher_status.setText("Status: ✅ Watching...")
+            self.watcher_status.setText("Status: Watching...")
             self.start_watch_btn.setEnabled(False)
             self.stop_watch_btn.setEnabled(True)
             self.activity_log.append("▶️ Started folder watching")

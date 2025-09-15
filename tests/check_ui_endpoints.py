@@ -98,9 +98,9 @@ def main():
     issues = check_ui_endpoints()
     
     if not issues:
-        print("✅ All UI endpoints are using correct /api prefix!")
+        print("All UI endpoints are using correct /api prefix!")
     else:
-        print(f"❌ Found {len(issues)} issues:\n")
+        print(f"Found {len(issues)} issues:\n")
         
         # Group by file
         files_with_issues = {}
@@ -112,7 +112,7 @@ def main():
         
         # Display issues
         for file, file_issues in files_with_issues.items():
-            print(f"\n📁 {Path(file).name}")
+            print(f"\n{Path(file).name}")
             print(f"   Path: {file}")
             for issue in file_issues:
                 print(f"   Line {issue['line']}: {issue['issue']}")
@@ -122,7 +122,7 @@ def main():
     print("Verification complete!")
     
     # Summary of endpoints
-    print("\n📝 Correct endpoint structure:")
+    print("\nCorrect endpoint structure:")
     print("  /api/ask - Question answering")
     print("  /api/ingest - Document ingestion")
     print("  /api/config/reload - Config reload")

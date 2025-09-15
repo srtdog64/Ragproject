@@ -4,6 +4,7 @@ Chunking Strategy Configuration Tab
 """
 from PySide6.QtWidgets import *
 from PySide6.QtCore import Qt, Signal
+from ..icon_manager import get_icon, Icons
 
 
 class ChunkingTab(QWidget):
@@ -27,7 +28,7 @@ class ChunkingTab(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>✂️ Chunking Strategy:</b><br>
+        <b>Chunking Strategy:</b><br>
         Choose how documents are split into chunks for indexing.
         Different strategies work better for different document types.
         </div>
@@ -41,37 +42,37 @@ class ChunkingTab(QWidget):
                 "name": "Adaptive (Smart)",
                 "id": "adaptive",
                 "description": "Intelligently adapts chunk size based on content structure",
-                "icon": "🧠"
+                "icon": ""
             },
             {
                 "name": "Fixed Size",
                 "id": "fixed",
                 "description": "Fixed size chunks with overlap",
-                "icon": "📏"
+                "icon": ""
             },
             {
                 "name": "Sentence-based",
                 "id": "sentence",
                 "description": "Splits on sentence boundaries",
-                "icon": "📝"
+                "icon": ""
             },
             {
                 "name": "Paragraph-based",
                 "id": "paragraph",
                 "description": "Keeps paragraphs together",
-                "icon": "📄"
+                "icon": ""
             },
             {
                 "name": "Semantic",
                 "id": "semantic",
                 "description": "Groups semantically similar content",
-                "icon": "🔗"
+                "icon": ""
             },
             {
                 "name": "Markdown-aware",
                 "id": "markdown",
                 "description": "Preserves markdown structure",
-                "icon": "📑"
+                "icon": ""
             }
         ]
         
@@ -112,7 +113,7 @@ class ChunkingTab(QWidget):
             radio_layout = QHBoxLayout()
             
             # Icon and name
-            radio = QRadioButton(f"{strategy['icon']} {strategy['name']}")
+            radio = QRadioButton(f"{strategy['name']}")
             radio.setToolTip(strategy['description'])
             radio.toggled.connect(lambda checked, s=strategy: self.onRadioToggled(s) if checked else None)
             self.strategy_radios[strategy['id']] = radio
@@ -184,7 +185,7 @@ class ChunkingTab(QWidget):
         apply_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF5722;
-                color: white;
+                color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
