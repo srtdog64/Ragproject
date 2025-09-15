@@ -160,6 +160,16 @@ class ChatWidget(QWidget):
         self.inputField = QTextEdit()
         self.inputField.setMaximumHeight(100)
         self.inputField.setPlaceholderText("Ask a question... (Shift+Enter for new line, Enter to send)")
+        # Reset to default background for chat input
+        self.inputField.setStyleSheet("""
+            QTextEdit {
+                color: #000000;
+                background-color: #dee2e6;
+                border: 1px solid #ddd;
+                border-radius: 3px;
+                padding: 5px;
+            }
+        """)
         
         inputRowLayout.addWidget(self.inputField)
         
