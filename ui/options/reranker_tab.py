@@ -154,7 +154,7 @@ class RerankerTab(QWidget):
         # Performance tips
         tips = QLabel("""
         <div style='background-color: #fff3e0; padding: 10px; border-radius: 5px; margin-top: 10px;'>
-        <b>💡 Tips:</b><br>
+        <b>Tips:</b><br>
         • <b>Identity:</b> Fastest, uses original scores<br>
         • <b>Simple:</b> Fast, good for news/blogs<br>
         • <b>BM25:</b> Good for Korean text and exact matches<br>

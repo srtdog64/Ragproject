@@ -23,7 +23,7 @@ class ServerTab(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e3f2fd; padding: 10px; border-radius: 5px;'>
-        <b>🌐 Server Configuration:</b><br>
+        <b>Server Configuration:</b><br>
         Configure server URL and API keys for various services.
         </div>
         """)
