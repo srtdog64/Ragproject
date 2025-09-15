@@ -219,7 +219,7 @@ class EmbedderTab(QWidget):
         reset_btn = QPushButton("Reset to Defaults")
         reset_btn.setStyleSheet("""
             QPushButton {
-                background-color: #f44336;
+                background-color: #D66186;
                 color: black;
                 padding: 10px 20px;
                 border-radius: 5px;

@@ -188,7 +188,7 @@ class DocumentsWidget(QWidget):
         clearBtn.setIcon(get_icon(Icons.TRASH))
         clearBtn.setStyleSheet("""
             QPushButton {
-                background-color: #f44336;
+                background-color: #D66186;
                 color: black;
                 font-weight: bold;
                 padding: 8px 16px;
@@ -341,7 +341,7 @@ class DocumentsWidget(QWidget):
         remove_folder_btn.clicked.connect(self.removeWatchFolder)
         remove_folder_btn.setStyleSheet("""
             QPushButton {
-                background-color: #f44336;
+                background-color: #D66186;
                 color: black;
                 padding: 6px 12px;
                 border-radius: 4px;
@@ -684,7 +684,7 @@ class DocumentsWidget(QWidget):
         remove_folder_btn.clicked.connect(self.removeWatchFolder)
         remove_folder_btn.setStyleSheet("""
             QPushButton {
-                background-color: #f44336;
+                background-color: #D66186;
                 color: black;
                 padding: 6px 12px;
                 border-radius: 4px;
@@ -1110,7 +1110,7 @@ class DocumentsWidget(QWidget):
         remove_folder_btn.clicked.connect(self.removeWatchFolder)
         remove_folder_btn.setStyleSheet("""
             QPushButton {
-                background-color: #f44336;
+                background-color: #D66186;
                 color: black;
                 padding: 6px 12px;
                 border-radius: 4px;

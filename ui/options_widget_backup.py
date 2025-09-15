@@ -1326,7 +1326,7 @@ class OptionsWidget(QWidget):
         self.stop_watch_btn = QPushButton("Stop Watching")
         self.stop_watch_btn.setStyleSheet("""
             QPushButton {
-                background-color: #f44336;
+                background-color: #D66186;
                 color: black;
                 padding: 8px 16px;
                 border-radius: 4px;

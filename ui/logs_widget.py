@@ -114,7 +114,7 @@ class LogsWidget(QWidget):
             "DEBUG": "#808080",
             "INFO": "#00b4d8",
             "WARNING": "#ffc107",
-            "ERROR": "#f44336",
+            "ERROR": "#D66186",
             "SUCCESS": "#397B06"
         }
         
