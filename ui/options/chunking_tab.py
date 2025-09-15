@@ -92,7 +92,7 @@ class ChunkingTab(QWidget):
         # Strategy selection with ComboBox for backward compatibility
         strategy_group = QGroupBox("Select Strategy")
         strategy_group.setStyleSheet("QGroupBox { color: #000000; font-weight: bold; }")
-        strategy_layout = QVBoxLayout()
+        strategy_main_layout = QVBoxLayout()
         
         # Add ComboBox at the top
         self.strategyCombo = QComboBox()
@@ -107,8 +107,26 @@ class ChunkingTab(QWidget):
         # Connect ComboBox change
         self.strategyCombo.currentTextChanged.connect(self.onStrategyComboChanged)
         
-        strategy_layout.addWidget(self.strategyCombo)
-        strategy_layout.addSpacing(10)
+        strategy_main_layout.addWidget(self.strategyCombo)
+        strategy_main_layout.addSpacing(10)
+        
+        # Create scroll area for radio buttons
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
+        scroll_area.setMaximumHeight(200)  # Limit height to create scroll
+        scroll_area.setStyleSheet("""
+            QScrollArea {
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                background-color: white;
+            }
+        """)
+        
+        # Create widget to hold radio buttons
+        radio_widget = QWidget()
+        strategy_layout = QVBoxLayout()
         
         # Radio buttons as before
         self.strategy_radios = {}
@@ -125,6 +143,7 @@ class ChunkingTab(QWidget):
             # Description
             desc = QLabel(strategy['description'])
             desc.setStyleSheet("color: #666; font-size: 11px; margin-left: 30px;")
+            desc.setWordWrap(True)
             
             radio_layout.addWidget(radio)
             radio_layout.addStretch()
@@ -137,7 +156,11 @@ class ChunkingTab(QWidget):
         if current_strategy in self.strategy_radios:
             self.strategy_radios[current_strategy].setChecked(True)
         
-        strategy_group.setLayout(strategy_layout)
+        radio_widget.setLayout(strategy_layout)
+        scroll_area.setWidget(radio_widget)
+        
+        strategy_main_layout.addWidget(scroll_area)
+        strategy_group.setLayout(strategy_main_layout)
         layout.addWidget(strategy_group)
         
         # Parameters

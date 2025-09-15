@@ -13,7 +13,7 @@ embedder:
   device: cpu
   batch_size: 32
 chunker:
-  default_strategy: sentence
+  default_strategy: fixed
   strategies:
     adaptive:
       min_length: 100
@@ -43,11 +43,16 @@ chunker:
     markdown:
       max_chunk_size: 500
       respect_headers: true
+  default_params:
+    maxTokens: 512
+    overlap: 200
+    semanticThreshold: 0.95
+    windowSize: 1200
 llm:
   provider: gemini
   model: gemini-2.5-flash
   api_key: ${GEMINI_API_KEY}
-  temperature: 0.01
+  temperature: 0.9
   max_tokens: 8192
   timeout: 30
   available_models:
@@ -105,3 +110,5 @@ logging:
   level: INFO
   format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
   file: null
+policy:
+  defaulttopK: 20
