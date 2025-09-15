@@ -715,7 +715,7 @@ class ChatDisplay(QTextBrowser):
         comment_format = QTextCharFormat()
         comment_format.setFontFamily("Consolas, Monaco, monospace")
         comment_format.setFontPointSize(9)
-        comment_format.setForeground(QColor("#6e7781"))  # Gray for comments
+        comment_format.setForeground(QColor("#d5d5d5"))  # Gray for comments
         comment_format.setFontItalic(True)
         
         function_format = QTextCharFormat()

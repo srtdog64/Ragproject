@@ -279,7 +279,7 @@ class MainWindow(QMainWindow):
         """Initialize the user interface"""
         # Window settings
         self.setWindowTitle("RAG System - Modular Qt6 Interface")
-        self.setGeometry(100, 100, 1200, 700)  # Reduced from 1400x900
+        self.showMaximized()  # Start in maximized mode
         self.setMinimumSize(800, 500)  # Set minimum size to half
         
         # Apply style

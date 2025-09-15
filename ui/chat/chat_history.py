@@ -24,7 +24,7 @@ class ChatHistory(QScrollArea):
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.setStyleSheet("""
             QScrollArea {
-                background-color: gray;
+                background-color: white;
                 border: 1px solid #ddd;
                 border-radius: 5px;
             }

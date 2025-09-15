@@ -13,7 +13,7 @@ embedder:
   device: cpu
   batch_size: 32
 chunker:
-  default_strategy: adaptive
+  default_strategy: sentence
   strategies:
     adaptive:
       min_length: 100
