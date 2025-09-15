@@ -314,12 +314,39 @@ class MainWindow(QMainWindow):
             QMainWindow {
                 background-color: #f5f5f5;
             }
+            QMenuBar {
+                color: #000000;
+                background-color: #f5f5f5;
+            }
+            QMenuBar::item {
+                color: #000000;
+                background-color: transparent;
+                padding: 4px 8px;
+            }
+            QMenuBar::item:selected {
+                color: #000000;
+                background-color: #e0e0e0;
+            }
+            QMenu {
+                color: #000000;
+                background-color: #ffffff;
+                border: 1px solid #ddd;
+            }
+            QMenu::item {
+                color: #000000;
+                padding: 6px 16px;
+            }
+            QMenu::item:selected {
+                color: #000000;
+                background-color: #e0e0e0;
+            }
             QTabWidget::pane {
                 border: 1px solid #ddd;
                 background-color: white;
                 border-radius: 4px;
             }
             QTabBar::tab {
+                color: #000000;
                 padding: 10px 20px;
                 margin-right: 2px;
                 background-color: #e0e0e0;
@@ -327,15 +354,21 @@ class MainWindow(QMainWindow):
                 border-top-right-radius: 4px;
             }
             QTabBar::tab:selected {
+                color: #000000;
                 background-color: white;
                 border-bottom: 3px solid #1976d2;
             }
             QTabBar::tab:hover {
+                color: #000000;
                 background-color: #f0f0f0;
             }
             QStatusBar {
+                color: #000000;
                 background-color: #ffffff;
                 border-top: 1px solid #e0e0e0;
+            }
+            QStatusBar QLabel {
+                color: #000000;
             }
         """)
     
@@ -463,25 +496,25 @@ class MainWindow(QMainWindow):
         
         # Server status
         self.serverStatusLabel = QLabel("Server: Checking...")
-        self.serverStatusLabel.setStyleSheet("padding: 5px;")
+        self.serverStatusLabel.setStyleSheet("color: #000000; padding: 5px;")
         self.statusBar.addPermanentWidget(self.serverStatusLabel)
         
         # Model status  
         provider = self.config.get_current_provider()
         model = self.config.get_current_model()
         self.modelStatusLabel = QLabel(f"{provider}: {model}")
-        self.modelStatusLabel.setStyleSheet("padding: 5px;")
+        self.modelStatusLabel.setStyleSheet("color: #000000; padding: 5px;")
         self.statusBar.addPermanentWidget(self.modelStatusLabel)
         
         # Strategy status - fetch from server or use default
         strategy = self.fetchCurrentStrategy()
         self.strategyStatusLabel = QLabel(f"Strategy: {strategy}")
-        self.strategyStatusLabel.setStyleSheet("padding: 5px;")
+        self.strategyStatusLabel.setStyleSheet("color: #000000; padding: 5px;")
         self.statusBar.addPermanentWidget(self.strategyStatusLabel)
         
         # Vector count from database
         self.vectorCountLabel = QLabel("Vectors: --")
-        self.vectorCountLabel.setStyleSheet("padding: 5px;")
+        self.vectorCountLabel.setStyleSheet("color: #000000; padding: 5px;")
         self.vectorCountLabel.setToolTip("Total vectors stored in the database")
         self.statusBar.addPermanentWidget(self.vectorCountLabel)
     
@@ -747,7 +780,7 @@ class MainWindow(QMainWindow):
             if status == "ok":
                 self.serverOnline = True
                 self.serverStatusLabel.setText("Server: Online")
-                self.serverStatusLabel.setStyleSheet("color: green; padding: 5px;")
+                self.serverStatusLabel.setStyleSheet("color: #1a7f37; padding: 5px;")
                 self.logsWidget.success("Server is online")
                 
                 # Only update vector count on initial connection, not every health check
@@ -764,7 +797,7 @@ class MainWindow(QMainWindow):
             else:
                 self.serverOnline = False
                 self.serverStatusLabel.setText("Server: Offline")
-                self.serverStatusLabel.setStyleSheet("color: red; padding: 5px;")
+                self.serverStatusLabel.setStyleSheet("color: #cf222e; padding: 5px;")
                 self.logsWidget.error("Server is offline")
             
         elif task == "ingest":
@@ -862,7 +895,7 @@ class MainWindow(QMainWindow):
         self.logsWidget.error(error)
         self.serverOnline = False
         self.serverStatusLabel.setText("Server: Error")
-        self.serverStatusLabel.setStyleSheet("color: red; padding: 5px;")
+        self.serverStatusLabel.setStyleSheet("color: #cf222e; padding: 5px;")
     
     def updateIngestionProgress(self, current: int, total: int, message: str):
         """Update ingestion progress bar"""

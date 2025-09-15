@@ -160,7 +160,7 @@ class RAGSystemLauncher:
     
     def start_ui(self):
         """Start the Qt UI application - Cross-platform"""
-        logger.info("🎨 Starting Qt UI...")
+        logger.info("Starting Qt UI...")
         
         ui_script = self.project_root / "qt_app.py"
         if not ui_script.exists():
@@ -313,7 +313,7 @@ class RAGSystemLauncher:
             return 1
         
         logger.info("="*60)
-        logger.info("🎉 RAG System is running!")
+        logger.info("RAG System is running!")
         logger.info("Server: http://localhost:7001")
         logger.info("UI: Qt application window")
         logger.info("Press Ctrl+C to stop all components")
