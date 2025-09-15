@@ -352,15 +352,22 @@ class MainWindow(QMainWindow):
                 background-color: #e0e0e0;
                 border-top-left-radius: 4px;
                 border-top-right-radius: 4px;
+                border: 1px solid #ddd;
+                border-bottom: 3px solid transparent;
             }
             QTabBar::tab:selected {
                 color: #000000;
                 background-color: white;
                 border-bottom: 3px solid #1976d2;
+                border-top: 1px solid #ddd;
+                border-left: 1px solid #ddd;
+                border-right: 1px solid #ddd;
             }
             QTabBar::tab:hover {
                 color: #000000;
                 background-color: #f0f0f0;
+                border: 1px solid #ddd;
+                border-bottom: 3px solid transparent;
             }
             QStatusBar {
                 color: #000000;
@@ -497,6 +504,7 @@ class MainWindow(QMainWindow):
         # Server status
         self.serverStatusLabel = QLabel("Server: Checking...")
         self.serverStatusLabel.setStyleSheet("color: #000000; padding: 5px;")
+        self.serverStatusLabel.setMinimumWidth(120)  # Fixed width to prevent flickering
         self.statusBar.addPermanentWidget(self.serverStatusLabel)
         
         # Model status  
@@ -504,17 +512,20 @@ class MainWindow(QMainWindow):
         model = self.config.get_current_model()
         self.modelStatusLabel = QLabel(f"{provider}: {model}")
         self.modelStatusLabel.setStyleSheet("color: #000000; padding: 5px;")
+        self.modelStatusLabel.setMinimumWidth(200)  # Fixed width for model info
         self.statusBar.addPermanentWidget(self.modelStatusLabel)
         
         # Strategy status - fetch from server or use default
         strategy = self.fetchCurrentStrategy()
         self.strategyStatusLabel = QLabel(f"Strategy: {strategy}")
         self.strategyStatusLabel.setStyleSheet("color: #000000; padding: 5px;")
+        self.strategyStatusLabel.setMinimumWidth(150)  # Fixed width for strategy
         self.statusBar.addPermanentWidget(self.strategyStatusLabel)
         
         # Vector count from database
         self.vectorCountLabel = QLabel("Vectors: --")
         self.vectorCountLabel.setStyleSheet("color: #000000; padding: 5px;")
+        self.vectorCountLabel.setMinimumWidth(100)  # Fixed width for vector count
         self.vectorCountLabel.setToolTip("Total vectors stored in the database")
         self.statusBar.addPermanentWidget(self.vectorCountLabel)
     
