@@ -14,9 +14,51 @@ class VariablesTab(QWidget):
     def initUI(self):
         layout = QVBoxLayout()
         
+        # Apply radio button and checkbox styling like embedder tab
+        self.setStyleSheet("""
+            QRadioButton {
+                color: #000000;
+                padding: 3px;
+                spacing: 8px;
+            }
+            QRadioButton::indicator {
+                width: 16px;
+                height: 16px;
+                border-radius: 8px;
+                border: 2px solid #666;
+                background-color: #ffffff;
+            }
+            QRadioButton::indicator:checked {
+                border: 2px solid #000000;
+                background-color: #000000;
+            }
+            QRadioButton::indicator:hover {
+                border: 2px solid #000000;
+            }
+            QCheckBox {
+                color: #000000;
+                padding: 3px;
+                spacing: 8px;
+            }
+            QCheckBox::indicator {
+                width: 16px;
+                height: 16px;
+                border: 2px solid #666;
+                background-color: #ffffff;
+                border-radius: 3px;
+            }
+            QCheckBox::indicator:checked {
+                border: 2px solid #000000;
+                background-color: #000000;
+            }
+            QCheckBox::indicator:hover {
+                border: 2px solid #000000;
+            }
+        """)
+        
         # Title
         title = QLabel("System Variables")
-        title.setStyleSheet("font-size: 14px; font-weight: bold; padding: 5px;")
+        title.setStyleSheet("font-size: 14px; font-weight: bold; padding: 5px; color: #000000;")
         layout.addWidget(title)
         
         # Description
@@ -158,16 +200,22 @@ class VariablesTab(QWidget):
         group = QGroupBox(title)
         group.setStyleSheet("""
             QGroupBox {
+                color: #000000;
                 font-weight: bold;
-                border: 1px solid #ccc;
+                border: 1px solid #dee2e6;
                 border-radius: 5px;
                 margin-top: 10px;
                 padding-top: 10px;
+                background-color: #E5E7E7;
             }
             QGroupBox::title {
+                color: #000000;
                 subcontrol-origin: margin;
                 left: 10px;
                 padding: 0 5px 0 5px;
+                background-color: #E5E7E7;
+                border: 1px solid black;
+                border-radius: 3px;
             }
         """)
         return group
