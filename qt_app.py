@@ -405,24 +405,47 @@ class MainWindow(QMainWindow):
             }
             QSpinBox {
                 color: #000000;
+                background-color: #ffffff;
+                border: 1px solid #ddd;
+                padding: 2px;
+                border-radius: 3px;
             }
             QDoubleSpinBox {
                 color: #000000;
+                background-color: #ffffff;
+                border: 1px solid #ddd;
+                padding: 2px;
+                border-radius: 3px;
             }
             QComboBox {
                 color: #000000;
+                background-color: #ffffff;
+                border: 1px solid #ddd;
+                padding: 2px;
+                border-radius: 3px;
             }
             QComboBox QAbstractItemView {
                 color: #000000;
+                background-color: #ffffff;
             }
             QLineEdit {
                 color: #000000;
+                background-color: #ffffff;
+                border: 1px solid #ddd;
+                padding: 2px;
+                border-radius: 3px;
             }
             QTextEdit {
                 color: #000000;
+                background-color: #ffffff;
+                border: 1px solid #ddd;
+                border-radius: 3px;
             }
             QPlainTextEdit {
                 color: #000000;
+                background-color: #ffffff;
+                border: 1px solid #ddd;
+                border-radius: 3px;
             }
             QListWidget {
                 color: #000000;
