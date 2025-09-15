@@ -134,7 +134,7 @@ class LLMTab(QWidget):
         apply_btn = QPushButton("Apply LLM Settings")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #5EAF08;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;

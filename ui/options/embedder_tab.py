@@ -240,7 +240,7 @@ class EmbedderTab(QWidget):
         apply_btn = QPushButton("Apply Embedder")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #397B06;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
