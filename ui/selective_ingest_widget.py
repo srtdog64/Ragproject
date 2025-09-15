@@ -86,7 +86,7 @@ class SelectiveIngestWidget(QWidget):
         self.ingestBtn.setIcon(get_icon(Icons.SAVE))
         self.ingestBtn.setStyleSheet("""
             QPushButton {
-                background-color: #4caf50;
+                background-color: #397B06;
                 color: black;
                 font-weight: bold;
                 padding: 10px;
@@ -94,7 +94,7 @@ class SelectiveIngestWidget(QWidget):
                 font-size: 14px;
             }
             QPushButton:hover {
-                background-color: #45a049;
+                background-color: #5EAF08;
             }
             QPushButton:disabled {
                 background-color: #cccccc;

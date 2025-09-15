@@ -115,7 +115,7 @@ class LogsWidget(QWidget):
             "INFO": "#00b4d8",
             "WARNING": "#ffc107",
             "ERROR": "#f44336",
-            "SUCCESS": "#4caf50"
+            "SUCCESS": "#397B06"
         }
         
         color = colors.get(level, "#d4d4d4")

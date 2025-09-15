@@ -341,14 +341,14 @@ class DocumentsWidget(QWidget):
         add_folder_btn.clicked.connect(self.addWatchFolder)
         add_folder_btn.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
+                background-color: #397B06;
                 color: black;
                 padding: 6px 12px;
                 border-radius: 4px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #45a049;
+                background-color: #5EAF08;
             }
         """)
         
@@ -699,14 +699,14 @@ class DocumentsWidget(QWidget):
         add_folder_btn.clicked.connect(self.addWatchFolder)
         add_folder_btn.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
+                background-color: #397B06;
                 color: black;
                 padding: 6px 12px;
                 border-radius: 4px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #45a049;
+                background-color: #5EAF08;
             }
         """)
         
@@ -1140,14 +1140,14 @@ class DocumentsWidget(QWidget):
         add_folder_btn.clicked.connect(self.addWatchFolder)
         add_folder_btn.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
+                background-color: #397B06;
                 color: black;
                 padding: 6px 12px;
                 border-radius: 4px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #45a049;
+                background-color: #5EAF08;
             }
         """)
         

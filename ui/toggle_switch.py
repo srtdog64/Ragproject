@@ -30,7 +30,7 @@ class ToggleSwitch(QWidget):
         
         # Background
         if self._checked:
-            bg_color = QColor("#4CAF50")  # Green when on
+            bg_color = QColor("#397B06")  # Green when on
         else:
             bg_color = QColor("#cccccc")  # Gray when off
             

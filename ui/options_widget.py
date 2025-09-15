@@ -122,7 +122,7 @@ class OptionsWidget(QWidget):
         saveAllBtn.setIcon(get_icon(Icons.SAVE))
         saveAllBtn.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
+                background-color: #397B06;
                 color: black;
                 padding: 10px;
                 border-radius: 5px;
@@ -130,7 +130,7 @@ class OptionsWidget(QWidget):
                 font-size: 14px;
             }
             QPushButton:hover {
-                background-color: #45a049;
+                background-color: #5EAF08;
             }
         """)
         saveAllBtn.clicked.connect(self.saveAllSettings)

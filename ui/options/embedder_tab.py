@@ -37,7 +37,7 @@ class EmbedderTab(QWidget):
         current_type = self.config.get("embedder.type", "huggingface", "server")
         current_model = self.config.get("embedder.model", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", "server")
         self.currentEmbedderLabel = QLabel(f"{current_type}: {current_model}")
-        self.currentEmbedderLabel.setStyleSheet("font-weight: bold; color: #4CAF50;")
+        self.currentEmbedderLabel.setStyleSheet("font-weight: bold; color: #397B06;")
         self.currentEmbedderLabel.setWordWrap(True)
         current_layout.addWidget(self.currentEmbedderLabel, 1)
         layout.addLayout(current_layout)
@@ -179,14 +179,14 @@ class EmbedderTab(QWidget):
         apply_btn = QPushButton("Apply Embedder")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
+                background-color: #397B06;
                 color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #45a049;
+                background-color: #5EAF08;
             }
         """)
         apply_btn.clicked.connect(self.applyEmbedder)
@@ -208,7 +208,7 @@ class EmbedderTab(QWidget):
         save_btn = QPushButton("Save All Settings")
         save_btn.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
+                background-color: #397B06;
                 color: black;
                 padding: 10px 20px;
                 border-radius: 5px;
@@ -216,7 +216,7 @@ class EmbedderTab(QWidget):
                 font-size: 14px;
             }
             QPushButton:hover {
-                background-color: #45a049;
+                background-color: #5EAF08;
             }
         """)
         save_btn.clicked.connect(self.saveAllSettings)

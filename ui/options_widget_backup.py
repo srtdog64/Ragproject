@@ -148,7 +148,7 @@ class OptionsWidget(QWidget):
         saveAllBtn = QPushButton("Save All Settings")
         saveAllBtn.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
+                background-color: #397B06;
                 color: black;
                 padding: 10px;
                 border-radius: 5px;
@@ -156,7 +156,7 @@ class OptionsWidget(QWidget):
                 font-size: 14px;
             }
             QPushButton:hover {
-                background-color: #45a049;
+                background-color: #5EAF08;
             }
         """)
         saveAllBtn.clicked.connect(self.saveAllSettings)
@@ -301,7 +301,7 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF5722;
+                background-color: #ff6b35;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
@@ -582,7 +582,7 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF5722;
+                background-color: #ff6b35;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
@@ -891,7 +891,7 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF5722;
+                background-color: #ff6b35;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
@@ -1172,7 +1172,7 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF5722;
+                background-color: #ff6b35;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
@@ -1338,14 +1338,14 @@ class OptionsWidget(QWidget):
         self.start_watch_btn = QPushButton("▶️ Start Watching")
         self.start_watch_btn.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
+                background-color: #397B06;
                 color: black;
                 padding: 8px 16px;
                 border-radius: 4px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #45a049;
+                background-color: #5EAF08;
             }
         """)
         self.start_watch_btn.clicked.connect(self.startWatching)
@@ -1505,7 +1505,7 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF5722;
+                background-color: #ff6b35;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
@@ -1786,7 +1786,7 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF5722;
+                background-color: #ff6b35;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
@@ -2038,7 +2038,7 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF5722;
+                background-color: #ff6b35;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
@@ -2319,7 +2319,7 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF5722;
+                background-color: #ff6b35;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
@@ -2567,7 +2567,7 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF5722;
+                background-color: #ff6b35;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
@@ -2848,7 +2848,7 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF5722;
+                background-color: #ff6b35;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
@@ -3814,7 +3814,7 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF5722;
+                background-color: #ff6b35;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;

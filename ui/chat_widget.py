@@ -38,15 +38,16 @@ class ChatWidget(QWidget):
         self.ingestBtn.setToolTip("Index documents to vector store")
         self.ingestBtn.setStyleSheet("""
             QPushButton {
-                background-color: #4caf50;
-                color: black;
-                font-weight: bold;
+                background-color: #397B06;
+                color: white;
+                font-weight: 600;
                 padding: 8px 16px;
                 border-radius: 4px;
+                cursor: pointer;
             }
             QPushButton:hover {
-                background-color: #45a049;
-                color: black;
+                background-color: #5EAF08;
+                color: white;
             }
             QPushButton:disabled {
                 background-color: #cccccc;
@@ -66,7 +67,7 @@ class ChatWidget(QWidget):
                 height: 20px;
             }
             QProgressBar::chunk {
-                background-color: #4caf50;
+                background-color: #397B06;
                 border-radius: 3px;
             }
         """)
@@ -249,7 +250,7 @@ class ChatWidget(QWidget):
             color = "#ff9800"  # Orange
         elif value <= 20:
             info = "(Standard)"
-            color = "#4caf50"  # Green
+            color = "#397B06"  # Green
         elif value <= 50:
             info = "(Extended)"
             color = "#5EAF08"  # Blue
@@ -332,7 +333,7 @@ class ChatWidget(QWidget):
                     font-size: 13px;
                 }
                 QPushButton:hover {
-                    background-color: #ff5722;
+                    background-color: #ff6b35;
                     color: black;
                 }
             """)

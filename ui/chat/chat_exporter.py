@@ -122,14 +122,14 @@ class ChatExportDialog(QDialog):
         export_btn = QPushButton("Export")
         export_btn.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
+                background-color: #397B06;
                 color: black;
                 padding: 6px 20px;
                 border-radius: 4px;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #45a049;
+                background-color: #5EAF08;
             }
         """)
         export_btn.clicked.connect(self.export_chat)

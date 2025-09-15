@@ -84,7 +84,7 @@ class ChunkingTab(QWidget):
         
         current_strategy = self.config.get("chunker.default_strategy", "adaptive", "server")
         self.currentStrategyLabel = QLabel(current_strategy.capitalize())
-        self.currentStrategyLabel.setStyleSheet("font-weight: bold; color: #FF5722;")
+        self.currentStrategyLabel.setStyleSheet("font-weight: bold; color: #ff6b35;")
         current_layout.addWidget(self.currentStrategyLabel)
         current_layout.addStretch()
         layout.addLayout(current_layout)
@@ -200,7 +200,7 @@ class ChunkingTab(QWidget):
         apply_btn = QPushButton("Apply Chunking Settings")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #FF5722;
+                background-color: #ff6b35;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;

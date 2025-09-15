@@ -32,7 +32,7 @@ class ChatInput(QWidget):
         self.send_btn = QPushButton("Send 📤")
         self.send_btn.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
+                background-color: #397B06;
                 color: black;
                 border: none;
                 padding: 10px 20px;
@@ -41,7 +41,7 @@ class ChatInput(QWidget):
                 font-size: 14px;
             }
             QPushButton:hover {
-                background-color: #45a049;
+                background-color: #5EAF08;
             }
             QPushButton:pressed {
                 background-color: #3d8b40;
