@@ -126,14 +126,11 @@ class ServerTab(QWidget):
         apply_btn = QPushButton("Apply Server Settings")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #9C27B0;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
-                background-color: #7B1FA2;
             }
         """)
         apply_btn.clicked.connect(self.applySettings)

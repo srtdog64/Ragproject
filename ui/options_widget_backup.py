@@ -3610,7 +3610,7 @@ class OptionsWidget(QWidget):
         apply_btn = QPushButton("Apply Reranker Settings")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #9c27b0;
+                background-color: #D9DE19;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;

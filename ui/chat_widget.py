@@ -253,7 +253,7 @@ class ChatWidget(QWidget):
             color = "#5EAF08"  # Blue
         else:
             info = "(Maximum)"
-            color = "#9c27b0"  # Purple
+            color = "#D9DE19"  # Purple
         
         self.contextInfoLabel.setText(info)
         self.contextInfoLabel.setStyleSheet(f"color: {color}; font-weight: bold;")
