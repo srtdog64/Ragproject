@@ -141,11 +141,12 @@ class OptionsWidget(QWidget):
         reloadBtn.setIcon(get_icon(Icons.REFRESH_CW))
         reloadBtn.setStyleSheet("""
             QPushButton {
-                background-color: #2196F3;
+                background-color: #BEB4B4;
                 color: black;
                 padding: 8px;
                 border-radius: 5px;
                 font-weight: bold;
+                hover: cursor;
             }
             QPushButton:hover {
                 background-color: #1976D2;

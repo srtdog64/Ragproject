@@ -402,6 +402,16 @@ class MainWindow(QMainWindow):
             }
             QPushButton {
                 color: #000000;
+                background-color: #f8f9fa;
+                border: 1px solid #dee2e6;
+                padding: 6px 12px;
+                border-radius: 4px;
+            }
+            QPushButton:hover {
+                background-color: #e9ecef;
+            }
+            QPushButton:pressed {
+                background-color: #dee2e6;
             }
             QSpinBox {
                 color: #000000;

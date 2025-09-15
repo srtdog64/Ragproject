@@ -75,6 +75,7 @@ llm:
     - claude-3-haiku
     - claude-2.1
     - claude-2.0
+  type: gemini
 reranker:
   type: bm25
   enabled: true

@@ -45,7 +45,7 @@ class LLMTab(QWidget):
         provider = self.config.get_current_provider()
         model = self.config.get_current_model()
         self.currentModelLabel = QLabel(f"{provider}: {model}")
-        self.currentModelLabel.setStyleSheet("font-weight: bold; color: #2196F3;")
+        self.currentModelLabel.setStyleSheet("font-weight: bold; color: #BEB4B4;")
         current_layout.addWidget(self.currentModelLabel)
         current_layout.addStretch()
         layout.addLayout(current_layout)
@@ -134,11 +134,12 @@ class LLMTab(QWidget):
         apply_btn = QPushButton("Apply LLM Settings")
         apply_btn.setStyleSheet("""
             QPushButton {
-                background-color: #2196F3;
+                background-color: #BEB4B4;
                 color: black;
                 padding: 8px;
                 border-radius: 4px;
                 font-weight: bold;
+                hover: cursor;
             }
             QPushButton:hover {
                 background-color: #1976D2;

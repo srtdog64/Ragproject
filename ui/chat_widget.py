@@ -133,10 +133,11 @@ class ChatWidget(QWidget):
         exportBtn.setToolTip("Export chat to Markdown file")
         exportBtn.setStyleSheet("""
             QPushButton {
-                background-color: #2196F3;
+                background-color: #BEB4B4;
                 color: black;
                 padding: 5px 10px;
                 border-radius: 4px;
+                hover: cursor;
             }
             QPushButton:hover {
                 background-color: #1976D2;
@@ -163,7 +164,7 @@ class ChatWidget(QWidget):
         # Reset to default background for chat input
         self.inputField.setStyleSheet("""
             QTextEdit {
-                color: #000000;
+                color: #6c757d;
                 background-color: #dee2e6;
                 border: 1px solid #ddd;
                 border-radius: 3px;
@@ -251,7 +252,7 @@ class ChatWidget(QWidget):
             color = "#4caf50"  # Green
         elif value <= 50:
             info = "(Extended)"
-            color = "#2196f3"  # Blue
+            color = "#BEB4B4"  # Blue
         else:
             info = "(Maximum)"
             color = "#9c27b0"  # Purple
