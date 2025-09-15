@@ -120,7 +120,7 @@ class EmbedderTab(QWidget):
             for model_key, model_desc in embedder_type["models"]:
                 # Check if this is the current model and add star if it is
                 is_current = (embedder_type["type"] == current_type and model_key == current_model)
-                display_text = f"{model_desc} ⭐ CURRENT" if is_current else model_desc
+                display_text = f"{model_desc} ✓ CURRENT" if is_current else model_desc
                 
                 radio = QRadioButton(display_text)
                 radio.setProperty("embedder_type", embedder_type["type"])
@@ -271,7 +271,7 @@ class EmbedderTab(QWidget):
             is_current = (stored_type == embedder_type and stored_model == model_key)
             
             # Update the display text
-            display_text = f"{original_desc} ⭐ CURRENT" if is_current else original_desc
+            display_text = f"{original_desc} ✓ CURRENT" if is_current else original_desc
             radio.setText(display_text)
             
             # Update style - just bold for current, normal for others

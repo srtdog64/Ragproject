@@ -57,7 +57,7 @@ python qt_app_styled.py
 - 🔗 컨텍스트 ID 표시
 
 ### Documents 탭
-- ➕ 문서 추가/편집/삭제
+- 문서 추가/편집/삭제
 - JSON 가져오기/내보내기
 - 테이블 뷰로 관리
 

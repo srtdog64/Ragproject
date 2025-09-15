@@ -318,7 +318,7 @@ class DocumentsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e8f5e9; padding: 10px; border-radius: 5px;'>
-        <b>📂 Automatic Document Ingestion:</b><br>
+        <b>Automatic Document Ingestion:</b><br>
         Add folders to watch. Any new documents (PDF, MD, TXT) added to these folders
         will be automatically ingested into the RAG system.
         </div>
@@ -337,7 +337,7 @@ class DocumentsWidget(QWidget):
         # Folder controls
         folder_btns = QHBoxLayout()
         
-        add_folder_btn = QPushButton("➕ Add Folder")
+        add_folder_btn = QPushButton("Add Folder")
         add_folder_btn.clicked.connect(self.addWatchFolder)
         add_folder_btn.setStyleSheet("""
             QPushButton {
@@ -352,7 +352,7 @@ class DocumentsWidget(QWidget):
             }
         """)
         
-        remove_folder_btn = QPushButton("➖ Remove Folder")
+        remove_folder_btn = QPushButton("Remove Folder")
         remove_folder_btn.clicked.connect(self.removeWatchFolder)
         remove_folder_btn.setStyleSheet("""
             QPushButton {
@@ -380,7 +380,7 @@ class DocumentsWidget(QWidget):
         watcher_layout = QVBoxLayout()
         
         # Status
-        self.watcher_status = QLabel("Status: ⏹️ Not running")
+        self.watcher_status = QLabel("Status: Not running")
         self.watcher_status.setStyleSheet("padding: 10px; background-color: #f0f0f0; border-radius: 5px;")
         watcher_layout.addWidget(self.watcher_status)
         
@@ -392,7 +392,7 @@ class DocumentsWidget(QWidget):
         # Control buttons
         control_btns = QHBoxLayout()
         
-        self.start_watch_btn = QPushButton("▶️ Start Watching")
+        self.start_watch_btn = QPushButton("Start Watching")
         self.start_watch_btn.setStyleSheet("""
             QPushButton {
                 background-color: #5EAF08;
@@ -408,7 +408,7 @@ class DocumentsWidget(QWidget):
         """)
         self.start_watch_btn.clicked.connect(self.startWatching)
         
-        self.stop_watch_btn = QPushButton("⏹️ Stop Watching")
+        self.stop_watch_btn = QPushButton("Stop Watching")
         self.stop_watch_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF9800;
@@ -502,7 +502,7 @@ class DocumentsWidget(QWidget):
             self.watcher_status.setText("Status: Watching...")
             self.start_watch_btn.setEnabled(False)
             self.stop_watch_btn.setEnabled(True)
-            self.activity_log.append("▶️ Started folder watching")
+            self.activity_log.append("Started folder watching")
         else:
             QMessageBox.warning(self, "No Folders", 
                               "Please add at least one folder to watch first.")
@@ -511,10 +511,10 @@ class DocumentsWidget(QWidget):
         """Stop the folder watcher"""
         if self.folder_watcher:
             self.folder_watcher.stop()
-            self.watcher_status.setText("Status: ⏹️ Stopped")
+            self.watcher_status.setText("Status: Stopped")
             self.start_watch_btn.setEnabled(True)
             self.stop_watch_btn.setEnabled(False)
-            self.activity_log.append("⏹️ Stopped folder watching")
+            self.activity_log.append("Stopped folder watching")
             
             # Show results
             if loaded_count > 0 and not failed_files:
@@ -676,7 +676,7 @@ class DocumentsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e8f5e9; padding: 10px; border-radius: 5px;'>
-        <b>📂 Automatic Document Ingestion:</b><br>
+        <b>Automatic Document Ingestion:</b><br>
         Add folders to watch. Any new documents (PDF, MD, TXT) added to these folders
         will be automatically ingested into the RAG system.
         </div>
@@ -695,7 +695,7 @@ class DocumentsWidget(QWidget):
         # Folder controls
         folder_btns = QHBoxLayout()
         
-        add_folder_btn = QPushButton("➕ Add Folder")
+        add_folder_btn = QPushButton("Add Folder")
         add_folder_btn.clicked.connect(self.addWatchFolder)
         add_folder_btn.setStyleSheet("""
             QPushButton {
@@ -710,7 +710,7 @@ class DocumentsWidget(QWidget):
             }
         """)
         
-        remove_folder_btn = QPushButton("➖ Remove Folder")
+        remove_folder_btn = QPushButton("Remove Folder")
         remove_folder_btn.clicked.connect(self.removeWatchFolder)
         remove_folder_btn.setStyleSheet("""
             QPushButton {
@@ -738,7 +738,7 @@ class DocumentsWidget(QWidget):
         watcher_layout = QVBoxLayout()
         
         # Status
-        self.watcher_status = QLabel("Status: ⏹️ Not running")
+        self.watcher_status = QLabel("Status: Not running")
         self.watcher_status.setStyleSheet("padding: 10px; background-color: #f0f0f0; border-radius: 5px;")
         watcher_layout.addWidget(self.watcher_status)
         
@@ -750,7 +750,7 @@ class DocumentsWidget(QWidget):
         # Control buttons
         control_btns = QHBoxLayout()
         
-        self.start_watch_btn = QPushButton("▶️ Start Watching")
+        self.start_watch_btn = QPushButton("Start Watching")
         self.start_watch_btn.setStyleSheet("""
             QPushButton {
                 background-color: #5EAF08;
@@ -766,7 +766,7 @@ class DocumentsWidget(QWidget):
         """)
         self.start_watch_btn.clicked.connect(self.startWatching)
         
-        self.stop_watch_btn = QPushButton("⏹️ Stop Watching")
+        self.stop_watch_btn = QPushButton("Stop Watching")
         self.stop_watch_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF9800;
@@ -860,7 +860,7 @@ class DocumentsWidget(QWidget):
             self.watcher_status.setText("Status: Watching...")
             self.start_watch_btn.setEnabled(False)
             self.stop_watch_btn.setEnabled(True)
-            self.activity_log.append("▶️ Started folder watching")
+            self.activity_log.append("Started folder watching")
         else:
             QMessageBox.warning(self, "No Folders", 
                               "Please add at least one folder to watch first.")
@@ -869,10 +869,10 @@ class DocumentsWidget(QWidget):
         """Stop the folder watcher"""
         if self.folder_watcher:
             self.folder_watcher.stop()
-            self.watcher_status.setText("Status: ⏹️ Stopped")
+            self.watcher_status.setText("Status: Stopped")
             self.start_watch_btn.setEnabled(True)
             self.stop_watch_btn.setEnabled(False)
-            self.activity_log.append("⏹️ Stopped folder watching")
+            self.activity_log.append("Stopped folder watching")
     
     def updateDocumentList(self):
         """Update the document list display"""
@@ -1117,7 +1117,7 @@ class DocumentsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #e8f5e9; padding: 10px; border-radius: 5px;'>
-        <b>📂 Automatic Document Ingestion:</b><br>
+        <b>Automatic Document Ingestion:</b><br>
         Add folders to watch. Any new documents (PDF, MD, TXT) added to these folders
         will be automatically ingested into the RAG system.
         </div>
@@ -1136,7 +1136,7 @@ class DocumentsWidget(QWidget):
         # Folder controls
         folder_btns = QHBoxLayout()
         
-        add_folder_btn = QPushButton("➕ Add Folder")
+        add_folder_btn = QPushButton("Add Folder")
         add_folder_btn.clicked.connect(self.addWatchFolder)
         add_folder_btn.setStyleSheet("""
             QPushButton {
@@ -1151,7 +1151,7 @@ class DocumentsWidget(QWidget):
             }
         """)
         
-        remove_folder_btn = QPushButton("➖ Remove Folder")
+        remove_folder_btn = QPushButton("Remove Folder")
         remove_folder_btn.clicked.connect(self.removeWatchFolder)
         remove_folder_btn.setStyleSheet("""
             QPushButton {
@@ -1179,7 +1179,7 @@ class DocumentsWidget(QWidget):
         watcher_layout = QVBoxLayout()
         
         # Status
-        self.watcher_status = QLabel("Status: ⏹️ Not running")
+        self.watcher_status = QLabel("Status: Not running")
         self.watcher_status.setStyleSheet("padding: 10px; background-color: #f0f0f0; border-radius: 5px;")
         watcher_layout.addWidget(self.watcher_status)
         
@@ -1191,7 +1191,7 @@ class DocumentsWidget(QWidget):
         # Control buttons
         control_btns = QHBoxLayout()
         
-        self.start_watch_btn = QPushButton("▶️ Start Watching")
+        self.start_watch_btn = QPushButton("Start Watching")
         self.start_watch_btn.setStyleSheet("""
             QPushButton {
                 background-color: #5EAF08;
@@ -1207,7 +1207,7 @@ class DocumentsWidget(QWidget):
         """)
         self.start_watch_btn.clicked.connect(self.startWatching)
         
-        self.stop_watch_btn = QPushButton("⏹️ Stop Watching")
+        self.stop_watch_btn = QPushButton("Stop Watching")
         self.stop_watch_btn.setStyleSheet("""
             QPushButton {
                 background-color: #FF9800;
@@ -1301,7 +1301,7 @@ class DocumentsWidget(QWidget):
             self.watcher_status.setText("Status: Watching...")
             self.start_watch_btn.setEnabled(False)
             self.stop_watch_btn.setEnabled(True)
-            self.activity_log.append("▶️ Started folder watching")
+            self.activity_log.append("Started folder watching")
         else:
             QMessageBox.warning(self, "No Folders", 
                               "Please add at least one folder to watch first.")
@@ -1310,7 +1310,7 @@ class DocumentsWidget(QWidget):
         """Stop the folder watcher"""
         if self.folder_watcher:
             self.folder_watcher.stop()
-            self.watcher_status.setText("Status: ⏹️ Stopped")
+            self.watcher_status.setText("Status: Stopped")
             self.start_watch_btn.setEnabled(True)
             self.stop_watch_btn.setEnabled(False)
-            self.activity_log.append("⏹️ Stopped folder watching")
+            self.activity_log.append("Stopped folder watching")

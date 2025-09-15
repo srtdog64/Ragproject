@@ -1291,7 +1291,7 @@ class OptionsWidget(QWidget):
         # Info
         info = QLabel("""
         <div style='background-color: #f3e5f5; padding: 10px; border-radius: 5px;'>
-        <b>📂 Automatic Document Ingestion:</b><br>
+        <b>Automatic Document Ingestion:</b><br>
         Add folders to watch, and any new documents (PDF, MD, TXT) added to these folders
         will be automatically ingested into the RAG system.
         </div>
@@ -1309,10 +1309,10 @@ class OptionsWidget(QWidget):
         # Folder controls
         folder_btns = QHBoxLayout()
         
-        add_folder_btn = QPushButton("➕ Add Folder")
+        add_folder_btn = QPushButton("Add Folder")
         add_folder_btn.clicked.connect(self.addWatchFolder)
         
-        remove_folder_btn = QPushButton("➖ Remove Folder")
+        remove_folder_btn = QPushButton("Remove Folder")
         remove_folder_btn.clicked.connect(self.removeWatchFolder)
         
         folder_btns.addWidget(add_folder_btn)
@@ -1328,14 +1328,14 @@ class OptionsWidget(QWidget):
         watcher_layout = QVBoxLayout()
         
         # Status
-        self.watcher_status = QLabel("Status: ⏹️ Not running")
+        self.watcher_status = QLabel("Status: Not running")
         self.watcher_status.setStyleSheet("padding: 10px; background-color: #f0f0f0; border-radius: 5px;")
         watcher_layout.addWidget(self.watcher_status)
         
         # Control buttons
         control_btns = QHBoxLayout()
         
-        self.start_watch_btn = QPushButton("▶️ Start Watching")
+        self.start_watch_btn = QPushButton("Start Watching")
         self.start_watch_btn.setStyleSheet("""
             QPushButton {
                 background-color: #397B06;
@@ -1350,7 +1350,7 @@ class OptionsWidget(QWidget):
         """)
         self.start_watch_btn.clicked.connect(self.startWatching)
         
-        self.stop_watch_btn = QPushButton("⏹️ Stop Watching")
+        self.stop_watch_btn = QPushButton("Stop Watching")
         self.stop_watch_btn.setStyleSheet("""
             QPushButton {
                 background-color: #f44336;
@@ -3512,7 +3512,7 @@ class OptionsWidget(QWidget):
         """Stop the folder watcher"""
         if self.folder_watcher:
             self.folder_watcher.stop()
-            self.watcher_status.setText("Status: ⏹️ Stopped")
+            self.watcher_status.setText("Status: Stopped")
             self.start_watch_btn.setEnabled(True)
             self.stop_watch_btn.setEnabled(False)
     
