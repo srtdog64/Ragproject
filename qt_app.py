@@ -377,6 +377,83 @@ class MainWindow(QMainWindow):
             QStatusBar QLabel {
                 color: #000000;
             }
+            /* Global text color settings - more comprehensive */
+            * {
+                color: #000000;
+            }
+            QWidget {
+                color: #000000;
+            }
+            QLabel {
+                color: #000000;
+            }
+            QGroupBox {
+                color: #000000;
+                font-weight: bold;
+            }
+            QGroupBox::title {
+                color: #000000;
+            }
+            QRadioButton {
+                color: #000000;
+            }
+            QCheckBox {
+                color: #000000;
+            }
+            QPushButton {
+                color: #000000;
+            }
+            QSpinBox {
+                color: #000000;
+            }
+            QDoubleSpinBox {
+                color: #000000;
+            }
+            QComboBox {
+                color: #000000;
+            }
+            QComboBox QAbstractItemView {
+                color: #000000;
+            }
+            QLineEdit {
+                color: #000000;
+            }
+            QTextEdit {
+                color: #000000;
+            }
+            QPlainTextEdit {
+                color: #000000;
+            }
+            QListWidget {
+                color: #000000;
+            }
+            QListWidget::item {
+                color: #000000;
+            }
+            QTreeWidget {
+                color: #000000;
+            }
+            QTreeWidget::item {
+                color: #000000;
+            }
+            QTableWidget {
+                color: #000000;
+            }
+            QTableWidget::item {
+                color: #000000;
+            }
+            QProgressBar {
+                color: #000000;
+            }
+            QHeaderView::section {
+                color: #000000;
+            }
+            QTabWidget QWidget {
+                color: #000000;
+            }
+            QSlider::handle:horizontal {
+                background-color: #1976d2;
+            }
         """)
     
     def createTabs(self):

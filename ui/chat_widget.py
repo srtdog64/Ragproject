@@ -76,12 +76,16 @@ class ChatWidget(QWidget):
         topToolbar.addStretch()
         
         # Model selector
-        topToolbar.addWidget(QLabel("Model:"))
+        model_label = QLabel("Model:")
+        model_label.setStyleSheet("color: #000000;")
+        topToolbar.addWidget(model_label)
         self.modelLabel = QLabel(self.config.get_current_model())
         self.modelLabel.setStyleSheet("font-weight: bold; color: #1976d2;")
         topToolbar.addWidget(self.modelLabel)
         
-        topToolbar.addWidget(QLabel("  |  "))
+        separator_label = QLabel("  |  ")
+        separator_label.setStyleSheet("color: #000000;")
+        topToolbar.addWidget(separator_label)
         
         # topK setting with better labeling
         contextLabel = QLabel("Retrieve:")
