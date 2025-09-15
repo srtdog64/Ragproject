@@ -114,6 +114,26 @@ class EmbedderTab(QWidget):
         for embedder_type in self.embedder_models:
             group = QGroupBox(embedder_type["name"])
             group.setCheckable(False)
+            group.setStyleSheet("""
+                QGroupBox {
+                    color: #000000;
+                    font-weight: bold;
+                    border: 1px solid #dee2e6;
+                    border-radius: 5px;
+                    margin-top: 10px;
+                    padding-top: 10px;
+                    background-color: #E5E7E7;
+                }
+                QGroupBox::title {
+                    color: #000000;
+                    subcontrol-origin: margin;
+                    left: 10px;
+                    padding: 0 5px 0 5px;
+                    background-color: #E5E7E7;
+                    border: 1px solid #dee2e6;
+                    border-radius: 3px;
+                }
+            """)
             group_layout = QVBoxLayout()
             
             # Add radio buttons
@@ -150,6 +170,26 @@ class EmbedderTab(QWidget):
         
         # Cache directory
         cache_group = QGroupBox("Cache Settings")
+        cache_group.setStyleSheet("""
+            QGroupBox {
+                color: #000000;
+                font-weight: bold;
+                border: 1px solid #dee2e6;
+                border-radius: 5px;
+                margin-top: 10px;
+                padding-top: 10px;
+                    background-color: #E5E7E7;
+                }
+            QGroupBox::title {
+                color: #000000;
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px 0 5px;
+                    background-color: #E5E7E7;
+                    border: 1px solid #dee2e6;
+                border-radius: 3px;
+            }
+        """)
         cache_layout = QVBoxLayout()
         
         cache_info = QLabel("Cache directory for downloaded models (leave empty for default)")
