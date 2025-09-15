@@ -192,15 +192,22 @@ class DatabaseTab(QWidget):
             size_mb = total_size / (1024 * 1024)
             self.db_size_label.setText(f"{size_mb:.2f} MB")
             
-            # Try to get vector count from server
+            # Try to get vector count from server using new database API
             import requests
             try:
-                response = requests.get("http://localhost:7001/api/rag/stats", timeout=2)
+                response = requests.get("http://localhost:7001/api/database/stats", timeout=2)
                 if response.status_code == 200:
                     data = response.json()
-                    self.vector_count_label.setText(str(data.get('total_vectors', 0)))
+                    stats = data.get('stats', {})
+                    self.vector_count_label.setText(str(stats.get('total_vectors', 0)))
                 else:
-                    self.vector_count_label.setText("Server offline")
+                    # Fallback to old API
+                    response = requests.get("http://localhost:7001/api/rag/stats", timeout=2)
+                    if response.status_code == 200:
+                        data = response.json()
+                        self.vector_count_label.setText(str(data.get('total_vectors', 0)))
+                    else:
+                        self.vector_count_label.setText("Server offline")
             except:
                 self.vector_count_label.setText("Server offline")
             

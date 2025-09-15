@@ -21,7 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Import routers
-from server.routers import health, rag, ingest, ask, namespaces, config
+from server.routers import health, rag, ingest, ask, namespaces, config, database
 from rag.chunkers.api_router import router as chunkers_router
 
 # Import task manager
@@ -54,6 +54,7 @@ def rebuild_components():
         ask.set_pipeline_builder(_pipeline_builder)
         ask.set_container(_container)
         namespaces.set_container(_container)
+        database.set_container(_container)  # Update database router too
         
         logger.info("Components rebuilt successfully")
     except Exception as e:
@@ -88,6 +89,7 @@ async def lifespan(app: FastAPI):
         ask.set_pipeline_builder(_pipeline_builder)
         ask.set_container(_container)
         namespaces.set_container(_container)
+        database.set_container(_container)  # Set container for database router
         config.set_config(app_config)
         config.set_rebuild_callback(rebuild_components)
         
@@ -110,6 +112,7 @@ async def lifespan(app: FastAPI):
         ask.set_pipeline_builder(None)
         ask.set_container(None)
         namespaces.set_container(None)
+        database.set_container(None)  # Set None for database router too
     
     # Log registered routes after everything is set up
     logger.info("Registered routes:")
@@ -151,6 +154,7 @@ app.include_router(ingest.router)      # /api/ingest endpoints
 app.include_router(ask.router)         # /api/ask endpoints
 app.include_router(namespaces.router)  # /api/namespaces endpoints
 app.include_router(config.router)      # /api/config/* endpoints
+app.include_router(database.router)    # /api/database/* endpoints
 app.include_router(chunkers_router)    # /api/chunkers/* endpoints
 
 if __name__ == "__main__":
