@@ -137,11 +137,6 @@ Ragproject/
 
 ## 🛠️ Development
 
-### Running Tests
-```bash
-pytest tests/
-```
-
 ### Code Style
 ```bash
 # Format code
