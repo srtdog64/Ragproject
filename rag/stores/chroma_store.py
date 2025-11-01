@@ -36,6 +36,7 @@ class ChromaVectorStore(VectorStore):
         self.base_collection_name = collection_name
         self.embedding_model = embedding_model
         self.embedding_dim = embedding_dim
+        self._closed = False
         
         # Initialize namespace manager
         self.namespace_manager = NamespaceManager(collection_name)
@@ -205,6 +206,28 @@ class ChromaVectorStore(VectorStore):
         
         logger.info(f"ChromaDB: Found {len(retrieved)} results")
         return retrieved
+    
+    def close(self) -> None:
+        """Release underlying Chroma resources"""
+        if self._closed:
+            return
+        self._closed = True
+        try:
+            system = getattr(self.client, "_system", None)
+            if system and getattr(system, "_running", False):
+                system.stop()
+                logger.info("ChromaDB: Client system stopped")
+        except Exception as e:
+            logger.warning(f"ChromaDB: Failed to stop client system: {e}")
+        finally:
+            self.client = None
+            self.collection = None
+    
+    def __del__(self):
+        try:
+            self.close()
+        except Exception:
+            pass
     
     def clear(self) -> None:
         """

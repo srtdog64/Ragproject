@@ -44,8 +44,20 @@ _pipeline_builder = None
 def rebuild_components():
     """Rebuild components after configuration change"""
     global _container, _ingester, _pipeline_builder
+    previous_store = None
+    if _container is not None:
+        try:
+            previous_store = _container.resolve("store")
+        except Exception as e:
+            logger.warning(f"Failed to resolve existing store during rebuild: {e}")
     try:
         logger.info("Rebuilding components after config change...")
+        if previous_store and hasattr(previous_store, "close"):
+            try:
+                previous_store.close()
+            except Exception as cleanup_error:
+                logger.warning(f"Error while closing previous store: {cleanup_error}")
+
         _container, _ingester, _pipeline_builder = initialize_components()
         
         # Update all routers with new components
@@ -65,67 +77,98 @@ async def lifespan(app: FastAPI):
     """Handle startup and shutdown events"""
     global _container, _ingester, _pipeline_builder
     
-    # Startup
-    logger.info("="*60)
-    logger.info("Starting RAG Server")
-    logger.info("="*60)
-    logger.info(f"Working directory: {os.getcwd()}")
-    logger.info(f"Script location: {os.path.abspath(__file__)}")
-    
-    # Initialize task manager
-    task_manager = get_task_manager()
-    logger.info("Task manager initialized")
-    
-    # Initialize components
+    task_manager = None
     try:
-        _container, _ingester, _pipeline_builder = initialize_components()
-        logger.info("All components initialized successfully")
+        logger.info("="*60)
+        logger.info("Starting RAG Server")
+        logger.info("="*60)
+        logger.info(f"Working directory: {os.getcwd()}")
+        logger.info(f"Script location: {os.path.abspath(__file__)}")
         
-        # Set components for routers
-        rag.set_container(_container)
-        ingest.set_ingester(_ingester)
-        ingest.set_task_manager(task_manager)  # Set task manager for async ingestion
-        ask.set_pipeline_builder(_pipeline_builder)
-        ask.set_container(_container)
-        namespaces.set_container(_container)
-        config.set_config(app_config)
-        config.set_rebuild_callback(rebuild_components)
+        task_manager = get_task_manager()
+        ingest.set_task_manager(task_manager)
+        logger.info("Task manager initialized")
         
-        # Log initial stats
         try:
-            store = _container.resolve("store")
-            if hasattr(store, "count"):
-                count = store.count()
-                logger.info(f"Initial vector count: {count}")
-        except Exception as e:
-            logger.warning(f"Could not get initial count: {e}")
+            _container, _ingester, _pipeline_builder = initialize_components()
+            logger.info("All components initialized successfully")
             
-    except Exception as e:
-        logger.error(f"Failed to initialize components: {e}")
-        import traceback
-        logger.error(traceback.format_exc())
-        # Set None values to prevent errors
+            rag.set_container(_container)
+            ingest.set_ingester(_ingester)
+            ask.set_pipeline_builder(_pipeline_builder)
+            ask.set_container(_container)
+            namespaces.set_container(_container)
+            config.set_config(app_config)
+            config.set_rebuild_callback(rebuild_components)
+            
+            try:
+                store = _container.resolve("store")
+                if hasattr(store, "count"):
+                    count = store.count()
+                    logger.info(f"Initial vector count: {count}")
+            except Exception as e:
+                logger.warning(f"Could not get initial count: {e}")
+                
+        except Exception as e:
+            logger.error(f"Failed to initialize components: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            rag.set_container(None)
+            ingest.set_ingester(None)
+            ingest.set_task_manager(None)
+            ask.set_pipeline_builder(None)
+            ask.set_container(None)
+            namespaces.set_container(None)
+            _container = None
+            _ingester = None
+            _pipeline_builder = None
+        
+        logger.info("Registered routes:")
+        for route in app.routes:
+            if hasattr(route, 'path') and hasattr(route, 'methods'):
+                methods = ', '.join(route.methods) if route.methods else 'ANY'
+                logger.info(f"  {route.path} [{methods}]")
+        
+        logger.info("="*60)
+        logger.info("Server started successfully")
+        logger.info("="*60)
+        
+        yield
+    
+    finally:
+        logger.info("Shutting down server...")
+        
+        if task_manager is not None:
+            try:
+                await task_manager.shutdown()
+                logger.info("Background task manager shut down")
+            except Exception as e:
+                logger.warning(f"Failed to shut down task manager cleanly: {e}")
+        
+        store_for_cleanup = None
+        if _container is not None:
+            try:
+                store_for_cleanup = _container.resolve("store")
+            except Exception as e:
+                logger.warning(f"Failed to resolve store during shutdown: {e}")
+        
+        if store_for_cleanup and hasattr(store_for_cleanup, "close"):
+            try:
+                store_for_cleanup.close()
+                logger.info("Vector store closed")
+            except Exception as e:
+                logger.warning(f"Error while closing vector store: {e}")
+        
         rag.set_container(None)
         ingest.set_ingester(None)
+        ingest.set_task_manager(None)
         ask.set_pipeline_builder(None)
         ask.set_container(None)
         namespaces.set_container(None)
-    
-    # Log registered routes after everything is set up
-    logger.info("Registered routes:")
-    for route in app.routes:
-        if hasattr(route, 'path') and hasattr(route, 'methods'):
-            methods = ', '.join(route.methods) if route.methods else 'ANY'
-            logger.info(f"  {route.path} [{methods}]")
-    
-    logger.info("="*60)
-    logger.info("Server started successfully")
-    logger.info("="*60)
-    
-    yield  # Server runs here
-    
-    # Shutdown
-    logger.info("Shutting down server...")
+        _container = None
+        _ingester = None
+        _pipeline_builder = None
+        logger.info("Server shutdown cleanup complete")
 
 # Create FastAPI app with lifespan manager
 app = FastAPI(

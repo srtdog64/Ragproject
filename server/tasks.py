@@ -192,6 +192,26 @@ class TaskManager:
                 logger.info(f"Cleaned up old task {task_id}")
             
             return len(to_remove)
+    
+    async def shutdown(self, cancel_running: bool = True) -> None:
+        """Cancel or await running tasks during application shutdown"""
+        async with self._lock:
+            tasks = list(self.running_tasks.values())
+        
+        if not tasks:
+            return
+        
+        if cancel_running:
+            for task in tasks:
+                task.cancel()
+        
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for idx, result in enumerate(results):
+            if isinstance(result, Exception) and not isinstance(result, asyncio.CancelledError):
+                logger.warning(f"Background task {idx} ended with error during shutdown: {result}")
+        
+        async with self._lock:
+            self.running_tasks.clear()
 
 # Global task manager instance
 _task_manager: Optional[TaskManager] = None
