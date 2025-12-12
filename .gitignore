@@ -76,3 +76,4 @@ qt_app_config.local.yaml
 *.cert
 secrets/
 rag/chunkers/config.json
+.claude/
